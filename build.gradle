@@ -1,0 +1,25 @@
+buildscript {
+    ext {
+        appcompatVersion = '1.6.0'
+        constraintLayoutVersion = '2.1.4'
+        coreKtxVersion = '1.9.0'
+        datastoreVersion = '1.0.0'
+        junitVersion = '4.13.2'
+        materialComponentsVersion = '1.7.0'
+        preferenceVersion = '1.2.0'
+        zxingEmbeddedVersion = '4.3.0'
+        preferenceKtxVersion = '1.2.0'
+        gsonVersion = '2.8.9'
+        testExtJunitVersion = '1.1.5'
+        espressoVersion = '3.5.1'
+
+        groupName = 'com.wireguard.android'
+    }
+}
+
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+plugins {
+    id 'com.android.application' version '7.3.1' apply false
+    id 'com.android.library' version '7.3.1' apply false
+    id 'org.jetbrains.kotlin.android' version '1.7.20' apply false
+}
