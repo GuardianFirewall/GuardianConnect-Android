@@ -23,6 +23,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnStopTunnel: Button
     private lateinit var btnResetConfiguration: Button
     private lateinit var progressBar: ProgressBar
+    private lateinit var etPeToken: EditText
+    private lateinit var btnPeToken: Button
     private var adapter: AllRegionsAdapter? = null
     private var rvList: RecyclerView? = null
     private val regionsAdapterList: ArrayList<GRDRegion> = ArrayList()
@@ -32,7 +34,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         etConfig = findViewById(R.id.etConfig)
         initGRDVPNHelper()
-        savePeToken()
         initUI()
         initRecyclerView()
         loadRegionsList()
@@ -63,7 +64,12 @@ class MainActivity : AppCompatActivity() {
             btnStopTunnel.visibility = View.GONE
             etConfig.setText("")
             adapter?.setSelectedPosition(0)
-            savePeToken()
+        }
+
+        btnPeToken.setOnClickListener {
+            if (!etPeToken.text.isNullOrEmpty()) {
+                savePeToken(etPeToken.text.toString())
+            }
         }
     }
 
@@ -148,6 +154,8 @@ class MainActivity : AppCompatActivity() {
         btnResetConfiguration = findViewById(R.id.btnResetConfiguration)
         progressBar = findViewById(R.id.progressBar)
         rvList = findViewById(R.id.rvList)
+        etPeToken = findViewById(R.id.etPeToken)
+        btnPeToken = findViewById(R.id.btnPeToken)
 
         if (GRDVPNHelper.isTunnelRunning()) {
             btnStartTunnel.visibility = View.GONE
@@ -161,10 +169,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun savePeToken() {
+    private fun savePeToken(peToken: String) {
         GRDKeystore.instance.saveToKeyStore(
             Constants.GRD_PE_TOKEN,
-            ""
+            peToken
         )
     }
 

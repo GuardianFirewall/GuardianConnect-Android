@@ -7,15 +7,45 @@
     tools:context=".MainActivity">
 
     <TextView
+        android:id="@+id/tvPeToken"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="PEToken"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.075"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/etPeToken"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvPeToken" />
+
+    <Button
+        android:id="@+id/btnPeToken"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SAVE PETOKEN"
+        app:layout_constraintEnd_toEndOf="@id/etPeToken"
+        app:layout_constraintStart_toStartOf="@id/etPeToken"
+        app:layout_constraintTop_toBottomOf="@id/etPeToken" />
+
+    <TextView
         android:id="@+id/tvConfig"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="64dp"
+        android:layout_marginTop="16dp"
         android:text="Config"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.129"
+        app:layout_constraintHorizontal_bias="0.11"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/btnPeToken" />
 
     <EditText
         android:id="@+id/etConfig"
