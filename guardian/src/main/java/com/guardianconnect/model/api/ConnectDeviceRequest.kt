@@ -10,10 +10,10 @@ class ConnectDeviceRequest {
     @SerializedName("pe-token")
     var peToken: String? = null
 
-    @SerializedName("device-nickname")
-    var deviceNickname: String? = null
+    @SerializedName("ep-grd-device-nickname")
+    var epGrdDeviceNickname: String? = null
 
-    @SerializedName("accepted-tos")
-    var acceptedTos: Boolean? = null
+    @SerializedName("ep-grd-device-accepted-tos")
+    var epGrdDeviceAcceptedTos: Boolean? = null
 
 }

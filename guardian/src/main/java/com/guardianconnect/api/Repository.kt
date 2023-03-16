@@ -23,9 +23,9 @@ import java.util.concurrent.TimeUnit
 class Repository {
 
     val grdSubscriberCredential = GRDSubscriberCredential()
-    private var apiCalls: IApiCalls? = null
-    private var apiCallsConnect: IApiCalls? = null
-    private var apiCallsGRDConnect: IApiCalls? = null // TODO: initialize
+    var apiCalls: IApiCalls? = null
+    var apiCallsConnect: IApiCalls? = null
+    var apiCallsGRDConnect: IApiCalls? = null // TODO: initialize
     val TAG: String = Repository::class.java.simpleName
 
     companion object {
@@ -76,6 +76,28 @@ class Repository {
             .client(clientConnect)
             .build()
         apiCallsConnect = retrofitConnect.create(IApiCalls::class.java)
+    }
+
+    fun initConnectSubscriberServer() {
+        val gsonConnect = GsonBuilder()
+            .setLenient()
+            .create()
+        val interceptorConnect = HttpLoggingInterceptor()
+        interceptorConnect.setLevel(HttpLoggingInterceptor.Level.BODY)
+        val clientConnect: OkHttpClient =
+            OkHttpClient
+                .Builder()
+                .addInterceptor(interceptorConnect)
+                .connectTimeout(5, TimeUnit.MINUTES)
+                .readTimeout(5, TimeUnit.MINUTES)
+                .writeTimeout(5, TimeUnit.MINUTES)
+                .build()
+        val retrofitConnect: Retrofit = Retrofit.Builder()
+            .baseUrl("https://connect-api.dev.guardianapp.com/")
+            .addConverterFactory(GsonConverterFactory.create(gsonConnect))
+            .client(clientConnect)
+            .build()
+        apiCallsGRDConnect = retrofitConnect.create(IApiCalls::class.java)
     }
 
     fun getServerStatus(iOnApiResponse: IOnApiResponse) {

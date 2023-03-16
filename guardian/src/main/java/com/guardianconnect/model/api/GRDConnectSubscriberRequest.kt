@@ -10,7 +10,7 @@ class GRDConnectSubscriberRequest {
     @SerializedName("ep-grd-subscriber-secret")
     var epGrdSubscriberSecret: String? = null
 
-    @SerializedName("accepted-tos")
+    @SerializedName("ep-grd-subscriber-accepted-tos")
     var acceptedTos: Boolean? = null
 
     @SerializedName("ep-grd-subscriber-email")

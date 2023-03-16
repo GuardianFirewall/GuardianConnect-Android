@@ -446,6 +446,7 @@ object GRDVPNHelper {
             }
         }
         Repository.instance.initMainServer(connectAPIHostname)
+        Repository.instance.initConnectSubscriberServer()
     }
 
     val configStringFlow = MutableSharedFlow<String>()

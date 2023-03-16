@@ -10,10 +10,10 @@ class ConnectDeviceUpdateRequest {
     @SerializedName("pe-token")
     var peToken: String? = null
 
-    @SerializedName("device-nickname")
+    @SerializedName("ep-grd-device-nickname")
     var deviceNickname: String? = null
 
-    @SerializedName("device-uuid")
+    @SerializedName("ep-grd-device-uuid")
     var deviceUuid: String? = null
 
 }
