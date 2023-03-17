@@ -53,4 +53,6 @@ dependencies {
     implementation 'androidx.test.ext:junit-ktx:1.1.5'
     androidTestImplementation 'junit:junit:4.13.2'
     androidTestImplementation "androidx.test:runner:1.5.2"
+    testImplementation 'org.mockito:mockito-core:4.5.1'
+    androidTestImplementation 'org.mockito:mockito-android:3.8.0'
 }
