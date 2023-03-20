@@ -1,6 +1,10 @@
+import com.google.gson.Gson
 import com.guardianconnect.GRDRegion
 import com.guardianconnect.api.IApiCalls
+import com.guardianconnect.model.EValidationMethod
 import com.guardianconnect.model.api.*
+import com.guardianconnect.util.Constants
+import com.wireguard.crypto.KeyPair
 import okhttp3.ResponseBody
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.*
@@ -30,6 +34,12 @@ class ApiTest {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
+    private val BASE_URL_REGION = "https://frankfurt-10.sgw.guardianapp.com"
+    private val retrofitRegion = Retrofit.Builder()
+        .baseUrl(BASE_URL_REGION)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
     @Mock
     private lateinit var callGRDConnectSubscriber: Call<GRDConnectSubscriberResponse>
 
@@ -56,6 +66,30 @@ class ApiTest {
 
     @Mock
     private lateinit var callTimeZonesResponse: Call<List<TimeZonesResponse>>
+
+    @Mock
+    private lateinit var callListOfServersForRegion: Call<List<Server>>
+
+    @Mock
+    private lateinit var callSubscriberCredential: Call<SubscriberCredentialResponse>
+
+    @Mock
+    private lateinit var callServerStatus: Call<ResponseBody>
+
+    @Mock
+    private lateinit var callNewVPNDevice: Call<NewVPNDeviceResponse>
+
+    @Mock
+    private lateinit var callVerifyVPNDevice: Call<ResponseBody>
+
+    @Mock
+    private lateinit var callInvalidateVPNDevice: Call<ResponseBody>
+
+    @Mock
+    private lateinit var callDownloadAlerts: Call<List<AlertsResponse>>
+
+    @Mock
+    private lateinit var callSetAlertsDownloadTimeStamp: Call<ResponseBody>
 
     @Test
     fun testCreateNewGRDConnectSubscriber() {
@@ -103,7 +137,8 @@ class ApiTest {
         connectDeviceUpdateRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
         connectDeviceUpdateRequest.epGrdSubscriberSecret = "test-secret"
         connectDeviceUpdateRequest.epGrdSubscriberIdentifier = "200"
-        connectDeviceUpdateRequest.epGrdSubscriberEmail = "testt@example.com"
+        // TODO: change email before every run (won't update with same data)
+        connectDeviceUpdateRequest.epGrdSubscriberEmail = "test@example.com"
         val response = apiService.updateGRDConnectSubscriber(
             connectDeviceUpdateRequest
         ).execute()
@@ -132,38 +167,79 @@ class ApiTest {
     @Test
     fun testUpdateConnectDevice() {
         val apiService = retrofitGRD.create(IApiCalls::class.java)
-        Mockito.`when`(callUpdateConnectDevice.execute()).thenReturn(
+        Mockito.`when`(callConnectDevice.execute()).thenReturn(
             Response.success(
                 ConnectDeviceResponse()
             )
         )
-        val connectDeviceUpdateRequest = ConnectDeviceUpdateRequest()
-        connectDeviceUpdateRequest.connectPublicKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
-        connectDeviceUpdateRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
-        connectDeviceUpdateRequest.deviceNickname = "test_nickname"
-        connectDeviceUpdateRequest.deviceUuid = "8C5701B0-8E3F-55F0-10C9-0A20A15DB926"
-        val response = apiService.updateConnectDevice(
-            connectDeviceUpdateRequest
+        val connectDeviceRequest = ConnectDeviceRequest()
+        connectDeviceRequest.connectPublicKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        connectDeviceRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
+        connectDeviceRequest.epGrdDeviceNickname = "test_nickname"
+        connectDeviceRequest.epGrdDeviceAcceptedTos = true
+        val response = apiService.addConnectDevice(
+            connectDeviceRequest
         ).execute()
-        assertTrue(response.body() != null)
+        response.body()?.string().let {
+            val connectDeviceResponse = Gson().fromJson(
+                it,
+                ConnectDeviceResponse::class.java
+            )
+
+            val apiService = retrofitGRD.create(IApiCalls::class.java)
+            Mockito.`when`(callUpdateConnectDevice.execute()).thenReturn(
+                Response.success(
+                    ConnectDeviceResponse()
+                )
+            )
+            val connectDeviceUpdateRequest = ConnectDeviceUpdateRequest()
+            connectDeviceUpdateRequest.connectPublicKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+            connectDeviceUpdateRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
+            connectDeviceUpdateRequest.deviceNickname = "test_nickname"
+            connectDeviceUpdateRequest.deviceUuid = connectDeviceResponse.epGrdDeviceUuid
+            val response = apiService.updateConnectDevice(
+                connectDeviceUpdateRequest
+            ).execute()
+            assertTrue(response.body() != null)
+        }
     }
 
     @Test
     fun testDeleteConnectDevice() {
         val apiService = retrofitGRD.create(IApiCalls::class.java)
-        Mockito.`when`(callDeleteConnectDevice.execute()).thenReturn(
+        Mockito.`when`(callConnectDevice.execute()).thenReturn(
             Response.success(
-                "Test".toResponseBody()
+                ConnectDeviceResponse()
             )
         )
-        val connectDeviceDeleteRequest = ConnectDeviceDeleteRequest()
-        connectDeviceDeleteRequest.connectPublicKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
-        connectDeviceDeleteRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
-        connectDeviceDeleteRequest.deviceUuid = "CAAE01BC-7F3A-7743-05E6-DBF55E4619C7"
-        val response = apiService.deleteConnectDevice(
-            connectDeviceDeleteRequest
+        val connectDeviceRequest = ConnectDeviceRequest()
+        connectDeviceRequest.connectPublicKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        connectDeviceRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
+        connectDeviceRequest.epGrdDeviceNickname = "test_nickname"
+        connectDeviceRequest.epGrdDeviceAcceptedTos = true
+        val response = apiService.addConnectDevice(
+            connectDeviceRequest
         ).execute()
-        assertTrue(response.code() == 200)
+        response.body()?.string().let {
+            val connectDeviceResponse = Gson().fromJson(
+                it,
+                ConnectDeviceResponse::class.java
+            )
+            val apiService = retrofitGRD.create(IApiCalls::class.java)
+            Mockito.`when`(callDeleteConnectDevice.execute()).thenReturn(
+                Response.success(
+                    "Test".toResponseBody()
+                )
+            )
+            val connectDeviceDeleteRequest = ConnectDeviceDeleteRequest()
+            connectDeviceDeleteRequest.connectPublicKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+            connectDeviceDeleteRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
+            connectDeviceDeleteRequest.deviceUuid = connectDeviceResponse.epGrdDeviceUuid
+            val response = apiService.deleteConnectDevice(
+                connectDeviceDeleteRequest
+            ).execute()
+            assertTrue(response.code() == 200)
+        }
     }
 
     @Test
@@ -198,5 +274,351 @@ class ApiTest {
             .thenReturn(Response.success(listOf(TimeZonesResponse())))
         val response = apiService.getListOfSupportedTimeZones().execute()
         assertTrue(response.body() != null)
+    }
+
+    @Test
+    fun testListOfServersForRegion() {
+        val apiService = retrofit.create(IApiCalls::class.java)
+        Mockito.`when`(callListOfServersForRegion.execute()).thenReturn(
+            Response.success(
+                listOf(Server())
+            )
+        )
+        val requestServersForRegion = RequestServersForRegion()
+        requestServersForRegion.region = "eu-de"
+        val response = apiService.requestListOfServersForRegion(
+            requestServersForRegion
+        ).execute()
+        assertTrue(response.body() != null)
+    }
+
+    @Test
+    fun testGetSubscriberCredentialsPEToken() {
+        val apiService = retrofit.create(IApiCalls::class.java)
+        Mockito.`when`(callSubscriberCredential.execute()).thenReturn(
+            Response.success(
+                SubscriberCredentialResponse()
+            )
+        )
+        val validationMethodPEToken = ValidationMethodPEToken()
+        validationMethodPEToken.validationMethod = EValidationMethod.PE_TOKEN.method
+        validationMethodPEToken.peToken = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
+        val response = apiService.getSubscriberCredentialsPEToken(
+            validationMethodPEToken
+        ).execute()
+
+        assertTrue(response.body() != null)
+    }
+
+    @Test
+    fun testServerStatus() {
+        val apiService = retrofitRegion.create(IApiCalls::class.java)
+        Mockito.`when`(callServerStatus.execute()).thenReturn(
+            Response.success(
+                "Test".toResponseBody()
+            )
+        )
+        val response = apiService.getServerStatus().execute()
+        assertTrue(response.code() == 200)
+    }
+
+    @Test
+    fun testNewVPNDevice() {
+        val apiService = retrofit.create(IApiCalls::class.java)
+        Mockito.`when`(callSubscriberCredential.execute()).thenReturn(
+            Response.success(
+                SubscriberCredentialResponse()
+            )
+        )
+        val validationMethodPEToken = ValidationMethodPEToken()
+        validationMethodPEToken.validationMethod = EValidationMethod.PE_TOKEN.method
+        validationMethodPEToken.peToken = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
+        val response = apiService.getSubscriberCredentialsPEToken(
+            validationMethodPEToken
+        ).execute()
+
+        response.body()?.string().let {
+            val subscriberCredentialResponse =
+                Gson().fromJson(
+                    it,
+                    SubscriberCredentialResponse::class.java
+                )
+            subscriberCredentialResponse.subscriberCredential?.let { scs ->
+                val apiService = retrofitRegion.create(IApiCalls::class.java)
+                Mockito.`when`(callNewVPNDevice.execute()).thenReturn(
+                    Response.success(
+                        NewVPNDeviceResponse()
+                    )
+                )
+                val newVPNDevice = NewVPNDevice()
+                newVPNDevice.transportProtocol = Constants.GRD_WIREGUARD
+                newVPNDevice.subscriberCredential = scs
+                val keyPair = KeyPair()
+                val keyPairGenerated = KeyPair(keyPair.privateKey)
+                val publicKey = keyPairGenerated.publicKey.toBase64()
+                newVPNDevice.publicKey = publicKey
+                val response = apiService.createNewVPNDevice(
+                    newVPNDevice
+                ).execute()
+                assertTrue(response.body() != null)
+            }
+        }
+    }
+
+    @Test
+    fun testVerifyVPNDevice() {
+        val apiService = retrofit.create(IApiCalls::class.java)
+        Mockito.`when`(callSubscriberCredential.execute()).thenReturn(
+            Response.success(
+                SubscriberCredentialResponse()
+            )
+        )
+        val validationMethodPEToken = ValidationMethodPEToken()
+        validationMethodPEToken.validationMethod = EValidationMethod.PE_TOKEN.method
+        validationMethodPEToken.peToken = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
+        val response = apiService.getSubscriberCredentialsPEToken(
+            validationMethodPEToken
+        ).execute()
+
+        val responseString = response.body()?.string()
+        responseString.let {
+            val subscriberCredentialResponse =
+                Gson().fromJson(
+                    it,
+                    SubscriberCredentialResponse::class.java
+                )
+            subscriberCredentialResponse.subscriberCredential?.let { scs ->
+                val apiService = retrofitRegion.create(IApiCalls::class.java)
+                Mockito.`when`(callNewVPNDevice.execute()).thenReturn(
+                    Response.success(
+                        NewVPNDeviceResponse()
+                    )
+                )
+                val newVPNDevice = NewVPNDevice()
+                newVPNDevice.transportProtocol = Constants.GRD_WIREGUARD
+                newVPNDevice.subscriberCredential = scs
+                val keyPair = KeyPair()
+                val keyPairGenerated = KeyPair(keyPair.privateKey)
+                val publicKey = keyPairGenerated.publicKey.toBase64()
+                newVPNDevice.publicKey = publicKey
+                val response = apiService.createNewVPNDevice(
+                    newVPNDevice
+                ).execute()
+
+                response.body().let { vpn ->
+                    val vpnCredentials = VPNCredentials()
+                    vpnCredentials.apiAuthToken = vpn?.getApiAuthToken()
+                    vpnCredentials.subscriberCredential =
+                        subscriberCredentialResponse.subscriberCredential
+
+                    Mockito.`when`(callVerifyVPNDevice.execute()).thenReturn(
+                        Response.success(
+                            "Test".toResponseBody()
+                        )
+                    )
+                    val response = vpn?.clientId?.let { it1 ->
+                        apiService.verifyVPNCredentials(
+                            it1,
+                            vpnCredentials
+                        ).execute()
+                    }
+                    assertTrue(response?.code() == 200)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testInvalidateVPNDevice() {
+        val apiService = retrofit.create(IApiCalls::class.java)
+        Mockito.`when`(callSubscriberCredential.execute()).thenReturn(
+            Response.success(
+                SubscriberCredentialResponse()
+            )
+        )
+        val validationMethodPEToken = ValidationMethodPEToken()
+        validationMethodPEToken.validationMethod = EValidationMethod.PE_TOKEN.method
+        validationMethodPEToken.peToken = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
+        val response = apiService.getSubscriberCredentialsPEToken(
+            validationMethodPEToken
+        ).execute()
+
+        val responseString = response.body()?.string()
+        responseString.let {
+            val subscriberCredentialResponse =
+                Gson().fromJson(
+                    it,
+                    SubscriberCredentialResponse::class.java
+                )
+            subscriberCredentialResponse.subscriberCredential?.let { scs ->
+                val apiService = retrofitRegion.create(IApiCalls::class.java)
+                Mockito.`when`(callNewVPNDevice.execute()).thenReturn(
+                    Response.success(
+                        NewVPNDeviceResponse()
+                    )
+                )
+                val newVPNDevice = NewVPNDevice()
+                newVPNDevice.transportProtocol = Constants.GRD_WIREGUARD
+                newVPNDevice.subscriberCredential = scs
+                val keyPair = KeyPair()
+                val keyPairGenerated = KeyPair(keyPair.privateKey)
+                val publicKey = keyPairGenerated.publicKey.toBase64()
+                newVPNDevice.publicKey = publicKey
+                val response = apiService.createNewVPNDevice(
+                    newVPNDevice
+                ).execute()
+
+                response.body().let { vpn ->
+                    val vpnCredentials = VPNCredentials()
+                    vpnCredentials.apiAuthToken = vpn?.getApiAuthToken()
+                    vpnCredentials.subscriberCredential =
+                        subscriberCredentialResponse.subscriberCredential
+
+                    Mockito.`when`(callInvalidateVPNDevice.execute()).thenReturn(
+                        Response.success(
+                            "Test".toResponseBody()
+                        )
+                    )
+                    val response = vpn?.clientId?.let { it1 ->
+                        apiService.invalidateVPNCredentials(
+                            it1,
+                            vpnCredentials
+                        ).execute()
+                    }
+                    assertTrue(response?.code() == 200)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testDownloadAlerts() {
+        val apiService = retrofit.create(IApiCalls::class.java)
+        Mockito.`when`(callSubscriberCredential.execute()).thenReturn(
+            Response.success(
+                SubscriberCredentialResponse()
+            )
+        )
+        val validationMethodPEToken = ValidationMethodPEToken()
+        validationMethodPEToken.validationMethod = EValidationMethod.PE_TOKEN.method
+        validationMethodPEToken.peToken = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
+        val response = apiService.getSubscriberCredentialsPEToken(
+            validationMethodPEToken
+        ).execute()
+
+        val responseString = response.body()?.string()
+        responseString.let {
+            val subscriberCredentialResponse =
+                Gson().fromJson(
+                    it,
+                    SubscriberCredentialResponse::class.java
+                )
+            subscriberCredentialResponse.subscriberCredential?.let { scs ->
+                val apiService = retrofitRegion.create(IApiCalls::class.java)
+                Mockito.`when`(callNewVPNDevice.execute()).thenReturn(
+                    Response.success(
+                        NewVPNDeviceResponse()
+                    )
+                )
+                val newVPNDevice = NewVPNDevice()
+                newVPNDevice.transportProtocol = Constants.GRD_WIREGUARD
+                newVPNDevice.subscriberCredential = scs
+                val keyPair = KeyPair()
+                val keyPairGenerated = KeyPair(keyPair.privateKey)
+                val publicKey = keyPairGenerated.publicKey.toBase64()
+                newVPNDevice.publicKey = publicKey
+                val response = apiService.createNewVPNDevice(
+                    newVPNDevice
+                ).execute()
+
+                response.body().let { vpn ->
+                    val vpnCredentials = VPNCredentials()
+                    vpnCredentials.apiAuthToken = vpn?.getApiAuthToken()
+                    vpnCredentials.subscriberCredential =
+                        subscriberCredentialResponse.subscriberCredential
+
+                    Mockito.`when`(callDownloadAlerts.execute()).thenReturn(
+                        Response.success(
+                            listOf(AlertsResponse())
+                        )
+                    )
+                    val alerts = Alerts()
+                    alerts.apiAuthToken = vpnCredentials.apiAuthToken
+                    alerts.timestamp = 128396546
+                    val response = vpn?.clientId?.let { it1 ->
+                        apiService.downloadAlerts(
+                            it1,
+                            alerts
+                        ).execute()
+                    }
+                    assertTrue(response?.body() != null)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testSetAlertsDownloadStamp() {
+        val apiService = retrofit.create(IApiCalls::class.java)
+        Mockito.`when`(callSubscriberCredential.execute()).thenReturn(
+            Response.success(
+                SubscriberCredentialResponse()
+            )
+        )
+        val validationMethodPEToken = ValidationMethodPEToken()
+        validationMethodPEToken.validationMethod = EValidationMethod.PE_TOKEN.method
+        validationMethodPEToken.peToken = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
+        val response = apiService.getSubscriberCredentialsPEToken(
+            validationMethodPEToken
+        ).execute()
+
+        val responseString = response.body()?.string()
+        responseString.let {
+            val subscriberCredentialResponse =
+                Gson().fromJson(
+                    it,
+                    SubscriberCredentialResponse::class.java
+                )
+            subscriberCredentialResponse.subscriberCredential?.let { scs ->
+                val apiService = retrofitRegion.create(IApiCalls::class.java)
+                Mockito.`when`(callNewVPNDevice.execute()).thenReturn(
+                    Response.success(
+                        NewVPNDeviceResponse()
+                    )
+                )
+                val newVPNDevice = NewVPNDevice()
+                newVPNDevice.transportProtocol = Constants.GRD_WIREGUARD
+                newVPNDevice.subscriberCredential = scs
+                val keyPair = KeyPair()
+                val keyPairGenerated = KeyPair(keyPair.privateKey)
+                val publicKey = keyPairGenerated.publicKey.toBase64()
+                newVPNDevice.publicKey = publicKey
+                val response = apiService.createNewVPNDevice(
+                    newVPNDevice
+                ).execute()
+
+                response.body().let { vpn ->
+                    val vpnCredentials = VPNCredentials()
+                    vpnCredentials.apiAuthToken = vpn?.getApiAuthToken()
+                    vpnCredentials.subscriberCredential =
+                        subscriberCredentialResponse.subscriberCredential
+
+                    Mockito.`when`(callSetAlertsDownloadTimeStamp.execute()).thenReturn(
+                        Response.success(
+                            "Test".toResponseBody()
+                        )
+                    )
+                    val baseRequest = BaseRequest()
+                    baseRequest.apiAuthToken = vpnCredentials.apiAuthToken
+                    val response = vpn?.clientId?.let { it1 ->
+                        apiService.setAlertsDownloadTimestamp(
+                            it1,
+                            baseRequest
+                        ).execute()
+                    }
+                    assertTrue(response?.code() == 200)
+                }
+            }
+        }
     }
 }

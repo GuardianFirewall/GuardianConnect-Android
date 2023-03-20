@@ -10,6 +10,6 @@ class ConnectDeviceDeleteRequest {
     @SerializedName("pe-token")
     var peToken: String? = null
 
-    @SerializedName("device-uuid")
+    @SerializedName("ep-grd-device-uuid")
     var deviceUuid: String? = null
 }

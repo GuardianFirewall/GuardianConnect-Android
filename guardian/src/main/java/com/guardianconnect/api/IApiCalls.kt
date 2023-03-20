@@ -5,10 +5,7 @@ import com.guardianconnect.model.*
 import com.guardianconnect.model.api.*
 import okhttp3.ResponseBody
 import retrofit2.Call
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.Path
+import retrofit2.http.*
 
 interface IApiCalls {
 
@@ -63,7 +60,7 @@ interface IApiCalls {
     @POST("/api/v1.2/partners/subscribers/new")
     fun createNewGRDConnectSubscriber(@Body grdConnectSubscriberRequest: GRDConnectSubscriberRequest): Call<ResponseBody>
 
-    @POST("/api/v1.2/partners/subscriber/update")
+    @PUT("/api/v1.2/partners/subscriber/update")
     fun updateGRDConnectSubscriber(@Body connectSubscriberUpdateRequest: ConnectSubscriberUpdateRequest): Call<ResponseBody>
 
     @POST("/api/v1.2/partners/subscriber/validate")
@@ -72,7 +69,7 @@ interface IApiCalls {
     @POST("/api/v1.2/partners/subscriber/devices/add")
     fun addConnectDevice(@Body connectDeviceRequest: ConnectDeviceRequest): Call<ResponseBody>
 
-    @POST("/api/v1.2/partners/subscriber/device/update")
+    @PUT("/api/v1.2/partners/subscriber/device/update")
     fun updateConnectDevice(@Body connectDeviceUpdateRequest: ConnectDeviceUpdateRequest): Call<ResponseBody>
 
     @POST("/api/v1.2/partners/subscriber/device/delete")
