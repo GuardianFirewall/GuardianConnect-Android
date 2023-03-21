@@ -41,7 +41,7 @@ dependencies {
 
     implementation "androidx.core:core-ktx:$coreKtxVersion"
     implementation "androidx.appcompat:appcompat:$appcompatVersion"
-    implementation "com.wireguard.android:tunnel:1.0.20211029"
+    implementation "com.wireguard.android:tunnel:1.0.20230321"
     implementation "androidx.datastore:datastore-preferences:$datastoreVersion"
     implementation "com.journeyapps:zxing-android-embedded:$zxingEmbeddedVersion"
     implementation "com.google.code.gson:gson:$gsonVersion"
