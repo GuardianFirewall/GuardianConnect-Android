@@ -71,6 +71,9 @@ class MainActivity : AppCompatActivity() {
                 savePeToken(etPeToken.text.toString())
             }
         }
+
+        var storedPET = GRDKeystore.instance.retrieveFromKeyStore(Constants.GRD_PE_TOKEN)
+        etPeToken.setText(storedPET)
     }
 
     private fun collectFlowStates() {
