@@ -1,0 +1,132 @@
+Create and Publish an Android Library in MavenCentral
+
+1. Prerequisites - The command line gpg tool
+    1. Ubuntu: • sudo apt install gnupg
+               • sudo apt install gnupg
+    2. Mac: https://gpgtools.org/
+    3. Windows: https://www.gpg4win.org/download.html
+
+2. Create an Android Library
+
+3. Upload the Code to GitHub or Bitbucket Repository
+    Navigate to the library submodule directory and upload the submodule into the repository.
+
+4. Create a Sonatype Account - https://issues.sonatype.org/
+
+5. Create an issue (New Project) - https://issues.sonatype.org/secure/CreateIssue!default.jspa
+    1. Project: Select “Community Support — Open Source Project Repository Hosting”
+    2. Issue Type: Select “New Project”
+
+    Create an issue requesting access to the group ID under which we want to publish the library.
+    Based on the use case, we can use a custom domain name if we own one (verification is needed).
+    If not, we can use a bitbucket-based group ID (something like: io.bitbucket.bitbucketUsername).
+    • Summary: Short summary
+    • Description: An optional summary of what your project is about.
+    • Group Id: Your group ID, as discussed above.
+    • Project URL: We can pass the repository URL of the library.
+    • SCM URL: We can pass the repository URL of the library.
+    • Username(s): If you want additional users, we can mention their usernames here.
+    • Already Synced to Central: In our case, we’re just getting started, so no.
+    Click Create.
+    It might take some time to assign the issue to someone and resolve it. Within 15 to 30 minutes,
+    you will receive a comment to verify the domain Id (the steps will be written in the comment itself
+    and in the email you receive). Follow the steps and wait for the group ID to be verified (note that
+    it might take up to 48 hours to verify the group ID).
+
+6. Generating a GPG Key Pair
+    Artifacts published on MavenCentral must be signed off by their publishers. We’ll need a GPG key for this.
+
+    1. gpg --full-gen-key
+    This will prompt you to fill in the following details:
+        • Kind of key: Accept the default value, which is (1) RSA and RSA.
+        • Key size: 4096.
+        • Expiration: Input 0 to create a key that never expires.
+        • Real name, email: Input your email.
+        • Comment: Optional. You can leave it empty.
+        • Finally, you’ll be prompted to enter a passphrase (enter it and remember, we will need it later)
+    To see the list of keys generated, execute the following command:
+
+    2. gpg --list-keys
+    Copy the last eight digits of the key, we will need it later.
+    Now that we created a public and private key pair, we need to upload the public key to the server
+    so that anyone can check that it belongs to you, which you can do by running the following:
+
+    3. gpg --keyserver keyserver.ubuntu.com --send-keys LAST_8_DIGITS_OF_YOUR_KEY
+    Now coming to the private key, we need to get a base 64 export of the key to sign the artifact.
+    We can get the base64 format by executing the following command:
+
+    4. gpg --export-secret-keys LAST_8_DIGITS_OF_YOUR_KEY | base64
+    Enter the passphrase (step 6.1) you created earlier, then copy the generated base64 string into
+    a temp file, we need this in the next sections.
+
+7. Setup Publication Details in the Project
+
+    Configuration from the root project:
+    1. Add the gradle-nexus.publish-plugin inside build.gradle file under the plugins block.
+
+      plugins {
+        id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
+      }
+
+    2. We need to create a gradle file to hold the global configuration required for publishing
+      the library. Let’s create a subpackage under the root with the name scripts and then create
+      publish-root.gradle inside it. (You can find it in script folder under the name
+      publish-root.gradle.txt)
+
+    3. As a final step, add the following line in build.gradle of root project to apply the script.
+       apply from: 'scripts/publish-root.gradle'
+
+    4. Add the details in the local.properties:
+
+        signing.keyId=LAST_8_DIGITS_OF_YOUR_KEY
+        signing.password=YOUR_PASSPHRASE (from step 6.1)
+        signing.key=BASE_64_PUBLIC_KEY (from step 6.4)
+        ossrhUsername=yourSonatypeUser
+        ossrhPassword=yourSonatypePassword
+        sonatypeStagingProfileId=SONATYPE_PROFILE_ID (from step 9)
+
+8. Library or Module Level Gradle Setup
+
+    In library module of the project, create a new file publish-remote.gradle to define the publishing
+    and signing configuration. (You can find it in script folder under the name publish-remote.gradle.txt).
+    The next step is to publish details like group id, version, and artifact id in the library module
+    level gradle file. Then the script itself should be applied as shown below:
+
+    ext {
+       PUBLISH_GROUP_ID = 'YOUR_GROUP_ID' (eg. io.bitbucket.username)
+       PUBLISH_VERSION = '0.1'
+       PUBLISH_ARTIFACT_ID = 'nameOfYourLibrary'
+    }
+    apply from: 'publish-remote.gradle'
+
+9. Sonatype Staging Profile ID Setup
+    To obtain sonatypeStagingProfileId, head over to https://s01.oss.sonatype.org and log in with the
+    Sonatype credentials. Now click on StagingProfiles in the left panel, select your profile,
+    then look for the ID in the URL (eg. https://s01.oss.sonatype.org/#stagingProfiles;8beff59f75555
+    last part from ';' to the end of the URL)
+
+10. First Release
+    We can trigger the release by executing the following command from root project directory in the
+    command line:
+
+    ./gradlew nameOfYourLibrary:publishReleasePublicationToSonatypeRepository
+
+    To see all the files uploaded, click on the content tab. Click on the repository and the Close
+    button in the top bar. This might take some time. Once it’s closed, you’ll see Repository Closed
+    activity. Once the repository is closed, you’ll have two options, drop and release. Drop is to
+    cancel the release and drop the entire repository. The release is to move forward with publishing
+    the new version of the library.
+
+    If you chose the release, it may take some time to reflect. We can check if the library is live
+    by navigating to https://repo1.maven.org/maven2/YOUR_GROUP_ID/nameOfYourLibrary/ (eg.
+    https://repo1.maven.org/maven2/io/bitbucket/user_name/libraryName/). This will show 404 if not
+    been published yet.
+
+11. Automate Creating and Releasing a New Version
+    This is nothing but combining two commands and executing them at once to avoid any manual work:
+
+    ./gradlew nameOfYourLibrary:publishReleasePublicationToSonatypeRepository closeAndReleaseSonatypeStagingRepository
+
+12. How To Use the Published Library
+
+    group_id:artifact_name:version (eg. implementation "io.bitbucket.bitbucketUsername:nameOfYourLibrary:0.1")
