@@ -44,27 +44,27 @@ afterEvaluate {
                 // Mostly self-explanatory metadata
                 pom {
                     name = PUBLISH_ARTIFACT_ID
-                    description = "Description of your library" // TODO: fill in your data
-                    url = 'url_to_your_library' // TODO: fill in your data
+                    description = "Guardian Connect" // TODO: change to name of your choice
+                    url = '' // TODO: URL to repository
                     licenses {
                         license {
-                            name = 'MIT license'
-                            url = 'https://opensource.org/licenses/MIT'
+                            name = 'MIT license' // TODO: change licence if needed
+                            url = 'https://opensource.org/licenses/MIT' // TODO: change
                         }
                     }
                     developers {
                         developer {
-                            id = 'email_without_extension' // TODO: fill in your data
-                            name = 'username' // TODO: fill in your data
-                            email = 'email' // TODO: fill in your data
+                            id = '' // TODO: 'email_without_extension'
+                            name = '' // TODO: 'username'
+                            email = '' // TODO: 'email'
                         }
                     }
 
                     // Version control info
                     scm {
-                        connection = 'scm:git:ssh://git@bitbucket.org/username/mavenpublishlibrary.git' // TODO: fill in your data
-                        developerConnection = 'scm:git:ssh://git@bitbucket.org:username/mavenpublishlibrary.git' // TODO: fill in your data
-                        url = 'https://bitbucket.org/username/mavenpublishlibrary/src/master/' // TODO: fill in your data
+                        connection = 'scm:git:ssh://git@URL_TO_REPOSITORY' // TODO: eg. bitbucket.org/username/examplelibrary.git
+                        developerConnection = 'scm:git:ssh://git@VERSION_CONTROL:URL_TO_REPOSITORY' // TODO: eg. bitbucket.org:username/examplelibrary.git
+                        url = '' // TODO: URL to repository
                     }
                 }
 

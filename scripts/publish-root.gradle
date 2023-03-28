@@ -14,7 +14,7 @@ if (secretPropsFile.exists()) {
     new FileInputStream(secretPropsFile).withCloseable { is ->
         p.load(is)
     }
-    p.each {name, value ->
+    p.each { name, value ->
         ext[name] = value
     }
 } else {
@@ -26,7 +26,6 @@ if (secretPropsFile.exists()) {
     ext['signing.password'] = System.getenv('SIGNING_PASSWORD')
     ext["signing.key"] = System.getenv('SIGNING_KEY')
 }
-
 
 
 // Set up Sonatype repository

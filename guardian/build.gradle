@@ -56,3 +56,11 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:4.5.1'
     androidTestImplementation 'org.mockito:mockito-android:3.8.0'
 }
+
+// TODO: fill in with correct data
+ext {
+    PUBLISH_GROUP_ID = '' // TODO: groupID from OSSRH ticket creation
+    PUBLISH_VERSION = ''
+    PUBLISH_ARTIFACT_ID = ''
+}
+apply from: 'publish-remote.gradle'
