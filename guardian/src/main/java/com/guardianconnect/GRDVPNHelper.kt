@@ -123,7 +123,7 @@ object GRDVPNHelper {
         )
     }
 
-    private fun prepareVPNPermissions() {
+    fun prepareVPNPermissions() {
         GRDConnectManager.getCoroutineScope().launch {
             val intent = GoBackend.VpnService.prepare(context)
             if (intent != null) {
