@@ -84,12 +84,16 @@ class MainActivity : AppCompatActivity() {
         }
         GRDConnectManager.getCoroutineScope().launch {
             GRDVPNHelper.grdMsgFlow.collect {
-                if (it == "Connection Successful!") {
-                    progressBar.visibility = View.GONE
-                    btnStartTunnel.visibility = View.GONE
-                    btnStopTunnel.visibility = View.VISIBLE
-                } else {
-                    Log.d("MainActivity", it)
+                when (it) {
+                    GRDState.SERVER_READY.name -> GRDVPNHelper.prepareVPNPermissions()
+                    GRDState.TUNNEL_CONNECTED.name -> {
+                        progressBar.visibility = View.GONE
+                        btnStartTunnel.visibility = View.GONE
+                        btnStopTunnel.visibility = View.VISIBLE
+                    }
+                    else -> {
+                        Log.d("MainActivity", it)
+                    }
                 }
             }
         }

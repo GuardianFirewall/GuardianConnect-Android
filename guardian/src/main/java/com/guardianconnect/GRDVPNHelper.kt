@@ -43,9 +43,7 @@ object GRDVPNHelper {
     var tunnelName: String = ""
     var validForDays: Long = 60
 
-    fun initHelper(
-        context: Context
-    ) {
+    fun initHelper(context: Context) {
         this.context = context
     }
 
@@ -82,9 +80,7 @@ object GRDVPNHelper {
             val configString = GRDKeystore.instance.retrieveFromKeyStore(GRD_CONFIG_STRING)
             if (configString?.isNotEmpty() == true) {
                 configStringFlow.emit(configString)
-                createTunnel(
-                    configString
-                )
+                createTunnel(configString)
                 grdMsgFlow.emit("Create tunnel with existing credentials successful!")
             }
         } else {
@@ -92,10 +88,7 @@ object GRDVPNHelper {
         }
     }
 
-    private suspend fun createTunnelFirstTime(
-        peToken: String,
-        validForDays: Long
-    ) {
+    private suspend fun createTunnelFirstTime(peToken: String, validForDays: Long) {
         val mainCredentials = true
         configureAndConnect(
             peToken,
@@ -134,9 +127,7 @@ object GRDVPNHelper {
         }
     }
 
-    suspend fun createTunnel(
-        configString: String,
-    ) {
+    suspend fun createTunnel(configString: String) {
         val inputString: Reader = StringReader(configString)
         val reader = BufferedReader(inputString)
         try {
@@ -151,12 +142,11 @@ object GRDVPNHelper {
                                 val serverStatusOK = any as Boolean
                                 if (serverStatusOK) {
                                     GRDConnectManager.getCoroutineScope().launch {
-                                        grdMsgFlow.emit("Server status OK.")
+                                        grdMsgFlow.emit(GRDState.SERVER_READY.name)
                                     }
-                                    prepareVPNPermissions()
                                 } else {
                                     GRDConnectManager.getCoroutineScope().launch {
-                                        grdErrorFlow.emit("Server error!")
+                                        grdErrorFlow.emit(GRDState.SERVER_ERROR.name)
                                     }
                                 }
                             }
@@ -177,8 +167,7 @@ object GRDVPNHelper {
         }
     }
 
-    fun startTunnel(
-    ) {
+    fun startTunnel() {
         val tunnel = GRDConnectManager.getTunnelManager().tunnelMap[tunnelName]
         GRDConnectManager.getCoroutineScope().launch {
             try {
@@ -190,12 +179,11 @@ object GRDVPNHelper {
                 Log.e(TAG, message, e)
                 return@launch
             }
-            grdMsgFlow.emit("Connection Successful!")
+            grdMsgFlow.emit(GRDState.TUNNEL_CONNECTED.name)
         }
     }
 
-    fun stopTunnel(
-    ) {
+    fun stopTunnel() {
         try {
             GRDConnectManager.getCoroutineScope().launch {
                 getActiveTunnel()?.setStateAsync(Tunnel.State.DOWN)
@@ -229,7 +217,6 @@ object GRDVPNHelper {
                 grdErrorFlow.emit("Error restarting tunnel! " + e.message)
             }
         }
-
     }
 
 
@@ -305,9 +292,7 @@ object GRDVPNHelper {
         iOnApiResponse: IOnApiResponse,
         validForDays: Long,
         mainCredentials: Boolean
-
     ) {
-
         val newVPNDevice = NewVPNDevice()
         newVPNDevice.transportProtocol = GRD_WIREGUARD
         newVPNDevice.subscriberCredential = subscriberCredentialString
@@ -430,8 +415,7 @@ object GRDVPNHelper {
         return boolean
     }
 
-    fun setVariables(
-    ) {
+    fun setVariables() {
         if (connectAPIHostname.isEmpty()) {
             connectAPIHostname = "connect-api.guardianapp.com"
         }
