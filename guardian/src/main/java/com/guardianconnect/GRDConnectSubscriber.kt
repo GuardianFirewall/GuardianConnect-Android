@@ -5,6 +5,7 @@ import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
 import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER
+import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_EMAIL
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_PE_TOKEN
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_PE_TOKEN_EXP_DATE
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_SECRET
@@ -84,9 +85,7 @@ class GRDConnectSubscriber {
         return null
     }
 
-    // TODO: delete unnecessary method!
-
-    /*  Returns the current GRDConnectSubscriber object out of the Shared Preferences */
+    /*  Returns the current GRDConnectSubscriber object out of the Shared Preferences with secret */
     fun currentSubscriber(): GRDConnectSubscriber? {
         try {
             val secret =
@@ -111,8 +110,6 @@ class GRDConnectSubscriber {
             return null
         }
     }
-
-    // TODO: delete unnecessary method!
 
     /*  Returns the current GRDConnectSubscriber object out of the Shared Preferences */
     fun currentSubscriberWithoutSecret(): GRDConnectSubscriber? {
@@ -171,6 +168,13 @@ class GRDConnectSubscriber {
                         grdConnectSubscriberResponse.epGrdSubscriberIdentifier
                     grdConnectSubscriber.secret = grdConnectSubscriberRequest.epGrdSubscriberSecret
                     grdConnectSubscriber.email = grdConnectSubscriberRequest.epGrdSubscriberEmail
+                    if (grdConnectSubscriberRequest.epGrdSubscriberEmail != null) {
+                        GRDConnectManager.getSharedPrefs()?.edit()
+                            ?.putString(
+                                GRD_CONNECT_SUBSCRIBER_EMAIL,
+                                grdConnectSubscriberRequest.epGrdSubscriberEmail
+                            )?.apply()
+                    }
                     grdConnectSubscriber.subscriptionSKU =
                         grdConnectSubscriberResponse.epGrdSubscriptionSku
                     grdConnectSubscriber.subscriptionNameFormatted =
@@ -254,8 +258,12 @@ class GRDConnectSubscriber {
                         connectSubscriberValidateRequest.epGrdSubscriberIdentifier
                     grdConnectSubscriber.secret =
                         connectSubscriberValidateRequest.epGrdSubscriberSecret
-                    // TODO: check where do we get email from
-//                grdConnectSubscriber.email = connectSubscriberValidateRequest.epGrdSubscriberEmail
+                    val email =
+                        GRDConnectManager.getSharedPrefs()
+                            ?.getString(GRD_CONNECT_SUBSCRIBER_EMAIL, "")
+                    if (!email.isNullOrEmpty()) {
+                        grdConnectSubscriber.email = email
+                    }
                     grdConnectSubscriber.subscriptionSKU =
                         connectSubscriberValidateResponse.epGrdSubscriptionSku
                     grdConnectSubscriber.subscriptionNameFormatted =

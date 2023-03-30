@@ -36,24 +36,19 @@ class GRDConnectManager {
         tunnelManager.onCreate()
         coroutineScope.launch(Dispatchers.IO) {
             try {
-                backend = determineBackend()
+                backend = GoBackend(guardianContext)
+                GoBackend.setAlwaysOnCallback {
+                    get().applicationScope.launch {
+                        get().tunnelManager.restoreState(
+                            true
+                        )
+                    }
+                }
                 futureBackend.complete(backend!!)
             } catch (e: Throwable) {
                 GRDVPNHelper.grdErrorFlow.emit(Log.getStackTraceString(e))
             }
         }
-    }
-
-    suspend fun determineBackend(): Backend {
-        val backend = GoBackend(guardianContext)
-        GoBackend.setAlwaysOnCallback {
-            get().applicationScope.launch {
-                get().tunnelManager.restoreState(
-                    true
-                )
-            }
-        }
-        return backend
     }
 
     fun getContext(): Context {

@@ -10,7 +10,7 @@ android {
     defaultConfig {
         applicationId "com.guardianconnect"
         minSdkVersion 24
-        targetSdk 31
+        targetSdk 33
         versionCode 10
         versionName '1.0'
 
