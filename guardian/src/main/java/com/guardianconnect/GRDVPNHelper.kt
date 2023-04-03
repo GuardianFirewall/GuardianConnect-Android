@@ -170,24 +170,28 @@ object GRDVPNHelper {
     fun startTunnel() {
         val tunnel = GRDConnectManager.getTunnelManager().tunnelMap[tunnelName]
         GRDConnectManager.getCoroutineScope().launch {
+            grdMsgFlow.emit(GRDVPNHelperStatus.CONNECTING.name)
             try {
                 tunnel?.setStateAsync(Tunnel.State.UP)
             } catch (e: Throwable) {
                 val error = ErrorMessages[e]
-                e.message?.let { grdErrorFlow.emit(it) }
+                e.message?.let {
+                    grdErrorFlow.emit(GRDVPNHelperStatus.ERROR_CONNECTING.name)
+                }
                 val message = context?.getString(R.string.starting_error, error)
                 Log.e(TAG, message, e)
                 return@launch
             }
-            grdMsgFlow.emit(GRDState.TUNNEL_CONNECTED.name)
+            grdMsgFlow.emit(GRDVPNHelperStatus.CONNECTED.name)
         }
     }
 
     fun stopTunnel() {
         try {
             GRDConnectManager.getCoroutineScope().launch {
+                grdMsgFlow.emit(GRDVPNHelperStatus.DISCONNECTING.name)
                 getActiveTunnel()?.setStateAsync(Tunnel.State.DOWN)
-                grdMsgFlow.emit("Tunnel successfully stopped!")
+                grdMsgFlow.emit(GRDVPNHelperStatus.DISCONNECTED.name)
             }
         } catch (t: Throwable) {
             GRDConnectManager.getCoroutineScope().launch {
@@ -431,6 +435,26 @@ object GRDVPNHelper {
         }
         Repository.instance.initMainServer(connectAPIHostname)
         Repository.instance.initConnectSubscriberServer()
+    }
+
+    fun hasCredentials(): Boolean {
+        val credentials = grdCredentialManager.retrieveCredential()
+        val haveCredentials = credentials?.let { activeConnectionPossible(it) } ?: false
+        val havePEToken = !GRDKeystore.instance.retrieveFromKeyStore(GRD_PE_TOKEN).isNullOrEmpty()
+
+        return haveCredentials && havePEToken
+    }
+
+    // TODO: start using these statuses in GRDVPNHelper functions
+    enum class GRDVPNHelperStatus(status: String) {
+        UNKNOWN("VPN status: unknown."),
+        MISSING_PET("PEToken is missing!"),
+        ERROR_CONNECTING("Connecting error has occurred!"),
+        DISCONNECTED("VPN status: disconnected!"),
+        DISCONNECTING("VPN status: disconnecting..."),
+        CONNECTING("VPN status: connecting..."),
+        CONNECTED("VPN status: connected!"),
+        MIGRATING("VPN status: migrating...")
     }
 
     val configStringFlow = MutableSharedFlow<String>()
