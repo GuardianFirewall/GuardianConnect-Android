@@ -116,6 +116,27 @@ object GRDVPNHelper {
         )
     }
 
+    /**
+     * Prepare to establish a VPN connection. This method returns null if the VPN application is
+     * already prepared or if the user has previously consented to the VPN application.
+     * Otherwise, it returns an Intent to a system activity.
+     * The application should launch the activity using Activity.startActivityForResult to get itself prepared.
+     * The activity may pop up a dialog to require user action, and the result will come back via its Activity.onActivityResult.
+     * If the result is Activity.RESULT_OK, the application becomes prepared and is granted to use other methods in this class.
+     * Only one application can be granted at the same time.
+     * The right is revoked when another application is granted.
+     * The application losing the right will be notified via its onRevoke.
+     * Unless it becomes prepared again, subsequent calls to other methods in this class will fail
+     * The user may disable the VPN at any time while it is activated, in which case this method
+     * will return an intent the next time it is executed to obtain the user's consent again.
+     */
+    fun getIntentVpnPermissions(context: Context) = GoBackend.VpnService.prepare(context)
+
+    /**
+     * This method will emit Intent to a system activity to grdVPNPermissionFlow if user consent is needed,
+     * or start tunnel if the VPN application is
+     * already prepared or if user has previously consented to the VPN application.
+     */
     fun prepareVPNPermissions() {
         GRDConnectManager.getCoroutineScope().launch {
             val intent = GoBackend.VpnService.prepare(context)

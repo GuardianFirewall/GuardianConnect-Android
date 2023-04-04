@@ -15,6 +15,13 @@ class GRDDeviceFilterConfigBlocklist {
         DeviceFilterConfigBlocklistMax(1 shl 3)
     }
 
+    fun setConfig(config: DeviceFilterConfigBlocklist, enabled: Boolean) {
+        if (enabled)
+            addConfig(config)
+        else
+            removeConfig(config)
+    }
+
     fun currentBlocklistConfig(): GRDDeviceFilterConfigBlocklist? {
         val bitmask = GRDConnectManager.getSharedPrefs()?.getInt(BITMASK_STATE, -1)
         return if (bitmask != -1) {
@@ -24,5 +31,34 @@ class GRDDeviceFilterConfigBlocklist {
         } else {
             null
         }
+    }
+
+    fun apiPortableBlocklist(): HashMap<GRDDeviceFilterBlocklistOptions, String> {
+        val map = HashMap<GRDDeviceFilterBlocklistOptions, String>()
+        map.put(
+            GRDDeviceFilterBlocklistOptions.BLOCK_NONE,
+            GRDDeviceFilterBlocklistOptions.BLOCK_NONE.name
+        )
+        map.put(
+            GRDDeviceFilterBlocklistOptions.BLOCK_ADS,
+            GRDDeviceFilterBlocklistOptions.BLOCK_ADS.name
+        )
+        map.put(
+            GRDDeviceFilterBlocklistOptions.BLOCK_PHISHING,
+            GRDDeviceFilterBlocklistOptions.BLOCK_PHISHING.name
+        )
+        return map
+    }
+
+    fun hasConfig(config: DeviceFilterConfigBlocklist): Boolean {
+        return bitwiseConfig?.and(config.bitmask) != 0
+    }
+
+    fun addConfig(config: DeviceFilterConfigBlocklist) {
+        bitwiseConfig = bitwiseConfig?.or(config.bitmask)
+    }
+
+    fun removeConfig(config: DeviceFilterConfigBlocklist) {
+        bitwiseConfig = bitwiseConfig?.and(config.bitmask.inv())
     }
 }
