@@ -1,6 +1,12 @@
 package com.guardianconnect
 
+import com.guardianconnect.api.IOnApiResponse
+import com.guardianconnect.api.Repository
 import com.guardianconnect.util.Constants.Companion.BITMASK_STATE
+import com.guardianconnect.util.Constants.Companion.BLOCK_ADS
+import com.guardianconnect.util.Constants.Companion.BLOCK_NONE
+import com.guardianconnect.util.Constants.Companion.BLOCK_PHISHING
+import kotlinx.coroutines.launch
 
 /*  Manage and sync the device's custom blocklist state */
 
@@ -33,21 +39,40 @@ class GRDDeviceFilterConfigBlocklist {
         }
     }
 
-    fun apiPortableBlocklist(): HashMap<GRDDeviceFilterBlocklistOptions, String> {
-        val map = HashMap<GRDDeviceFilterBlocklistOptions, String>()
-        map.put(
-            GRDDeviceFilterBlocklistOptions.BLOCK_NONE,
-            GRDDeviceFilterBlocklistOptions.BLOCK_NONE.name
-        )
-        map.put(
-            GRDDeviceFilterBlocklistOptions.BLOCK_ADS,
-            GRDDeviceFilterBlocklistOptions.BLOCK_ADS.name
-        )
-        map.put(
-            GRDDeviceFilterBlocklistOptions.BLOCK_PHISHING,
-            GRDDeviceFilterBlocklistOptions.BLOCK_PHISHING.name
-        )
+    fun apiPortableBlocklist(): HashMap<String, Boolean> {
+        val map = HashMap<String, Boolean>()
+        apiKeyForDeviceFilterConfigBlocklist(DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistDisableFirewall)?.let {
+            map.put(
+                it,
+                hasConfig(DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistDisableFirewall)
+            )
+        }
+        apiKeyForDeviceFilterConfigBlocklist(DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistBlockAds)?.let {
+            map.put(
+                it,
+                hasConfig(DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistBlockAds)
+            )
+        }
+        apiKeyForDeviceFilterConfigBlocklist(DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistBlockPhishing)?.let {
+            map.put(
+                it,
+                hasConfig(DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistBlockPhishing)
+            )
+        }
         return map
+    }
+
+    fun apiKeyForDeviceFilterConfigBlocklist(config: DeviceFilterConfigBlocklist): String? {
+        if (config == DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistDisableFirewall) {
+            return BLOCK_NONE
+        }
+        if (config == DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistBlockAds) {
+            return BLOCK_ADS
+        }
+        if (config == DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistBlockPhishing) {
+            return BLOCK_PHISHING
+        }
+        return null
     }
 
     fun hasConfig(config: DeviceFilterConfigBlocklist): Boolean {
@@ -60,5 +85,62 @@ class GRDDeviceFilterConfigBlocklist {
 
     fun removeConfig(config: DeviceFilterConfigBlocklist) {
         bitwiseConfig = bitwiseConfig?.and(config.bitmask.inv())
+    }
+
+    fun blocklistEnabled(): Boolean {
+        val apiPortableMap = apiPortableBlocklist()
+        return apiPortableMap.containsValue(true)
+    }
+
+    fun titleForDeviceFilterConfigBlocklist(config: DeviceFilterConfigBlocklist): String {
+        when (config) {
+            DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistDisableFirewall -> {
+                return "Disable Firewall";
+
+            }
+            DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistBlockAds -> {
+                return "Block Ads";
+
+            }
+            DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistBlockPhishing -> {
+                return "Block Phishing";
+            }
+            else -> {
+                var names = ""
+                for (blockList in DeviceFilterConfigBlocklist.values()) {
+                    names += " | ${titleForDeviceFilterConfigBlocklist(blockList)}"
+                }
+                return names
+            }
+        }
+    }
+
+    fun syncBlocklist() {
+        val grdCredentialManager = GRDCredentialManager()
+        val mainCredentials = grdCredentialManager.getMainCredentials()
+        if (mainCredentials != null) {
+            mainCredentials.clientId?.let { clientId ->
+                mainCredentials.apiAuthToken?.let { authToken ->
+                    Repository.instance.setDeviceFilterConfig(
+                        clientId,
+                        authToken,
+                        object : IOnApiResponse {
+                            override fun onSuccess(any: Any?) {
+                                GRDConnectManager.getCoroutineScope().launch {
+                                    GRDVPNHelper.grdMsgFlow.emit(any.toString())
+                                }
+                            }
+
+                            override fun onError(error: String?) {
+                                error?.let {
+                                    GRDConnectManager.getCoroutineScope().launch {
+                                        GRDVPNHelper.grdErrorFlow.emit(error)
+                                    }
+                                }
+                            }
+                        })
+                }
+            }
+        }
     }
 }

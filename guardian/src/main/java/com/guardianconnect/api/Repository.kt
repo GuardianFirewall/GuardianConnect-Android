@@ -3,10 +3,7 @@ package com.guardianconnect.api
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.guardianconnect.GRDConnectManager
-import com.guardianconnect.GRDRegion
-import com.guardianconnect.GRDSubscriberCredential
-import com.guardianconnect.GRDVPNHelper
+import com.guardianconnect.*
 import com.guardianconnect.model.api.*
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
@@ -708,6 +705,43 @@ class Repository {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
                     iOnApiResponse.onSuccess("GRDConnectDevice successfully deleted.")
+                } else {
+                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
+                    if (jObjError != null) {
+                        Log.d(TAG, jObjError.toString())
+                        iOnApiResponse.onError(jObjError.toString())
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                GRDConnectManager.getCoroutineScope().launch {
+                    t.message?.let { GRDVPNHelper.grdErrorFlow.emit(it) }
+                }
+                Log.d(
+                    TAG,
+                    "Cannot make API requests !!! deleteConnectDevice() " + t.message
+                )
+            }
+        })
+    }
+
+    fun setDeviceFilterConfig(
+        deviceId: String,
+        apiAuthToken: String,
+        iOnApiResponse: IOnApiResponse
+    ) {
+        val grdDeviceFilterConfigBlocklist = GRDDeviceFilterConfigBlocklist()
+        var map = HashMap<Any, Any>()
+        map.putAll(grdDeviceFilterConfigBlocklist.apiPortableBlocklist())
+        map["api-auth-token"] = apiAuthToken
+        val json = Gson().toJsonTree(map).asJsonObject
+        val call: Call<ResponseBody>? =
+            apiCallsGRDConnect?.setDeviceFilterConfig(deviceId, json)
+        call?.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                if (response.isSuccessful) {
+                    iOnApiResponse.onSuccess("Device filter config blocklist settings successfully synced with the VPN gateways.")
                 } else {
                     val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
                     if (jObjError != null) {

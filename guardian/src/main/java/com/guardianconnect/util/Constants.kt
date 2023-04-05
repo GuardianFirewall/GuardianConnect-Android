@@ -26,5 +26,8 @@ class Constants {
         const val GRD_CONNECT_SUBSCRIBER_PE_TOKEN = "GRD_CONNECT_SUBSCRIBER_PE_TOKEN"
         const val GRD_CONNECT_SUBSCRIBER_PE_TOKEN_EXP_DATE = "GRD_CONNECT_SUBSCRIBER_PE_TOKEN_EXP_DATE"
         const val BITMASK_STATE = "BITMASK_STATE"
+        const val BLOCK_NONE = "block-none"
+        const val BLOCK_ADS = "block-ads"
+        const val BLOCK_PHISHING = "block-phishing"
     }
 }

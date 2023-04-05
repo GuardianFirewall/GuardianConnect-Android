@@ -1,4 +1,5 @@
 import com.google.gson.Gson
+import com.guardianconnect.GRDDeviceFilterConfigBlocklist
 import com.guardianconnect.GRDRegion
 import com.guardianconnect.api.IApiCalls
 import com.guardianconnect.model.EValidationMethod
@@ -90,6 +91,9 @@ class ApiTest {
 
     @Mock
     private lateinit var callSetAlertsDownloadTimeStamp: Call<ResponseBody>
+
+    @Mock
+    private lateinit var callSetDeviceFilterConfig: Call<ResponseBody>
 
     @Test
     fun testCreateNewGRDConnectSubscriber() {
@@ -617,6 +621,74 @@ class ApiTest {
                         ).execute()
                     }
                     assertTrue(response?.code() == 200)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testSetDeviceFilterConfig() {
+        val apiService = retrofit.create(IApiCalls::class.java)
+        Mockito.`when`(callSubscriberCredential.execute()).thenReturn(
+            Response.success(
+                SubscriberCredentialResponse()
+            )
+        )
+        val validationMethodPEToken = ValidationMethodPEToken()
+        validationMethodPEToken.validationMethod = EValidationMethod.PE_TOKEN.method
+        validationMethodPEToken.peToken = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
+        val response = apiService.getSubscriberCredentialsPEToken(
+            validationMethodPEToken
+        ).execute()
+
+        val responseString = response.body()?.string()
+        responseString.let {
+            val subscriberCredentialResponse =
+                Gson().fromJson(
+                    it,
+                    SubscriberCredentialResponse::class.java
+                )
+            subscriberCredentialResponse.subscriberCredential?.let { scs ->
+                val apiService = retrofitRegion.create(IApiCalls::class.java)
+                Mockito.`when`(callNewVPNDevice.execute()).thenReturn(
+                    Response.success(
+                        NewVPNDeviceResponse()
+                    )
+                )
+                val newVPNDevice = NewVPNDevice()
+                newVPNDevice.transportProtocol = Constants.GRD_WIREGUARD
+                newVPNDevice.subscriberCredential = scs
+                val keyPair = KeyPair()
+                val keyPairGenerated = KeyPair(keyPair.privateKey)
+                val publicKey = keyPairGenerated.publicKey.toBase64()
+                newVPNDevice.publicKey = publicKey
+                val response = apiService.createNewVPNDevice(
+                    newVPNDevice
+                ).execute()
+
+                response.body().let { vpn ->
+                    val vpnCredentials = VPNCredentials()
+                    vpnCredentials.apiAuthToken = vpn?.getApiAuthToken()
+                    vpnCredentials.subscriberCredential =
+                        subscriberCredentialResponse.subscriberCredential
+
+                    Mockito.`when`(callSetDeviceFilterConfig.execute()).thenReturn(
+                        Response.success(
+                            "Test".toResponseBody()
+                        )
+                    )
+                    val grdDeviceFilterConfigBlocklist = GRDDeviceFilterConfigBlocklist()
+                    var map = HashMap<Any, Any>()
+                    map.putAll(grdDeviceFilterConfigBlocklist.apiPortableBlocklist())
+                    map["api-auth-token"] = vpn?.getApiAuthToken().toString()
+                    val json = Gson().toJsonTree(map).asJsonObject
+                    val response = vpn?.clientId?.let { it1 ->
+                        apiService.setDeviceFilterConfig(
+                            it1,
+                            json
+                        ).execute()
+                    }
+                    assertTrue(response?.body() != null)
                 }
             }
         }

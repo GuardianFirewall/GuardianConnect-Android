@@ -1,5 +1,6 @@
 package com.guardianconnect.api
 
+import com.google.gson.JsonObject
 import com.guardianconnect.model.api.NewVPNDevice
 import com.guardianconnect.model.*
 import com.guardianconnect.model.api.*
@@ -78,4 +79,9 @@ interface IApiCalls {
     @POST("/api/v1.2/partners/subscriber/devices/list")
     fun allConnectDevices(@Body connectDevicesAllRequest: ConnectDevicesAllRequest): Call<ResponseBody>
 
+    @POST("/api/v1.2/device/{deviceid}/alerts")
+    fun setDeviceFilterConfig(
+        @Path("deviceid") deviceid: String,
+        @Body jsonObject: JsonObject
+    ): Call<ResponseBody>
 }
