@@ -29,5 +29,6 @@ class Constants {
         const val BLOCK_NONE = "block-none"
         const val BLOCK_ADS = "block-ads"
         const val BLOCK_PHISHING = "block-phishing"
+        const val API_ERROR = "Cannot make API requests!"
     }
 }

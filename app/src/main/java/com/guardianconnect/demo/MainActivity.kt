@@ -69,6 +69,9 @@ class MainActivity : AppCompatActivity() {
         btnPeToken.setOnClickListener {
             if (!etPeToken.text.isNullOrEmpty()) {
                 savePeToken(etPeToken.text.toString())
+            } else {
+                progressBar.visibility = View.GONE
+                Log.d("MainActivity", GRDVPNHelper.GRDVPNHelperStatus.MISSING_PET.name)
             }
         }
 
@@ -100,6 +103,7 @@ class MainActivity : AppCompatActivity() {
         }
         GRDConnectManager.getCoroutineScope().launch {
             GRDVPNHelper.grdErrorFlow.collect {
+                progressBar.visibility = View.GONE
                 Log.e("MainActivity", it)
             }
         }

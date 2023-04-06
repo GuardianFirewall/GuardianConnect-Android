@@ -62,7 +62,7 @@ object GRDVPNHelper {
                                 validForDays
                             )
                         } else {
-                            grdErrorFlow.emit("PEToken should not be empty!")
+                            grdErrorFlow.emit(GRDVPNHelperStatus.MISSING_PET.name)
                         }
                     }
                 }
@@ -280,9 +280,9 @@ object GRDVPNHelper {
                                             mainCredentials
                                         )
                                     } ?: run {
-                                        iOnApiResponse.onError("No Server")
+                                        iOnApiResponse.onError(GRDState.SERVER_ERROR.name)
                                         GRDConnectManager.getCoroutineScope().launch {
-                                            grdErrorFlow.emit("No Server")
+                                            grdErrorFlow.emit(GRDState.SERVER_ERROR.name)
                                         }
                                     }
                                 }
@@ -347,7 +347,7 @@ object GRDVPNHelper {
                         )
                     GRDKeystore.instance.saveToKeyStore(GRD_CONFIG_STRING, configString)
                     GRDConnectManager.getCoroutineScope().launch {
-                        grdMsgFlow.emit("VPN device connected!")
+                        grdMsgFlow.emit(GRDVPNHelperStatus.CONNECTED.name)
                     }
                     iOnApiResponse.onSuccess(configString)
                 }
@@ -466,7 +466,6 @@ object GRDVPNHelper {
         return haveCredentials && havePEToken
     }
 
-    // TODO: start using these statuses in GRDVPNHelper functions
     enum class GRDVPNHelperStatus(status: String) {
         UNKNOWN("VPN status: unknown."),
         MISSING_PET("PEToken is missing!"),

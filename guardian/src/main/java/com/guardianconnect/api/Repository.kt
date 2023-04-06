@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.guardianconnect.*
 import com.guardianconnect.model.api.*
+import com.guardianconnect.util.Constants.Companion.API_ERROR
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
@@ -22,7 +23,7 @@ class Repository {
     val grdSubscriberCredential = GRDSubscriberCredential()
     var apiCalls: IApiCalls? = null
     var apiCallsConnect: IApiCalls? = null
-    var apiCallsGRDConnect: IApiCalls? = null // TODO: initialize
+    var apiCallsGRDConnect: IApiCalls? = null
     val TAG: String = Repository::class.java.simpleName
 
     companion object {
@@ -116,7 +117,7 @@ class Repository {
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 iOnApiResponse.onError(t.message)
-                Log.d(TAG, "Cannot make API requests !!! getServerStatus() " + t.message)
+                Log.d(TAG, API_ERROR + " getServerStatus() " + t.message)
             }
         })
     }
@@ -143,7 +144,7 @@ class Repository {
 
             override fun onFailure(call: Call<NewVPNDeviceResponse>, t: Throwable) {
                 iOnApiResponse.onError(t.message)
-                Log.d(TAG, "Cannot make API requests !!! createNewVPNDevice() " + t.message)
+                Log.d(TAG, API_ERROR + " createNewVPNDevice() " + t.message)
             }
         })
     }
@@ -170,7 +171,7 @@ class Repository {
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 iOnApiResponse.onError(t.message)
-                Log.d(TAG, "Cannot make API requests !!! verifyVPNCredentials() " + t.message)
+                Log.d(TAG, API_ERROR + " verifyVPNCredentials() " + t.message)
             }
         })
     }
@@ -201,7 +202,7 @@ class Repository {
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 iOnApiResponse.onError(t.message)
-                Log.d(TAG, "Cannot make API requests !!!invalidateVPNCredentials() " + t.message)
+                Log.d(TAG, API_ERROR + " invalidateVPNCredentials() " + t.message)
             }
         })
     }
@@ -232,7 +233,7 @@ class Repository {
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 iOnApiResponse.onError(t.message)
-                Log.d(TAG, "Cannot make API requests !!! downloadAlerts() " + t.message)
+                Log.d(TAG, API_ERROR + " downloadAlerts() " + t.message)
             }
         })
     }
@@ -259,7 +260,7 @@ class Repository {
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 iOnApiResponse.onError(t.message)
-                Log.d(TAG, "Cannot make API requests !!! setAlertsDownloadTimestamp() " + t.message)
+                Log.d(TAG, API_ERROR + " setAlertsDownloadTimestamp() " + t.message)
             }
         })
     }
@@ -288,7 +289,7 @@ class Repository {
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 iOnApiResponse.onError(t.message)
-                Log.d(TAG, "Cannot make API requests !!! requestAllGuardianRegions() " + t.message)
+                Log.d(TAG, API_ERROR + " requestAllGuardianRegions() " + t.message)
             }
         })
     }
@@ -328,7 +329,7 @@ class Repository {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,
-                    "Cannot make API requests !!! requestListOfServersForRegion() " + t.message
+                    API_ERROR + " requestListOfServersForRegion() " + t.message
                 )
             }
         })
@@ -365,7 +366,7 @@ class Repository {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,
-                    "Cannot make API requests !!! getListOfSupportedTimeZones() " + t.message
+                    API_ERROR + " getListOfSupportedTimeZones() " + t.message
                 )
             }
         })
@@ -408,7 +409,7 @@ class Repository {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,
-                    "Cannot make API requests !!! getSubscriberCredentials() " + t.message
+                    API_ERROR + " getSubscriberCredentials() " + t.message
                 )
             }
         })
@@ -456,7 +457,7 @@ class Repository {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,
-                    "Cannot make API requests !!! getSubscriberCredentials() " + t.message
+                    API_ERROR + " getSubscriberCredentials() " + t.message
                 )
             }
         })
@@ -496,7 +497,7 @@ class Repository {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,
-                    "Cannot make API requests !!! getSubscriberCredentials() " + t.message
+                    API_ERROR + " getSubscriberCredentials() " + t.message
                 )
             }
         })
@@ -527,7 +528,7 @@ class Repository {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,
-                    "Cannot make API requests !!! createNewGRDConnectSubscriber() " + t.message
+                    API_ERROR + " createNewGRDConnectSubscriber() " + t.message
                 )
             }
         })
@@ -558,7 +559,7 @@ class Repository {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,
-                    "Cannot make API requests !!! updateGRDConnectSubscriber() " + t.message
+                    API_ERROR + " updateGRDConnectSubscriber() " + t.message
                 )
             }
         })
@@ -589,7 +590,7 @@ class Repository {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,
-                    "Cannot make API requests !!! validateGRDConnectSubscriber() " + t.message
+                    API_ERROR + " validateGRDConnectSubscriber() " + t.message
                 )
             }
         })
@@ -620,7 +621,7 @@ class Repository {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,
-                    "Cannot make API requests !!! addNewConnectDevice() " + t.message
+                    API_ERROR + " addNewConnectDevice() " + t.message
                 )
             }
         })
@@ -651,7 +652,7 @@ class Repository {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,
-                    "Cannot make API requests !!! updateConnectDevice() " + t.message
+                    API_ERROR + " updateConnectDevice() " + t.message
                 )
             }
         })
@@ -689,7 +690,7 @@ class Repository {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,
-                    "Cannot make API requests !!! allConnectDevices() " + t.message
+                    API_ERROR + " allConnectDevices() " + t.message
                 )
             }
         })
@@ -720,7 +721,7 @@ class Repository {
                 }
                 Log.d(
                     TAG,
-                    "Cannot make API requests !!! deleteConnectDevice() " + t.message
+                    API_ERROR + " deleteConnectDevice() " + t.message
                 )
             }
         })
@@ -757,7 +758,7 @@ class Repository {
                 }
                 Log.d(
                     TAG,
-                    "Cannot make API requests !!! deleteConnectDevice() " + t.message
+                    API_ERROR + " deleteConnectDevice() " + t.message
                 )
             }
         })
