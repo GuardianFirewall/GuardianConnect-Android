@@ -44,27 +44,27 @@ afterEvaluate {
                 // Mostly self-explanatory metadata
                 pom {
                     name = PUBLISH_ARTIFACT_ID
-                    description = "Guardian Connect" // TODO: change to name of your choice
-                    url = '' // TODO: URL to repository
+                    description = "GuardianConnect"
+                    url = 'https://github.com/GuardianFirewall/GuardianConnect-Android'
                     licenses {
                         license {
-                            name = 'MIT license' // TODO: change licence if needed
-                            url = 'https://opensource.org/licenses/MIT' // TODO: change
+                            name = 'MIT license'
+                            url = 'https://opensource.org/licenses/MIT'
                         }
                     }
                     developers {
                         developer {
-                            id = '' // TODO: 'email_without_extension'
-                            name = '' // TODO: 'username'
-                            email = '' // TODO: 'email'
+                            id = 'grd-sysadmins'
+                            name = 'guardian'
+                            email = 'grd-sysadmins@dnsfilter.com'
                         }
                     }
 
                     // Version control info
                     scm {
-                        connection = 'scm:git:ssh://git@URL_TO_REPOSITORY' // TODO: eg. bitbucket.org/username/examplelibrary.git
-                        developerConnection = 'scm:git:ssh://git@VERSION_CONTROL:URL_TO_REPOSITORY' // TODO: eg. bitbucket.org:username/examplelibrary.git
-                        url = '' // TODO: URL to repository
+                        connection = 'scm:git:ssh://git@github.com/GuardianFirewall/GuardianConnect-Android.git'
+                        developerConnection = 'scm:git:ssh://git@github.com/GuardianFirewall/GuardianConnect-Android.git'
+                        url = 'https://github.com/GuardianFirewall/GuardianConnect-Android'
                     }
                 }
 

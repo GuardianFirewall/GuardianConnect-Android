@@ -57,10 +57,9 @@ dependencies {
     androidTestImplementation 'org.mockito:mockito-android:3.8.0'
 }
 
-// TODO: fill in with correct data
 ext {
-    PUBLISH_GROUP_ID = '' // TODO: groupID from OSSRH ticket creation
-    PUBLISH_VERSION = ''
-    PUBLISH_ARTIFACT_ID = ''
+    PUBLISH_GROUP_ID = 'com.guardianapp.connect'
+    PUBLISH_VERSION = '0.1-2023-04-10'
+    PUBLISH_ARTIFACT_ID = 'GuardianConnect'
 }
 apply from: 'publish-remote.gradle'
