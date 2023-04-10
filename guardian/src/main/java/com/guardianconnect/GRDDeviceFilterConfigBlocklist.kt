@@ -2,10 +2,10 @@ package com.guardianconnect
 
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
-import com.guardianconnect.util.Constants.Companion.BITMASK_STATE
-import com.guardianconnect.util.Constants.Companion.BLOCK_ADS
-import com.guardianconnect.util.Constants.Companion.BLOCK_NONE
-import com.guardianconnect.util.Constants.Companion.BLOCK_PHISHING
+import com.guardianconnect.util.Constants.Companion.GRD_BLOCKLIST_BITMASK_STATE
+import com.guardianconnect.util.Constants.Companion.GRD_BLOCKLIST_BLOCK_ADS
+import com.guardianconnect.util.Constants.Companion.GRD_BLOCKLIST_BLOCK_NONE
+import com.guardianconnect.util.Constants.Companion.GRD_BLOCKLIST_BLOCK_PHISHING
 import kotlinx.coroutines.launch
 
 /*  Manage and sync the device's custom blocklist state */
@@ -29,7 +29,7 @@ class GRDDeviceFilterConfigBlocklist {
     }
 
     fun currentBlocklistConfig(): GRDDeviceFilterConfigBlocklist? {
-        val bitmask = GRDConnectManager.getSharedPrefs()?.getInt(BITMASK_STATE, -1)
+        val bitmask = GRDConnectManager.getSharedPrefs()?.getInt(GRD_BLOCKLIST_BITMASK_STATE, -1)
         return if (bitmask != -1) {
             val grdDeviceFilterConfigBlocklist = GRDDeviceFilterConfigBlocklist()
             grdDeviceFilterConfigBlocklist.bitwiseConfig = bitmask
@@ -64,13 +64,13 @@ class GRDDeviceFilterConfigBlocklist {
 
     fun apiKeyForDeviceFilterConfigBlocklist(config: DeviceFilterConfigBlocklist): String? {
         if (config == DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistDisableFirewall) {
-            return BLOCK_NONE
+            return GRD_BLOCKLIST_BLOCK_NONE
         }
         if (config == DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistBlockAds) {
-            return BLOCK_ADS
+            return GRD_BLOCKLIST_BLOCK_ADS
         }
         if (config == DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistBlockPhishing) {
-            return BLOCK_PHISHING
+            return GRD_BLOCKLIST_BLOCK_PHISHING
         }
         return null
     }
