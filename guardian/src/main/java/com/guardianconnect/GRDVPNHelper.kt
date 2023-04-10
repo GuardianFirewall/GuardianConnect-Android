@@ -163,11 +163,11 @@ object GRDVPNHelper {
                                 val serverStatusOK = any as Boolean
                                 if (serverStatusOK) {
                                     GRDConnectManager.getCoroutineScope().launch {
-                                        grdMsgFlow.emit(GRDState.SERVER_READY.name)
+                                        grdMsgFlow.emit(GRDTunnelState.SERVER_READY.name)
                                     }
                                 } else {
                                     GRDConnectManager.getCoroutineScope().launch {
-                                        grdErrorFlow.emit(GRDState.SERVER_ERROR.name)
+                                        grdErrorFlow.emit(GRDTunnelState.SERVER_ERROR.name)
                                     }
                                 }
                             }
@@ -280,9 +280,9 @@ object GRDVPNHelper {
                                             mainCredentials
                                         )
                                     } ?: run {
-                                        iOnApiResponse.onError(GRDState.SERVER_ERROR.name)
+                                        iOnApiResponse.onError(GRDTunnelState.SERVER_ERROR.name)
                                         GRDConnectManager.getCoroutineScope().launch {
-                                            grdErrorFlow.emit(GRDState.SERVER_ERROR.name)
+                                            grdErrorFlow.emit(GRDTunnelState.SERVER_ERROR.name)
                                         }
                                     }
                                 }

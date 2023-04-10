@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity() {
             GRDVPNHelper.grdMsgFlow.collect {
                 Log.d("MainActivity", it)
                 when (it) {
-                    GRDState.SERVER_READY.name -> GRDVPNHelper.prepareVPNPermissions()
+                    GRDTunnelState.SERVER_READY.name -> GRDVPNHelper.prepareVPNPermissions()
                     GRDVPNHelper.GRDVPNHelperStatus.CONNECTED.name -> {
                         progressBar.visibility = View.GONE
                         btnStartTunnel.visibility = View.GONE
