@@ -116,7 +116,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun initGRDVPNHelper() {
         GRDVPNHelper.tunnelName = "TUNNEL_NAME"
-        GRDVPNHelper.connectAPIHostname = "connect-api.guardianapp.com"
+        GRDVPNHelper.connectAPIHostname = "connect-api.dev.guardianapp.com"
         GRDVPNHelper.setVariables()
         GRDVPNHelper.initHelper(this)
     }
