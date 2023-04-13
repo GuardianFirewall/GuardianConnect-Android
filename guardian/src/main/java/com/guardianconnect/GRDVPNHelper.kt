@@ -366,6 +366,7 @@ object GRDVPNHelper {
     /*  Clear local cache - removes all values from the Android Keystore and SharedPreferences */
     fun clearLocalCache() {
         GRDConnectManager.getSharedPrefsEditor()?.remove(GRD_CREDENTIAL_LIST)?.apply()
+        GRDConnectManager.getSharedPrefsEditor()?.remove(GRD_CONFIG_STRING)?.apply()
         GRDConnectManager.getSharedPrefsEditor()?.remove(GRD_SUBSCRIBER_CREDENTIAL)?.apply()
     }
 
@@ -380,7 +381,13 @@ object GRDVPNHelper {
             vpnCredential.apiAuthToken = grdCredentialObject.apiAuthToken
             vpnCredential.subscriberCredential = subscriberCredentialsJSON
             grdCredentialManager.credentialsArrayList.clear()
-            GRDConnectManager.getSharedPrefs()?.edit()?.clear()?.apply()
+            // TODO
+            // this change should be complete and prevent the PET from being killed as well
+            // whenever the reset config button is tapped in the sample app
+            // but I am not entirely sure and we have to double check if any regressions
+            // from this change may occur
+            //GRDConnectManager.getSharedPrefs()?.edit()?.clear()?.apply()
+            clearLocalCache()
             Repository.instance.invalidateVPNCredentials(
                 deviceId,
                 vpnCredential,
