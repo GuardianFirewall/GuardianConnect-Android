@@ -34,8 +34,8 @@ import java.io.StringReader
 object GRDVPNHelper {
 
     private val TAG = GRDVPNHelper::class.java.simpleName
-    private val grdSubscriberCredential = GRDSubscriberCredential()
-    private var grdCredentialManager = GRDCredentialManager()
+    val grdSubscriberCredential = GRDSubscriberCredential()
+    var grdCredentialManager = GRDCredentialManager()
     var grdServerManager = GRDServerManager()
     private var context: Context? = null
     var connectAPIHostname: String = ""
