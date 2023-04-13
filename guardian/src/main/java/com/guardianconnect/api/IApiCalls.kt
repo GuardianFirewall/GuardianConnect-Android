@@ -59,7 +59,7 @@ interface IApiCalls {
     fun getSubscriberCredentialsElse(@Body validationMethodElse: ValidationMethodElse): Call<ResponseBody>
 
     @POST("/api/v1.2/partners/subscribers/new")
-    fun createNewGRDConnectSubscriber(@Body grdConnectSubscriberRequest: GRDConnectSubscriberRequest): Call<ResponseBody>
+    fun createNewGRDConnectSubscriber(@Body grdConnectSubscriberRequest: GRDConnectSubscriberRequest): Call<GRDConnectSubscriberResponse>
 
     @PUT("/api/v1.2/partners/subscriber/update")
     fun updateGRDConnectSubscriber(@Body connectSubscriberUpdateRequest: ConnectSubscriberUpdateRequest): Call<ResponseBody>

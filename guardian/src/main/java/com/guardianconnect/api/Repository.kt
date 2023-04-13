@@ -54,7 +54,29 @@ class Repository {
         }
     }
 
-    fun initMainServer(baseURLConnect: String) {
+    fun initConnectAPIServer() {
+        val gsonConnect = GsonBuilder()
+            .setLenient()
+            .create()
+        val interceptorConnect = HttpLoggingInterceptor()
+        interceptorConnect.setLevel(HttpLoggingInterceptor.Level.BODY)
+        val clientConnect: OkHttpClient =
+            OkHttpClient
+                .Builder()
+                .addInterceptor(interceptorConnect)
+                .connectTimeout(5, TimeUnit.MINUTES)
+                .readTimeout(5, TimeUnit.MINUTES)
+                .writeTimeout(5, TimeUnit.MINUTES)
+                .build()
+        val retrofitConnect: Retrofit = Retrofit.Builder()
+            .baseUrl("https://connect-api.guardianapp.com")
+            .addConverterFactory(GsonConverterFactory.create(gsonConnect))
+            .client(clientConnect)
+            .build()
+        apiCallsConnect = retrofitConnect.create(IApiCalls::class.java)
+    }
+
+    fun initConnectSubscriberServer(baseURLConnect: String) {
         val gsonConnect = GsonBuilder()
             .setLenient()
             .create()
@@ -70,28 +92,6 @@ class Repository {
                 .build()
         val retrofitConnect: Retrofit = Retrofit.Builder()
             .baseUrl("https://$baseURLConnect")
-            .addConverterFactory(GsonConverterFactory.create(gsonConnect))
-            .client(clientConnect)
-            .build()
-        apiCallsConnect = retrofitConnect.create(IApiCalls::class.java)
-    }
-
-    fun initConnectSubscriberServer() {
-        val gsonConnect = GsonBuilder()
-            .setLenient()
-            .create()
-        val interceptorConnect = HttpLoggingInterceptor()
-        interceptorConnect.setLevel(HttpLoggingInterceptor.Level.BODY)
-        val clientConnect: OkHttpClient =
-            OkHttpClient
-                .Builder()
-                .addInterceptor(interceptorConnect)
-                .connectTimeout(5, TimeUnit.MINUTES)
-                .readTimeout(5, TimeUnit.MINUTES)
-                .writeTimeout(5, TimeUnit.MINUTES)
-                .build()
-        val retrofitConnect: Retrofit = Retrofit.Builder()
-            .baseUrl("https://connect-api.dev.guardianapp.com/")
             .addConverterFactory(GsonConverterFactory.create(gsonConnect))
             .client(clientConnect)
             .build()
@@ -507,10 +507,10 @@ class Repository {
         grdConnectSubscriberRequest: GRDConnectSubscriberRequest,
         iOnApiResponse: IOnApiResponse
     ) {
-        val call: Call<ResponseBody>? =
+        val call: Call<GRDConnectSubscriberResponse>? =
             apiCallsGRDConnect?.createNewGRDConnectSubscriber(grdConnectSubscriberRequest)
-        call?.enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+        call?.enqueue(object : Callback<GRDConnectSubscriberResponse> {
+            override fun onResponse(call: Call<GRDConnectSubscriberResponse>, response: Response<GRDConnectSubscriberResponse>) {
                 if (response.isSuccessful) {
                     val grdConnectSubscriberResponse = response.body()
                     iOnApiResponse.onSuccess(grdConnectSubscriberResponse)
@@ -524,7 +524,7 @@ class Repository {
                 }
             }
 
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+            override fun onFailure(call: Call<GRDConnectSubscriberResponse>, t: Throwable) {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,

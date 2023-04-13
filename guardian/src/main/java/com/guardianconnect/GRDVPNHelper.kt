@@ -454,8 +454,8 @@ object GRDVPNHelper {
                 grdErrorFlow.emit("Connect public key is empty!")
             }
         }
-        Repository.instance.initMainServer(connectAPIHostname)
-        Repository.instance.initConnectSubscriberServer()
+        Repository.instance.initConnectAPIServer()
+        Repository.instance.initConnectSubscriberServer(connectAPIHostname)
     }
 
     fun hasCredentials(): Boolean {

@@ -105,7 +105,7 @@ class ApiTest {
         )
         val grdConnectSubscriberRequest = GRDConnectSubscriberRequest()
         grdConnectSubscriberRequest.epGrdSubscriberEmail = "example@gmail.com"
-        grdConnectSubscriberRequest.epGrdSubscriberSecret = "secret"
+        grdConnectSubscriberRequest.epGrdSubscriberSecret = "test-secret"
         grdConnectSubscriberRequest.connectPublicKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
         grdConnectSubscriberRequest.epGrdSubscriberIdentifier = "200"
         grdConnectSubscriberRequest.acceptedTos = false
