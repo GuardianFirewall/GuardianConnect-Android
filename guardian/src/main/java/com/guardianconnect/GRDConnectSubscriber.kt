@@ -6,7 +6,7 @@ import com.guardianconnect.api.Repository
 import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_EMAIL
-import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_PE_TOKEN
+import com.guardianconnect.util.Constants.Companion.GRD_PE_TOKEN
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_PE_TOKEN_EXP_DATE
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_SECRET
 import com.guardianconnect.util.GRDKeystore
@@ -187,7 +187,7 @@ class GRDConnectSubscriber {
                     }
                     grdConnectSubscriberResponse.peToken?.let {
                         GRDKeystore.instance.saveToKeyStore(
-                            GRD_CONNECT_SUBSCRIBER_PE_TOKEN,
+                            GRD_PE_TOKEN,
                             it
                         )
                     }
@@ -276,7 +276,7 @@ class GRDConnectSubscriber {
                     }
                     connectSubscriberValidateResponse.peToken?.let {
                         GRDKeystore.instance.saveToKeyStore(
-                            GRD_CONNECT_SUBSCRIBER_PE_TOKEN,
+                            GRD_PE_TOKEN,
                             it
                         )
                     }

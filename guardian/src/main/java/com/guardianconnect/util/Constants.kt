@@ -23,7 +23,11 @@ class Constants {
         const val GRD_REGIONS_LIST_FROM_SHARED_PREFS = "GRD_REGIONS_LIST_FROM_SHARED_PREFS"
         const val GRD_AUTOMATIC_REGION = "Automatic"
         const val GRD_PE_TOKEN = "GRD_PE_TOKEN"
-        const val GRD_CONNECT_SUBSCRIBER_PE_TOKEN = "GRD_CONNECT_SUBSCRIBER_PE_TOKEN"
+        // TODO
+        // this needs to be deleted as there is only one type of PET
+        // the PET expiration date also only exists once and the namespace needs to be adjusted to
+        // not specify being specifically for the Connect subscriber PET
+        //const val GRD_CONNECT_SUBSCRIBER_PE_TOKEN = "GRD_CONNECT_SUBSCRIBER_PE_TOKEN"
         const val GRD_CONNECT_SUBSCRIBER_PE_TOKEN_EXP_DATE = "GRD_CONNECT_SUBSCRIBER_PE_TOKEN_EXP_DATE"
         const val GRD_BLOCKLIST_BITMASK_STATE = "BITMASK_STATE"
         const val GRD_BLOCKLIST_BLOCK_NONE = "block-none"
