@@ -377,7 +377,7 @@ class Repository {
         iOnApiResponse: IOnApiResponse
     ) {
         val call: Call<ResponseBody>? =
-            apiCallsConnect?.getSubscriberCredentialsIAPAndroid(validationMethodIAPAndroid)
+            apiCallsGRDConnect?.getSubscriberCredentialsIAPAndroid(validationMethodIAPAndroid)
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
                 call: Call<ResponseBody>,
@@ -420,7 +420,7 @@ class Repository {
         iOnApiResponse: IOnApiResponse
     ) {
         val call: Call<ResponseBody>? =
-            apiCallsConnect?.getSubscriberCredentialsPEToken(validationMethodPEToken)
+            apiCallsGRDConnect?.getSubscriberCredentialsPEToken(validationMethodPEToken)
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
                 call: Call<ResponseBody>,
@@ -468,7 +468,7 @@ class Repository {
         iOnApiResponse: IOnApiResponse
     ) {
         val call: Call<ResponseBody>? =
-            apiCallsConnect?.getSubscriberCredentialsElse(validationMethodElse)
+            apiCallsGRDConnect?.getSubscriberCredentialsElse(validationMethodElse)
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
                 call: Call<ResponseBody>,
