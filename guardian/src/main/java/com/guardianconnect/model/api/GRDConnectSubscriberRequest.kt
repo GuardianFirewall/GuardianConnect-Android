@@ -16,7 +16,7 @@ class GRDConnectSubscriberRequest {
     @SerializedName("ep-grd-subscriber-email")
     var epGrdSubscriberEmail: String? = null
 
-    @SerializedName("connect-public-key")
+    @SerializedName("connect-publishable-key")
     var connectPublicKey: String? = null
 
 }

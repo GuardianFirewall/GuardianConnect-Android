@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 class ConnectDeviceRequest {
 
-    @SerializedName("connect-public-key")
+    @SerializedName("connect-publishable-key")
     var connectPublicKey: String? = null
 
     @SerializedName("pe-token")

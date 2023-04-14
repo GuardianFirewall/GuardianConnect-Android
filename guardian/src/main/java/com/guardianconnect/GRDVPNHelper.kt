@@ -39,7 +39,7 @@ object GRDVPNHelper {
     var grdServerManager = GRDServerManager()
     private var context: Context? = null
     var connectAPIHostname: String = ""
-    var connectPublicKey: String = ""
+    var connectPublishableKey: String = ""
     var tunnelName: String = ""
     var validForDays: Long = 60
 

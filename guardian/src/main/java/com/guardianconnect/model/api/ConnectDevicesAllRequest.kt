@@ -7,7 +7,7 @@ class ConnectDevicesAllRequest {
     @SerializedName("pe-token")
     var peToken: String? = null
 
-    @SerializedName("connect-public-key")
+    @SerializedName("connect-publishable-key")
     var connectPublicKey: String? = null
 
 }
