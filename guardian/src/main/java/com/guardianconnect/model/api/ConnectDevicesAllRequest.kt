@@ -8,6 +8,6 @@ class ConnectDevicesAllRequest {
     var peToken: String? = null
 
     @SerializedName("connect-publishable-key")
-    var connectPublicKey: String? = null
+    var connectPublishableKey: String? = null
 
 }

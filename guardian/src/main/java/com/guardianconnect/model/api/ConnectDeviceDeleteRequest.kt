@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 class ConnectDeviceDeleteRequest {
 
     @SerializedName("connect-publishable-key")
-    var connectPublicKey: String? = null
+    var connectPublishableKey: String? = null
 
     @SerializedName("pe-token")
     var peToken: String? = null

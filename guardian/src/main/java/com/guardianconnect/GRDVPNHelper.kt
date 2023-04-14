@@ -456,7 +456,7 @@ object GRDVPNHelper {
                 grdErrorFlow.emit("Tunnel name is empty!")
             }
         }
-        if (connectPublicKey.isEmpty()) {
+        if (connectPublishableKey.isEmpty()) {
             GRDConnectManager.getCoroutineScope().launch {
                 grdErrorFlow.emit("Connect public key is empty!")
             }

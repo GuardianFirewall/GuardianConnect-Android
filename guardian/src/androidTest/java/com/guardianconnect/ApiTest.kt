@@ -106,7 +106,7 @@ class ApiTest {
         val grdConnectSubscriberRequest = GRDConnectSubscriberRequest()
         grdConnectSubscriberRequest.epGrdSubscriberEmail = "example@gmail.com"
         grdConnectSubscriberRequest.epGrdSubscriberSecret = "test-secret"
-        grdConnectSubscriberRequest.connectPublicKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        grdConnectSubscriberRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
         grdConnectSubscriberRequest.epGrdSubscriberIdentifier = "200"
         grdConnectSubscriberRequest.acceptedTos = false
         val response = apiService.createNewGRDConnectSubscriber(
@@ -123,7 +123,7 @@ class ApiTest {
         val connectSubscriberValidateRequest = ConnectSubscriberValidateRequest()
         connectSubscriberValidateRequest.epGrdSubscriberIdentifier = "200"
         connectSubscriberValidateRequest.epGrdSubscriberSecret = "test-secret"
-        connectSubscriberValidateRequest.connectPublicKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        connectSubscriberValidateRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
         connectSubscriberValidateRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
         val response = apiService.validateGRDConnectSubscriber(
             connectSubscriberValidateRequest
@@ -137,7 +137,7 @@ class ApiTest {
         Mockito.`when`(callGRDConnectSubscriberUpdate.execute())
             .thenReturn(Response.success(ConnectSubscriberUpdateResponse()))
         val connectDeviceUpdateRequest = ConnectSubscriberUpdateRequest()
-        connectDeviceUpdateRequest.connectPublicKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        connectDeviceUpdateRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
         connectDeviceUpdateRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
         connectDeviceUpdateRequest.epGrdSubscriberSecret = "test-secret"
         connectDeviceUpdateRequest.epGrdSubscriberIdentifier = "200"
@@ -158,7 +158,7 @@ class ApiTest {
             )
         )
         val connectDeviceRequest = ConnectDeviceRequest()
-        connectDeviceRequest.connectPublicKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        connectDeviceRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
         connectDeviceRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
         connectDeviceRequest.epGrdDeviceNickname = "test_nickname"
         connectDeviceRequest.epGrdDeviceAcceptedTos = true
@@ -177,7 +177,7 @@ class ApiTest {
             )
         )
         val connectDeviceRequest = ConnectDeviceRequest()
-        connectDeviceRequest.connectPublicKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        connectDeviceRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
         connectDeviceRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
         connectDeviceRequest.epGrdDeviceNickname = "test_nickname"
         connectDeviceRequest.epGrdDeviceAcceptedTos = true
@@ -197,7 +197,7 @@ class ApiTest {
                 )
             )
             val connectDeviceUpdateRequest = ConnectDeviceUpdateRequest()
-            connectDeviceUpdateRequest.connectPublicKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+            connectDeviceUpdateRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
             connectDeviceUpdateRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
             connectDeviceUpdateRequest.deviceNickname = "test_nickname"
             connectDeviceUpdateRequest.deviceUuid = connectDeviceResponse.epGrdDeviceUuid
@@ -217,7 +217,7 @@ class ApiTest {
             )
         )
         val connectDeviceRequest = ConnectDeviceRequest()
-        connectDeviceRequest.connectPublicKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        connectDeviceRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
         connectDeviceRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
         connectDeviceRequest.epGrdDeviceNickname = "test_nickname"
         connectDeviceRequest.epGrdDeviceAcceptedTos = true
@@ -236,7 +236,7 @@ class ApiTest {
                 )
             )
             val connectDeviceDeleteRequest = ConnectDeviceDeleteRequest()
-            connectDeviceDeleteRequest.connectPublicKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+            connectDeviceDeleteRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
             connectDeviceDeleteRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
             connectDeviceDeleteRequest.deviceUuid = connectDeviceResponse.epGrdDeviceUuid
             val response = apiService.deleteConnectDevice(
@@ -255,7 +255,7 @@ class ApiTest {
             )
         )
         val connectDevicesAllRequest = ConnectDevicesAllRequest()
-        connectDevicesAllRequest.connectPublicKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        connectDevicesAllRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
         connectDevicesAllRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
         val response = apiService.allConnectDevices(
             connectDevicesAllRequest
