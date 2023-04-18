@@ -223,7 +223,7 @@ object GRDVPNHelper {
 
     fun isTunnelRunning(): Boolean {
         val runningTunnel = GRDConnectManager.getTunnelManager().tunnelMap[tunnelName]
-        return runningTunnel != null
+        return (runningTunnel != null && runningTunnel.state == Tunnel.State.UP)
     }
 
     fun getActiveTunnel(): TunnelModel? {
