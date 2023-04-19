@@ -62,16 +62,16 @@ interface IApiCalls {
     fun createNewGRDConnectSubscriber(@Body grdConnectSubscriberRequest: GRDConnectSubscriberRequest): Call<GRDConnectSubscriberResponse>
 
     @PUT("/api/v1.2/partners/subscriber/update")
-    fun updateGRDConnectSubscriber(@Body connectSubscriberUpdateRequest: ConnectSubscriberUpdateRequest): Call<ResponseBody>
+    fun updateGRDConnectSubscriber(@Body connectSubscriberUpdateRequest: ConnectSubscriberUpdateRequest): Call<ConnectSubscriberUpdateResponse>
 
     @POST("/api/v1.2/partners/subscriber/validate")
-    fun validateGRDConnectSubscriber(@Body connectSubscriberValidateRequest: ConnectSubscriberValidateRequest): Call<ResponseBody>
+    fun validateGRDConnectSubscriber(@Body connectSubscriberValidateRequest: ConnectSubscriberValidateRequest): Call<ConnectSubscriberValidateResponse>
 
     @POST("/api/v1.2/partners/subscriber/devices/add")
-    fun addConnectDevice(@Body connectDeviceRequest: ConnectDeviceRequest): Call<ResponseBody>
+    fun addConnectDevice(@Body connectDeviceRequest: ConnectDeviceRequest): Call<ConnectDeviceResponse>
 
     @PUT("/api/v1.2/partners/subscriber/device/update")
-    fun updateConnectDevice(@Body connectDeviceUpdateRequest: ConnectDeviceUpdateRequest): Call<ResponseBody>
+    fun updateConnectDevice(@Body connectDeviceUpdateRequest: ConnectDeviceUpdateRequest): Call<ConnectDeviceResponse>
 
     @POST("/api/v1.2/partners/subscriber/device/delete")
     fun deleteConnectDevice(@Body connectDeviceDeleteRequest: ConnectDeviceDeleteRequest): Call<ResponseBody>

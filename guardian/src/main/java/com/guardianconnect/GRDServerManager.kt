@@ -37,7 +37,7 @@ class GRDServerManager {
         val serversForRegion = RequestServersForRegion()
         var selectedRegion = String()
         if (!grdRegion.getPreferredRegion().isNullOrEmpty()) {
-            Log.d(TAG, "Using user preferred region: ", + grdRegion.getPreferredRegion().toString())
+            Log.d(TAG, "Using user preferred region: " + grdRegion.getPreferredRegion().toString())
             serversForRegion.region = grdRegion.getPreferredRegion()
             requestListOfServersForRegion(serversForRegion, iOnApiResponse)
         } else {
@@ -64,7 +64,7 @@ class GRDServerManager {
                         }
 
                         if (selectedRegion.isNullOrEmpty()) {
-                            iOnApiResponse.onError("No available servers for your timezone: "+ currentTimeZoneId)
+                            iOnApiResponse.onError("No available servers for your timezone: " + currentTimeZoneId)
                         }
 
                         requestListOfServersForRegion(
