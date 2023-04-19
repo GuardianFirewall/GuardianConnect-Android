@@ -35,9 +35,10 @@ class GRDServerManager {
     ) {
         val grdRegion = GRDRegion()
         val serversForRegion = RequestServersForRegion()
-        val selectedRegion = grdRegion.getPreferredRegion()
-        if (!selectedRegion.isNullOrEmpty()) {
-            serversForRegion.region = selectedRegion
+        var selectedRegion = String()
+        if (!grdRegion.getPreferredRegion().isNullOrEmpty()) {
+            Log.d(TAG, "Using user preferred region: ", + grdRegion.getPreferredRegion().toString())
+            serversForRegion.region = grdRegion.getPreferredRegion()
             requestListOfServersForRegion(serversForRegion, iOnApiResponse)
         } else {
             Repository.instance.getListOfSupportedTimeZones(object : IOnApiResponse {
@@ -50,21 +51,26 @@ class GRDServerManager {
                                 for (timeZone in tz) {
                                     if (timeZone == currentTimeZoneId) {
                                         item.getName()?.let { name ->
-                                            serversForRegion.region = name
+                                            selectedRegion = name
+                                            serversForRegion.region = selectedRegion
                                             Log.d(
                                                 TAG, "Selected region: " + serversForRegion.region
                                             )
-                                            requestListOfServersForRegion(
-                                                serversForRegion,
-                                                iOnApiResponse
-                                            )
                                         }
-                                    } else {
-                                        iOnApiResponse.onError("No available servers for your timezone!")
+                                        break
                                     }
                                 }
                             }
                         }
+
+                        if (selectedRegion.isNullOrEmpty()) {
+                            iOnApiResponse.onError("No available servers for your timezone: "+ currentTimeZoneId)
+                        }
+
+                        requestListOfServersForRegion(
+                            serversForRegion,
+                            iOnApiResponse
+                        )
                     }
                 }
 
