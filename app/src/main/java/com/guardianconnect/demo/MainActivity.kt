@@ -86,18 +86,22 @@ class MainActivity : AppCompatActivity() {
             }
         }
         GRDConnectManager.getCoroutineScope().launch {
-            GRDVPNHelper.grdMsgFlow.collect {
+            GRDVPNHelper.grdStatusFlow.collect {
                 Log.d("MainActivity", it)
                 when (it) {
-                    GRDTunnelState.SERVER_READY.name -> GRDVPNHelper.prepareVPNPermissions()
                     GRDVPNHelper.GRDVPNHelperStatus.CONNECTED.name -> {
                         progressBar.visibility = View.GONE
                         btnStartTunnel.visibility = View.GONE
                         btnStopTunnel.visibility = View.VISIBLE
                     }
-                    else -> {
-
-                    }
+                }
+            }
+        }
+        GRDConnectManager.getCoroutineScope().launch {
+            GRDVPNHelper.grdTunnelStateFlow.collect {
+                Log.d("MainActivity", it)
+                when (it) {
+                    GRDTunnelState.SERVER_READY.name -> GRDVPNHelper.prepareVPNPermissions()
                 }
             }
         }
@@ -110,6 +114,11 @@ class MainActivity : AppCompatActivity() {
         GRDConnectManager.getCoroutineScope().launch {
             GRDVPNHelper.grdVPNPermissionFlow.collect {
                 permissionActivityResultLauncher.launch(it)
+            }
+        }
+        GRDConnectManager.getCoroutineScope().launch {
+            GRDVPNHelper.grdMsgFlow.collect {
+                Log.d("MainActivity", it)
             }
         }
     }

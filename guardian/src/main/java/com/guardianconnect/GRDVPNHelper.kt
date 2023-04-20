@@ -163,7 +163,7 @@ object GRDVPNHelper {
                                 val serverStatusOK = any as Boolean
                                 if (serverStatusOK) {
                                     GRDConnectManager.getCoroutineScope().launch {
-                                        grdMsgFlow.emit(GRDTunnelState.SERVER_READY.name)
+                                        grdTunnelStateFlow.emit(GRDTunnelState.SERVER_READY.name)
                                     }
                                 } else {
                                     GRDConnectManager.getCoroutineScope().launch {
@@ -190,12 +190,15 @@ object GRDVPNHelper {
 
     fun startTunnel() {
         val tunnel = GRDConnectManager.getTunnelManager().tunnelMap[tunnelName]
-        GRDConnectManager.getCoroutineScope().launch {
-            grdMsgFlow.emit(GRDVPNHelperStatus.CONNECTING.name)
-            try {
+        try {
+            GRDConnectManager.getCoroutineScope().launch {
+                grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTING.name)
                 tunnel?.setStateAsync(Tunnel.State.UP)
-            } catch (e: Throwable) {
-                val error = ErrorMessages[e]
+                grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTED.name)
+            }
+        } catch (e: Throwable) {
+            val error = ErrorMessages[e]
+            GRDConnectManager.getCoroutineScope().launch {
                 e.message?.let {
                     grdErrorFlow.emit(GRDVPNHelperStatus.ERROR_CONNECTING.name)
                 }
@@ -203,16 +206,15 @@ object GRDVPNHelper {
                 Log.e(TAG, message, e)
                 return@launch
             }
-            grdMsgFlow.emit(GRDVPNHelperStatus.CONNECTED.name)
         }
     }
 
     fun stopTunnel() {
         try {
             GRDConnectManager.getCoroutineScope().launch {
-                grdMsgFlow.emit(GRDVPNHelperStatus.DISCONNECTING.name)
+                grdStatusFlow.emit(GRDVPNHelperStatus.DISCONNECTING.name)
                 getActiveTunnel()?.setStateAsync(Tunnel.State.DOWN)
-                grdMsgFlow.emit(GRDVPNHelperStatus.DISCONNECTED.name)
+                grdStatusFlow.emit(GRDVPNHelperStatus.DISCONNECTED.name)
             }
         } catch (t: Throwable) {
             GRDConnectManager.getCoroutineScope().launch {
@@ -232,10 +234,12 @@ object GRDVPNHelper {
 
     fun restartTunnel() {
         try {
-            stopTunnel()
-            clearVPNConfiguration()
             GRDConnectManager.getCoroutineScope().launch {
-                grdMsgFlow.emit("Tunnel successfully restarted!")
+                getActiveTunnel()?.setStateAsync(Tunnel.State.DOWN)
+                clearVPNConfiguration()
+                GRDConnectManager.getCoroutineScope().launch {
+                    grdMsgFlow.emit("Tunnel successfully restarted!")
+                }
             }
         } catch (e: Exception) {
             GRDConnectManager.getCoroutineScope().launch {
@@ -346,9 +350,6 @@ object GRDVPNHelper {
                             null
                         )
                     GRDKeystore.instance.saveToKeyStore(GRD_CONFIG_STRING, configString)
-                    GRDConnectManager.getCoroutineScope().launch {
-                        grdMsgFlow.emit(GRDVPNHelperStatus.CONNECTED.name)
-                    }
                     iOnApiResponse.onSuccess(configString)
                 }
 
@@ -488,4 +489,6 @@ object GRDVPNHelper {
     val grdMsgFlow = MutableSharedFlow<String>()
     val grdErrorFlow = MutableSharedFlow<String>()
     val grdVPNPermissionFlow = MutableSharedFlow<Intent>()
+    val grdStatusFlow = MutableSharedFlow<String>()
+    val grdTunnelStateFlow = MutableSharedFlow<String>()
 }
