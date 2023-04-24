@@ -75,7 +75,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        var storedPET = GRDKeystore.instance.retrieveFromKeyStore(Constants.GRD_PE_TOKEN)
+        val storedPET = GRDKeystore.instance.retrieveFromKeyStore(Constants.GRD_PE_TOKEN)
         etPeToken.setText(storedPET)
     }
 
@@ -100,9 +100,6 @@ class MainActivity : AppCompatActivity() {
         GRDConnectManager.getCoroutineScope().launch {
             GRDVPNHelper.grdTunnelStateFlow.collect {
                 Log.d("MainActivity", it)
-                when (it) {
-                    GRDTunnelState.SERVER_READY.name -> GRDVPNHelper.prepareVPNPermissions()
-                }
             }
         }
         GRDConnectManager.getCoroutineScope().launch {
@@ -199,7 +196,6 @@ class MainActivity : AppCompatActivity() {
 
     private val permissionActivityResultLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            GRDVPNHelper.startTunnel()
             progressBar.visibility = View.GONE
         }
 }

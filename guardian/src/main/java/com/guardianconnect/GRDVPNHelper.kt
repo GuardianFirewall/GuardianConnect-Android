@@ -49,8 +49,11 @@ object GRDVPNHelper {
 
     fun createAndStartTunnel() {
         GRDConnectManager.getCoroutineScope().launch {
-            if (tunnelName.isNotEmpty()) {
-                grdCredentialManager.retrieveCredential().let {
+            val intent = GoBackend.VpnService.prepare(context)
+            when {
+                intent != null -> grdVPNPermissionFlow.emit(intent)
+                tunnelName.isNullOrEmpty() -> grdErrorFlow.emit("Tunnel name should not be empty!")
+                else -> grdCredentialManager.retrieveCredential().let {
                     if (it?.let { it1 -> activeConnectionPossible(it1) } == true) {
                         createTunnelWithExistingCredentials()
                     } else {
@@ -66,8 +69,6 @@ object GRDVPNHelper {
                         }
                     }
                 }
-            } else {
-                grdErrorFlow.emit("Tunnel name should not be empty!")
             }
         }
     }
@@ -132,22 +133,6 @@ object GRDVPNHelper {
      */
     fun getIntentVpnPermissions(context: Context) = GoBackend.VpnService.prepare(context)
 
-    /**
-     * This method will emit Intent to a system activity to grdVPNPermissionFlow if user consent is needed,
-     * or start tunnel if the VPN application is
-     * already prepared or if user has previously consented to the VPN application.
-     */
-    fun prepareVPNPermissions() {
-        GRDConnectManager.getCoroutineScope().launch {
-            val intent = GoBackend.VpnService.prepare(context)
-            if (intent != null) {
-                grdVPNPermissionFlow.emit(intent)
-            } else {
-                startTunnel()
-            }
-        }
-    }
-
     suspend fun createTunnel(configString: String) {
         val inputString: Reader = StringReader(configString)
         val reader = BufferedReader(inputString)
@@ -165,6 +150,7 @@ object GRDVPNHelper {
                                     GRDConnectManager.getCoroutineScope().launch {
                                         grdTunnelStateFlow.emit(GRDTunnelState.SERVER_READY.name)
                                     }
+                                    startTunnel()
                                 } else {
                                     GRDConnectManager.getCoroutineScope().launch {
                                         grdErrorFlow.emit(GRDTunnelState.SERVER_ERROR.name)
@@ -482,7 +468,8 @@ object GRDVPNHelper {
         DISCONNECTING("VPN status: disconnecting..."),
         CONNECTING("VPN status: connecting..."),
         CONNECTED("VPN status: connected!"),
-        MIGRATING("VPN status: migrating...")
+        MIGRATING("VPN status: migrating..."),
+        VPN_CREDENTIALS_INVALIDATED("VPN status: credentials invalidated!")
     }
 
     val configStringFlow = MutableSharedFlow<String>()
