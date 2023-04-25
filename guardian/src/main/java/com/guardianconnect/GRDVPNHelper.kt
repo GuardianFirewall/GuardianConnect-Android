@@ -392,7 +392,7 @@ object GRDVPNHelper {
                 object : IOnApiResponse {
                     override fun onSuccess(any: Any?) {
                         GRDConnectManager.getCoroutineScope().launch {
-                            grdMsgFlow.emit("Credentials invalidated!")
+                            grdMsgFlow.emit(GRDVPNHelperStatus.VPN_CREDENTIALS_INVALIDATED.name)
                         }
                     }
 
