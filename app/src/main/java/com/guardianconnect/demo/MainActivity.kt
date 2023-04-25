@@ -196,6 +196,11 @@ class MainActivity : AppCompatActivity() {
 
     private val permissionActivityResultLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            // This completion handler is called after the user taps on allow in the OS modal alert
+            // from createAndStartTunnel() & the grdVPNPermissionFlow
+            // To ensure that the user is actually going to be connected createAndStartTunnel
+            // needs to be called again
+            GRDVPNHelper.createAndStartTunnel()
             progressBar.visibility = View.GONE
         }
 }

@@ -49,17 +49,28 @@ object GRDVPNHelper {
 
     fun createAndStartTunnel() {
         GRDConnectManager.getCoroutineScope().launch {
+            // Check if the user had already granted the permission to set the VPN profile
             val intent = GoBackend.VpnService.prepare(context)
             when {
+                // in case the permission was not yet granted emit the intent so that the
+                // OS can be asked to present the modal alert
                 intent != null -> grdVPNPermissionFlow.emit(intent)
+
+                // Ensure that a tunnel name has been set
                 tunnelName.isNullOrEmpty() -> grdErrorFlow.emit("Tunnel name should not be empty!")
+
+                // Check if VPN credentials are already present in the GRDCredentialManager
                 else -> grdCredentialManager.retrieveCredential().let {
                     if (it?.let { it1 -> activeConnectionPossible(it1) } == true) {
+                        // If VPN credentials already exist try to start the VPN tunnel again
                         createTunnelWithExistingCredentials()
                     } else {
+                        // No VPN credentials exist yet
+                        // Check if a PE-Token is present on the device
                         val decryptedPEToken =
                             GRDKeystore.instance.retrieveFromKeyStore(GRD_PE_TOKEN)
                         if (!decryptedPEToken.isNullOrEmpty()) {
+                            // Start the process to pick a VPN server & obtain new VPN credentials
                             createTunnelFirstTime(
                                 decryptedPEToken,
                                 validForDays
