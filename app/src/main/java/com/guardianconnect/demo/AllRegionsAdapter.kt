@@ -34,13 +34,15 @@ class AllRegionsAdapter(
     }
 
     override fun onBindViewHolder(holder: RegionHolder, position: Int) {
-        val grdRegion: GRDRegion = grdRegions!![position]
-        holder.bind(grdRegion, onClickListener)
-        val savedRegion = grdRegion.getPreferredRegionNamePretty()
-        if (savedRegion.isNullOrEmpty()) {
-            holder.radioButton.isChecked = position == selectedPosition
-        } else {
-            holder.radioButton.isChecked = savedRegion == holder.radioButton.text
+        grdRegions?.let {
+            val grdRegion: GRDRegion = it[position]
+            holder.bind(grdRegion, onClickListener)
+            val savedRegion = grdRegion.getPreferredRegionNamePretty()
+            if (savedRegion.isNullOrEmpty()) {
+                holder.radioButton.isChecked = position == selectedPosition
+            } else {
+                holder.radioButton.isChecked = savedRegion == holder.radioButton.text
+            }
         }
     }
 

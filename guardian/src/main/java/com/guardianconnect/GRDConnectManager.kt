@@ -44,7 +44,7 @@ class GRDConnectManager {
                         )
                     }
                 }
-                futureBackend.complete(backend!!)
+                backend?.let { futureBackend.complete(it) }
             } catch (e: Throwable) {
                 GRDVPNHelper.grdErrorFlow.emit(Log.getStackTraceString(e))
             }

@@ -45,7 +45,7 @@ class TunnelManager(
         withContext(Dispatchers.Main.immediate) {
             addToList(
                 name,
-                withContext(Dispatchers.IO) { configStore.create(name, config!!) },
+                withContext(Dispatchers.IO) { config?.let { configStore.create(name, it) } },
                 Tunnel.State.DOWN
             )
         }
@@ -57,9 +57,9 @@ class TunnelManager(
             applicationScope.launch { UserKnobs.setLastUsedTunnel(value?.name) }
         }
 
-    suspend fun getTunnelConfig(tunnel: TunnelModel): Config =
+    suspend fun getTunnelConfig(tunnel: TunnelModel): Config? =
         withContext(Dispatchers.Main.immediate) {
-            tunnel.onConfigChanged(withContext(Dispatchers.IO) { configStore.load(tunnel.name) })!!
+            tunnel.onConfigChanged(withContext(Dispatchers.IO) { configStore.load(tunnel.name) })
         }
 
     fun onCreate() {

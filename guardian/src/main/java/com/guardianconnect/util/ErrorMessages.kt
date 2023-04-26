@@ -65,9 +65,9 @@ object ErrorMessages {
         RootShellException.Reason.CREATE_TEMP_DIR_ERROR to R.string.create_temp_dir_error
     )
 
-    operator fun get(throwable: Throwable?): String {
+    operator fun get(throwable: Throwable?): String? {
         val resources = GRDConnectManager.get().getContext().resources
-        if (throwable == null) return resources!!.getString(R.string.unknown_error)
+        if (throwable == null) return resources.getString(R.string.unknown_error)
         val rootCause = rootCause(throwable)
         return when {
             rootCause is BadConfigException -> {
@@ -84,27 +84,27 @@ object ErrorMessages {
                         rootCause.location.getName()
                     )
                 }
-                val explanation = getBadConfigExceptionExplanation(resources!!, rootCause)
+                val explanation = getBadConfigExceptionExplanation(resources, rootCause)
                 resources.getString(R.string.bad_config_error, reason, context) + explanation
             }
             rootCause is BackendException -> {
-                resources!!.getString(BE_REASON_MAP.getValue(rootCause.reason), *rootCause.format)
+                resources.getString(BE_REASON_MAP.getValue(rootCause.reason), *rootCause.format)
             }
             rootCause is RootShellException -> {
-                resources!!.getString(RSE_REASON_MAP.getValue(rootCause.reason), *rootCause.format)
+                resources.getString(RSE_REASON_MAP.getValue(rootCause.reason), *rootCause.format)
             }
             rootCause is NotFoundException -> {
-                resources!!.getString(R.string.error_no_qr_found)
+                resources.getString(R.string.error_no_qr_found)
             }
             rootCause is ChecksumException -> {
-                resources!!.getString(R.string.error_qr_checksum)
+                resources.getString(R.string.error_qr_checksum)
             }
             rootCause.message != null -> {
-                rootCause.message!!
+                rootCause.message
             }
             else -> {
                 val errorType = rootCause.javaClass.simpleName
-                resources!!.getString(R.string.generic_error, errorType)
+                resources.getString(R.string.generic_error, errorType)
             }
         }
     }
@@ -115,12 +115,12 @@ object ErrorMessages {
     ): String {
         if (bce.cause is KeyFormatException) {
             val kfe = bce.cause as KeyFormatException?
-            if (kfe!!.type == KeyFormatException.Type.LENGTH) return resources.getString(
+            if (kfe?.type == KeyFormatException.Type.LENGTH) return resources.getString(
                 KFE_FORMAT_MAP.getValue(kfe.format)
             )
         } else if (bce.cause is ParseException) {
             val pe = bce.cause as ParseException?
-            if (pe!!.message != null) return ": ${pe.message}"
+            if (pe?.message != null) return ": ${pe.message}"
         } else if (bce.location == BadConfigException.Location.LISTEN_PORT) {
             return resources.getString(R.string.bad_config_explanation_udp_port)
         } else if (bce.location == BadConfigException.Location.MTU) {
@@ -137,12 +137,14 @@ object ErrorMessages {
     ): String {
         if (bce.cause is KeyFormatException) {
             val kfe = bce.cause as KeyFormatException?
-            return resources.getString(KFE_TYPE_MAP.getValue(kfe!!.type))
+            kfe?.let { return resources.getString(KFE_TYPE_MAP.getValue(it.type)) }
+
         } else if (bce.cause is ParseException) {
             val pe = bce.cause as ParseException?
-            val type =
-                resources.getString((if (PE_CLASS_MAP.containsKey(pe!!.parsingClass)) PE_CLASS_MAP[pe.parsingClass] else R.string.parse_error_generic)!!)
-            return resources.getString(R.string.parse_error_reason, type, pe.text)
+            val type = resources.getString(
+                (pe?.parsingClass?.let { PE_CLASS_MAP[it] } ?: R.string.parse_error_generic)
+            )
+            return resources.getString(R.string.parse_error_reason, type, pe?.text)
         }
         return resources.getString(BCE_REASON_MAP.getValue(bce.reason), bce.text)
     }
@@ -153,9 +155,11 @@ object ErrorMessages {
             if (cause is BadConfigException || cause is BackendException ||
                 cause is RootShellException
             ) break
-            val nextCause = cause.cause!!
+            val nextCause = cause.cause
             if (nextCause is RemoteException) break
-            cause = nextCause
+            if (nextCause != null) {
+                cause = nextCause
+            }
         }
         return cause
     }

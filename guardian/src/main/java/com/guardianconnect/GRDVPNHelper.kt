@@ -159,12 +159,12 @@ object GRDVPNHelper {
                                 val serverStatusOK = any as Boolean
                                 if (serverStatusOK) {
                                     GRDConnectManager.getCoroutineScope().launch {
-                                        grdTunnelStateFlow.emit(GRDTunnelState.SERVER_READY.name)
+                                        grdStatusFlow.emit(GRDVPNHelperStatus.SERVER_READY.name)
                                     }
                                     startTunnel()
                                 } else {
                                     GRDConnectManager.getCoroutineScope().launch {
-                                        grdErrorFlow.emit(GRDTunnelState.SERVER_ERROR.name)
+                                        grdErrorFlow.emit(GRDVPNHelperStatus.SERVER_ERROR.name)
                                     }
                                 }
                             }
@@ -281,9 +281,9 @@ object GRDVPNHelper {
                                             mainCredentials
                                         )
                                     } ?: run {
-                                        iOnApiResponse.onError(GRDTunnelState.SERVER_ERROR.name)
+                                        iOnApiResponse.onError(GRDVPNHelperStatus.SERVER_ERROR.name)
                                         GRDConnectManager.getCoroutineScope().launch {
-                                            grdErrorFlow.emit(GRDTunnelState.SERVER_ERROR.name)
+                                            grdErrorFlow.emit(GRDVPNHelperStatus.SERVER_ERROR.name)
                                         }
                                     }
                                 }
@@ -480,7 +480,10 @@ object GRDVPNHelper {
         CONNECTING("VPN status: connecting..."),
         CONNECTED("VPN status: connected!"),
         MIGRATING("VPN status: migrating..."),
-        VPN_CREDENTIALS_INVALIDATED("VPN status: credentials invalidated!")
+        VPN_CREDENTIALS_INVALIDATED("VPN status: credentials invalidated!"),
+        SERVER_READY("Server status OK."),
+        SERVER_ERROR("Server error!"),
+        TUNNEL_CONNECTED("Connection Successful!")
     }
 
     val configStringFlow = MutableSharedFlow<String>()
@@ -488,5 +491,4 @@ object GRDVPNHelper {
     val grdErrorFlow = MutableSharedFlow<String>()
     val grdVPNPermissionFlow = MutableSharedFlow<Intent>()
     val grdStatusFlow = MutableSharedFlow<String>()
-    val grdTunnelStateFlow = MutableSharedFlow<String>()
 }

@@ -98,11 +98,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
         GRDConnectManager.getCoroutineScope().launch {
-            GRDVPNHelper.grdTunnelStateFlow.collect {
-                Log.d("MainActivity", it)
-            }
-        }
-        GRDConnectManager.getCoroutineScope().launch {
             GRDVPNHelper.grdErrorFlow.collect {
                 progressBar.visibility = View.GONE
                 Log.e("MainActivity", it)

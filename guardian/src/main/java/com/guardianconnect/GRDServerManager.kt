@@ -150,9 +150,9 @@ class GRDServerManager {
         val connectivityManager =
             GRDConnectManager.get()
                 .getContext().applicationContext?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val activeNetwork: Network = connectivityManager.activeNetwork!!
-        val caps: NetworkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork)!!
-        val vpnInUse = caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+        val activeNetwork: Network? = connectivityManager.activeNetwork
+        val caps: NetworkCapabilities? = connectivityManager.getNetworkCapabilities(activeNetwork)
+        val vpnInUse = caps?.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
         val listFromSharedPreferences =
             GRDConnectManager.getSharedPrefs()?.getString(GRD_REGIONS_LIST_FROM_SHARED_PREFS, "")
         val list = ArrayList<GRDRegion>()
@@ -161,7 +161,7 @@ class GRDServerManager {
         list.add(0, automaticGRDRegion)
 
         // Make API call only when VPN is not in use
-        if (vpnInUse && !listFromSharedPreferences.isNullOrEmpty()) {
+        if (vpnInUse == true && !listFromSharedPreferences.isNullOrEmpty()) {
             val type = object : TypeToken<List<GRDRegion>>() {}.type
             val arrayList: List<GRDRegion> = Gson().fromJson(listFromSharedPreferences, type)
             onRegionListener.onRegionsAvailable(arrayList)

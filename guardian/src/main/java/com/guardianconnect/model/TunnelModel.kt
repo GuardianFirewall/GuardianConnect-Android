@@ -62,7 +62,7 @@ class TunnelModel internal constructor(
         }
         private set
 
-    suspend fun getConfigAsync(): Config = withContext(Dispatchers.Main.immediate) {
+    suspend fun getConfigAsync(): Config? = withContext(Dispatchers.Main.immediate) {
         config ?: manager.getTunnelConfig(this@TunnelModel)
     }
 
