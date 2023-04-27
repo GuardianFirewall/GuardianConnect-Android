@@ -301,7 +301,8 @@ class GRDConnectSubscriber {
         Repository.instance.allConnectDevices(connectDevicesAllRequest, object : IOnApiResponse {
             override fun onSuccess(any: Any?) {
                 if (any != null) {
-                    val allDevices = any as List<ConnectDeviceResponse>
+                    val anyList = any as List<*>
+                    val allDevices = anyList.filterIsInstance<ConnectDeviceResponse>()
                     list.addAll(allDevices)
                     iOnApiResponse.onSuccess(list)
                     GRDConnectManager.getCoroutineScope().launch {

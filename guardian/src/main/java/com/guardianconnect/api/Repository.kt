@@ -733,7 +733,7 @@ class Repository {
         iOnApiResponse: IOnApiResponse
     ) {
         val grdDeviceFilterConfigBlocklist = GRDDeviceFilterConfigBlocklist()
-        var map = HashMap<Any, Any>()
+        val map = HashMap<Any, Any>()
         map.putAll(grdDeviceFilterConfigBlocklist.apiPortableBlocklist())
         map["api-auth-token"] = apiAuthToken
         val json = Gson().toJsonTree(map).asJsonObject

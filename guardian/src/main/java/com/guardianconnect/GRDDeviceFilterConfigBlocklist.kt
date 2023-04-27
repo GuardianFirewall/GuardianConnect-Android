@@ -95,15 +95,15 @@ class GRDDeviceFilterConfigBlocklist {
     fun titleForDeviceFilterConfigBlocklist(config: DeviceFilterConfigBlocklist): String {
         when (config) {
             DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistDisableFirewall -> {
-                return "Disable Firewall";
+                return "Disable Firewall"
 
             }
             DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistBlockAds -> {
-                return "Block Ads";
+                return "Block Ads"
 
             }
             DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistBlockPhishing -> {
-                return "Block Phishing";
+                return "Block Phishing"
             }
             else -> {
                 var names = ""
@@ -118,28 +118,26 @@ class GRDDeviceFilterConfigBlocklist {
     fun syncBlocklist() {
         val grdCredentialManager = GRDCredentialManager()
         val mainCredentials = grdCredentialManager.getMainCredentials()
-        if (mainCredentials != null) {
-            mainCredentials.clientId?.let { clientId ->
-                mainCredentials.apiAuthToken?.let { authToken ->
-                    Repository.instance.setDeviceFilterConfig(
-                        clientId,
-                        authToken,
-                        object : IOnApiResponse {
-                            override fun onSuccess(any: Any?) {
-                                GRDConnectManager.getCoroutineScope().launch {
-                                    GRDVPNHelper.grdMsgFlow.emit(any.toString())
-                                }
+        mainCredentials.clientId?.let { clientId ->
+            mainCredentials.apiAuthToken?.let { authToken ->
+                Repository.instance.setDeviceFilterConfig(
+                    clientId,
+                    authToken,
+                    object : IOnApiResponse {
+                        override fun onSuccess(any: Any?) {
+                            GRDConnectManager.getCoroutineScope().launch {
+                                GRDVPNHelper.grdMsgFlow.emit(any.toString())
                             }
+                        }
 
-                            override fun onError(error: String?) {
-                                error?.let {
-                                    GRDConnectManager.getCoroutineScope().launch {
-                                        GRDVPNHelper.grdErrorFlow.emit(error)
-                                    }
+                        override fun onError(error: String?) {
+                            error?.let {
+                                GRDConnectManager.getCoroutineScope().launch {
+                                    GRDVPNHelper.grdErrorFlow.emit(error)
                                 }
                             }
-                        })
-                }
+                        }
+                    })
             }
         }
     }

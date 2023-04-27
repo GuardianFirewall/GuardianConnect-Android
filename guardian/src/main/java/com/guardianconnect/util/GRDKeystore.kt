@@ -22,8 +22,7 @@ class GRDKeystore {
             GRDConnectManager.getSharedPrefs()?.edit()?.putString("IV" + alias, ivEncoded)?.apply()
 
             val dataByteArray = textToEncrypt.toByteArray(Charset.defaultCharset())
-            val dataEncrypted = cipher.doFinal(dataByteArray)
-            return dataEncrypted
+            return cipher.doFinal(dataByteArray)
         }
 
         fun getSecretKey(alias: String): SecretKey {
@@ -56,8 +55,7 @@ class GRDKeystore {
             val spec = GCMParameterSpec(128, getIv(alias))
             cipher.init(Cipher.DECRYPT_MODE, getSecretKey(alias), spec)
             val dataArray = cipher.doFinal(encryptedData)
-            val dataDecrypted = String(dataArray, Charset.defaultCharset())
-            return dataDecrypted
+            return String(dataArray, Charset.defaultCharset())
         }
 
         fun getSecretKey(alias: String): SecretKey {

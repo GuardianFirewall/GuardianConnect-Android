@@ -9,7 +9,7 @@ import com.guardianconnect.util.Constants.Companion.GRD_WIREGUARD_PRETTY
 
 class GRDTransportProtocol {
 
-    val TAG = GRDTransportProtocol::class.java.simpleName
+    private val TAG = GRDTransportProtocol::class.java.simpleName
 
     enum class GRDTransportProtocolType(val tp: String) {
         GRD_TP_UNKNOWN("GRDTransportProtocolUnknown"),

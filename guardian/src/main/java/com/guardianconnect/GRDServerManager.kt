@@ -43,7 +43,8 @@ class GRDServerManager {
         } else {
             Repository.instance.getListOfSupportedTimeZones(object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
-                    val list = any as ArrayList<TimeZonesResponse>
+                    val anyList = any as List<*>
+                    val list = anyList.filterIsInstance<TimeZonesResponse>()
                     list.let {
                         val currentTimeZoneId = TimeZone.getDefault().id
                         for (item in it) {
@@ -63,7 +64,7 @@ class GRDServerManager {
                             }
                         }
 
-                        if (selectedRegion.isNullOrEmpty()) {
+                        if (selectedRegion.isEmpty()) {
                             iOnApiResponse.onError("No available servers for your timezone: " + currentTimeZoneId)
                         }
 
@@ -90,11 +91,9 @@ class GRDServerManager {
             serversForRegion,
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
-                    val listOfServersToReturn =
-                        any as ArrayList<Server>
-                    iOnApiResponse.onSuccess(
-                        listOfServersToReturn
-                    )
+                    val anyList = any as List<*>
+                    val listOfServersToReturn = anyList.filterIsInstance<Server>()
+                    iOnApiResponse.onSuccess(listOfServersToReturn)
                     Log.d(
                         TAG,
                         "List of servers for selected region: " + Gson().toJson(
@@ -120,8 +119,9 @@ class GRDServerManager {
     ) {
         getGuardianHosts(object : IOnApiResponse {
             override fun onSuccess(any: Any?) {
-                val listOfServers = any as ArrayList<Server>?
-                listOfServers?.let {
+                val anyList = any as List<*>
+                val listOfServers = anyList.filterIsInstance<Server>()
+                listOfServers.let {
                     val filteredServers: List<Server> =
                         listOfServers.filter { it.getCapacityScore() in setOf(0, 1) }
                     var selectedServer: Server? = null
@@ -168,7 +168,8 @@ class GRDServerManager {
         } else {
             Repository.instance.requestAllGuardianRegions(object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
-                    val regionsList = any as List<GRDRegion>
+                    val anyList = any as List<*>
+                    val regionsList = anyList.filterIsInstance<GRDRegion>()
                     list.addAll(regionsList)
                     onRegionListener.onRegionsAvailable(list)
                     GRDConnectManager.getSharedPrefsEditor()?.putString(

@@ -37,7 +37,7 @@ class GRDCredentialManager {
     }
 
     // Find credential for a given identifier
-    fun findCredentialByIdentifier(identifier: String): GRDCredential? {
+    fun findCredentialByIdentifier(identifier: String): GRDCredential {
         return getAllCredentials().first { it.identifier == identifier }
     }
 
@@ -53,7 +53,7 @@ class GRDCredentialManager {
     }
 
     // Get main credentials
-    fun getMainCredentials(): GRDCredential? {
+    fun getMainCredentials(): GRDCredential {
         return getAllCredentials().first { it.mainCredential == true }
     }
 

@@ -57,7 +57,7 @@ object GRDVPNHelper {
                 intent != null -> grdVPNPermissionFlow.emit(intent)
 
                 // Ensure that a tunnel name has been set
-                tunnelName.isNullOrEmpty() -> grdErrorFlow.emit("Tunnel name should not be empty!")
+                tunnelName.isEmpty() -> grdErrorFlow.emit("Tunnel name should not be empty!")
 
                 // Check if VPN credentials are already present in the GRDCredentialManager
                 else -> grdCredentialManager.retrieveCredential().let {
@@ -86,7 +86,7 @@ object GRDVPNHelper {
 
     private suspend fun createTunnelWithExistingCredentials() {
         val grdCredentialManager = GRDCredentialManager()
-        val hostname = grdCredentialManager.getMainCredentials()?.hostname
+        val hostname = grdCredentialManager.getMainCredentials().hostname
         if (!hostname.isNullOrEmpty()) {
             Repository.instance.initRegionServer(hostname)
             val configString = GRDKeystore.instance.retrieveFromKeyStore(GRD_CONFIG_STRING)
@@ -142,7 +142,7 @@ object GRDVPNHelper {
      * The user may disable the VPN at any time while it is activated, in which case this method
      * will return an intent the next time it is executed to obtain the user's consent again.
      */
-    fun getIntentVpnPermissions(context: Context) = GoBackend.VpnService.prepare(context)
+    fun getIntentVpnPermissions(context: Context): Intent? = GoBackend.VpnService.prepare(context)
 
     suspend fun createTunnel(configString: String) {
         val inputString: Reader = StringReader(configString)
