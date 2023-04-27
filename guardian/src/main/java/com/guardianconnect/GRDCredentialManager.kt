@@ -72,6 +72,7 @@ class GRDCredentialManager {
     }
 
     fun initListOfCredentials() {
+        credentialsArrayList.clear()
         try {
             val jsonString = GRDKeystore.instance.retrieveFromKeyStore(GRD_CREDENTIAL_LIST)
             if (!jsonString.isNullOrEmpty()) {

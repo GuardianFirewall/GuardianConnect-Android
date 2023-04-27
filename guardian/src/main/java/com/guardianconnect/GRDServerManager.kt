@@ -151,38 +151,48 @@ class GRDServerManager {
             GRDConnectManager.get()
                 .getContext().applicationContext?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetwork: Network? = connectivityManager.activeNetwork
-        val caps: NetworkCapabilities? = connectivityManager.getNetworkCapabilities(activeNetwork)
-        val vpnInUse = caps?.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
-        val listFromSharedPreferences =
-            GRDConnectManager.getSharedPrefs()?.getString(GRD_REGIONS_LIST_FROM_SHARED_PREFS, "")
-        val list = ArrayList<GRDRegion>()
-        val automaticGRDRegion = GRDRegion()
-        automaticGRDRegion.namePretty = GRD_AUTOMATIC_REGION
-        list.add(0, automaticGRDRegion)
+        if (activeNetwork == null) {
+            onRegionListener.onRegionsAvailable(emptyList())
 
-        // Make API call only when VPN is not in use
-        if (vpnInUse == true && !listFromSharedPreferences.isNullOrEmpty()) {
-            val type = object : TypeToken<List<GRDRegion>>() {}.type
-            val arrayList: List<GRDRegion> = Gson().fromJson(listFromSharedPreferences, type)
-            onRegionListener.onRegionsAvailable(arrayList)
         } else {
-            Repository.instance.requestAllGuardianRegions(object : IOnApiResponse {
-                override fun onSuccess(any: Any?) {
-                    val anyList = any as List<*>
-                    val regionsList = anyList.filterIsInstance<GRDRegion>()
-                    list.addAll(regionsList)
-                    onRegionListener.onRegionsAvailable(list)
-                    GRDConnectManager.getSharedPrefsEditor()?.putString(
-                        GRD_REGIONS_LIST_FROM_SHARED_PREFS, Gson().toJson(list)
-                    )?.apply()
-                    Log.d(TAG, "returnAllAvailableRegions success")
-                }
+            val caps: NetworkCapabilities? = connectivityManager.getNetworkCapabilities(activeNetwork)
+            if (caps == null) {
+                onRegionListener.onRegionsAvailable(emptyList())
+                return
+            }
 
-                override fun onError(error: String?) {
-                    error?.let { Log.d(TAG, it) }
-                    onRegionListener.onRegionsAvailable(ArrayList())
-                }
-            })
+            val vpnInUse = caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+            val listFromSharedPreferences =
+                GRDConnectManager.getSharedPrefs()?.getString(GRD_REGIONS_LIST_FROM_SHARED_PREFS, "")
+            val list = ArrayList<GRDRegion>()
+            val automaticGRDRegion = GRDRegion()
+            automaticGRDRegion.namePretty = GRD_AUTOMATIC_REGION
+            list.add(0, automaticGRDRegion)
+
+            // Make API call only when VPN is not in use
+            if (vpnInUse == true && !listFromSharedPreferences.isNullOrEmpty()) {
+                val type = object : TypeToken<List<GRDRegion>>() {}.type
+                val arrayList: List<GRDRegion> = Gson().fromJson(listFromSharedPreferences, type)
+                onRegionListener.onRegionsAvailable(arrayList)
+            } else {
+                Repository.instance.requestAllGuardianRegions(object : IOnApiResponse {
+                    override fun onSuccess(any: Any?) {
+                        val anyList = any as List<*>
+                        val regionsList = anyList.filterIsInstance<GRDRegion>()
+                        list.addAll(regionsList)
+                        onRegionListener.onRegionsAvailable(list)
+                        GRDConnectManager.getSharedPrefsEditor()?.putString(
+                            GRD_REGIONS_LIST_FROM_SHARED_PREFS, Gson().toJson(list)
+                        )?.apply()
+                        Log.d(TAG, "returnAllAvailableRegions success")
+                    }
+
+                    override fun onError(error: String?) {
+                        error?.let { Log.d(TAG, it) }
+                        onRegionListener.onRegionsAvailable(ArrayList())
+                    }
+                })
+            }
         }
     }
 
