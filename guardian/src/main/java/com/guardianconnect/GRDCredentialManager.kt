@@ -59,6 +59,7 @@ class GRDCredentialManager {
 
     // return the currently valid Credential
     fun retrieveCredential(): GRDCredential? {
+        initListOfCredentials()
         return if (credentialsArrayList.isNotEmpty()) {
             return credentialsArrayList.first()
         } else {
