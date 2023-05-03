@@ -246,7 +246,7 @@ object GRDVPNHelper {
     }
 
 
-/*  Function that handles the various tasks required to establish a new VPN connection.
+    /*  Function that handles the various tasks required to establish a new VPN connection.
     Create new VPN credentials on the selected VPN node with the created Subscriber Credential
     Create a new WireGuard configuration with the VPN credentials from the VPN node
     Connect WireGuard to the VPN node */
@@ -255,6 +255,36 @@ object GRDVPNHelper {
         peToken: String,
         validForDays: Long,
         mainCredentials: Boolean,
+        iOnApiResponse: IOnApiResponse
+    ) {
+        var subscriberCredential: String? = null
+        if (!grdSubscriberCredential.isExpired()) {
+            subscriberCredential =
+                grdSubscriberCredential.retrieveSubscriberCredentialJWTFormat()
+        }
+        subscriberCredential?.let {
+            initRegionAndConnectDevice(it, validForDays, mainCredentials, iOnApiResponse)
+        } ?: run {
+            createSubscriber(peToken, object : IOnApiResponse {
+                override fun onSuccess(any: Any?) {
+                    val subscriberCredentialString = any as String
+                    initRegionAndConnectDevice(
+                        subscriberCredentialString,
+                        validForDays,
+                        mainCredentials,
+                        iOnApiResponse
+                    )
+                }
+
+                override fun onError(error: String?) {
+                    iOnApiResponse.onError(error)
+                }
+            })
+        }
+    }
+
+    fun createSubscriber(
+        peToken: String,
         iOnApiResponse: IOnApiResponse
     ) {
         val validationMethodPEToken = ValidationMethodPEToken()
@@ -267,32 +297,7 @@ object GRDVPNHelper {
                     val subCredentialResponse = any as SubscriberCredentialResponse
                     subCredentialResponse.subscriberCredential?.let { scs ->
                         grdSubscriberCredential.storeSubscriberCredentialJWTFormat(scs)
-                        grdServerManager.selectServerFromRegion(
-                            object : IOnApiResponse {
-                                override fun onSuccess(any: Any?) {
-                                    val server = any as Server
-                                    server.hostname()?.let {
-                                        Repository.instance.initRegionServer(it)
-                                        connectVpnDevice(
-                                            scs,
-                                            server,
-                                            iOnApiResponse,
-                                            validForDays,
-                                            mainCredentials
-                                        )
-                                    } ?: run {
-                                        iOnApiResponse.onError(GRDVPNHelperStatus.SERVER_ERROR.name)
-                                        GRDConnectManager.getCoroutineScope().launch {
-                                            grdErrorFlow.emit(GRDVPNHelperStatus.SERVER_ERROR.name)
-                                        }
-                                    }
-                                }
-
-                                override fun onError(error: String?) {
-                                    iOnApiResponse.onError(error)
-                                    error?.let { Log.d(TAG, it) }
-                                }
-                            })
+                        iOnApiResponse.onSuccess(scs)
                     } ?: run {
                         iOnApiResponse.onError("Missing subscriberCredential")
                         GRDConnectManager.getCoroutineScope().launch {
@@ -308,6 +313,40 @@ object GRDVPNHelper {
                             grdErrorFlow.emit(it)
                         }
                     }
+                }
+            })
+    }
+
+    fun initRegionAndConnectDevice(
+        subscriberCredentialString: String,
+        validForDays: Long,
+        mainCredentials: Boolean,
+        iOnApiResponse: IOnApiResponse
+    ) {
+        grdServerManager.selectServerFromRegion(
+            object : IOnApiResponse {
+                override fun onSuccess(any: Any?) {
+                    val server = any as Server
+                    server.hostname()?.let {
+                        Repository.instance.initRegionServer(it)
+                        connectVpnDevice(
+                            subscriberCredentialString,
+                            server,
+                            iOnApiResponse,
+                            validForDays,
+                            mainCredentials
+                        )
+                    } ?: run {
+                        iOnApiResponse.onError(GRDVPNHelperStatus.SERVER_ERROR.name)
+                        GRDConnectManager.getCoroutineScope().launch {
+                            grdErrorFlow.emit(GRDVPNHelperStatus.SERVER_ERROR.name)
+                        }
+                    }
+                }
+
+                override fun onError(error: String?) {
+                    iOnApiResponse.onError(error)
+                    error?.let { Log.d(TAG, it) }
                 }
             })
     }
