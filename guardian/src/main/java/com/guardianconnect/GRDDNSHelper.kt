@@ -4,7 +4,7 @@ import GRDDNSProxy
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import com.wireguard.android.backend.GoBackend
+import android.net.VpnService
 import kotlinx.coroutines.launch
 
 @SuppressLint("StaticFieldLeak")
@@ -18,7 +18,7 @@ object GRDDNSHelper {
 
     fun prepareGRDDNSProxyPermissions() {
         GRDConnectManager.getCoroutineScope().launch {
-            val intent = GoBackend.VpnService.prepare(context)
+            val intent = VpnService.prepare(context)
             if (intent != null) {
                 GRDVPNHelper.grdVPNPermissionFlow.emit(intent)
             } else {
