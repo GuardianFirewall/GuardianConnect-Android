@@ -170,7 +170,7 @@ class GRDServerManager {
             list.add(0, automaticGRDRegion)
 
             // Make API call only when VPN is not in use
-            if (vpnInUse == true && !listFromSharedPreferences.isNullOrEmpty()) {
+            if (vpnInUse && !listFromSharedPreferences.isNullOrEmpty()) {
                 val type = object : TypeToken<List<GRDRegion>>() {}.type
                 val arrayList: List<GRDRegion> = Gson().fromJson(listFromSharedPreferences, type)
                 onRegionListener.onRegionsAvailable(arrayList)
@@ -180,6 +180,9 @@ class GRDServerManager {
                         val anyList = any as List<*>
                         val regionsList = anyList.filterIsInstance<GRDRegion>()
                         list.addAll(regionsList)
+                        list.sortWith(compareBy<GRDRegion> { item ->
+                            if (item.namePretty == GRD_AUTOMATIC_REGION) 0 else 1
+                        }.thenBy { it.namePretty.toString() })
                         onRegionListener.onRegionsAvailable(list)
                         GRDConnectManager.getSharedPrefsEditor()?.putString(
                             GRD_REGIONS_LIST_FROM_SHARED_PREFS, Gson().toJson(list)
