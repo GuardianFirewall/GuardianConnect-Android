@@ -304,11 +304,15 @@ class GRDConnectSubscriber {
                 logoutConnectSubscriberRequest,
                 object : IOnApiResponse {
                     override fun onSuccess(any: Any?) {
-                        Log.d("GRDConnectSubscriber", any.toString())
+                        GRDConnectManager.getCoroutineScope().launch {
+                            GRDVPNHelper.grdMsgFlow.emit(any.toString())
+                        }
                     }
 
                     override fun onError(error: String?) {
-                        error?.let { Log.d("GRDConnectSubscriber", it) }
+                        GRDConnectManager.getCoroutineScope().launch {
+                            error?.let { GRDVPNHelper.grdErrorFlow.emit(it) }
+                        }
                     }
                 })
         }
