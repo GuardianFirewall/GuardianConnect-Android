@@ -1,5 +1,6 @@
 package com.guardianconnect
 
+import android.util.Log
 import com.google.gson.Gson
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
@@ -290,6 +291,27 @@ class GRDConnectSubscriber {
                     iOnApiResponse.onError(error)
                 }
             })
+    }
+
+    fun logoutConnectSubscriber() {
+        val pet = GRDKeystore.instance.retrieveFromKeyStore(GRD_PE_TOKEN)
+        val publishableKey = GRDVPNHelper.connectPublishableKey
+        if (pet != null && publishableKey.isNotEmpty()) {
+            val logoutConnectSubscriberRequest = LogoutConnectSubscriberRequest()
+            logoutConnectSubscriberRequest.peToken = pet
+            logoutConnectSubscriberRequest.connectPublishableKey = publishableKey
+            Repository.instance.logoutConnectSubscriber(
+                logoutConnectSubscriberRequest,
+                object : IOnApiResponse {
+                    override fun onSuccess(any: Any?) {
+                        Log.d("GRDConnectSubscriber", any.toString())
+                    }
+
+                    override fun onError(error: String?) {
+                        error?.let { Log.d("GRDConnectSubscriber", it) }
+                    }
+                })
+        }
     }
 
     // TODO: check the difference between this and GRDConnectDevice.allDevices()

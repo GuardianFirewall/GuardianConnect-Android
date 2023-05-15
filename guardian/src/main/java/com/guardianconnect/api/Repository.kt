@@ -764,4 +764,35 @@ class Repository {
         })
     }
 
+    fun logoutConnectSubscriber(
+        logoutConnectSubscriberRequest: LogoutConnectSubscriberRequest,
+        iOnApiResponse: IOnApiResponse
+    ) {
+        val call: Call<ResponseBody>? =
+            apiCallsGRDConnect?.logoutConnectSubscriber(logoutConnectSubscriberRequest)
+        call?.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                if (response.isSuccessful) {
+                    iOnApiResponse.onSuccess("GRDConnect Subscriber logout successfully.")
+                } else {
+                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
+                    if (jObjError != null) {
+                        Log.d(TAG, jObjError.toString())
+                        iOnApiResponse.onError(jObjError.toString())
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                GRDConnectManager.getCoroutineScope().launch {
+                    t.message?.let { GRDVPNHelper.grdErrorFlow.emit(it) }
+                }
+                Log.d(
+                    TAG,
+                    API_ERROR + " logoutConnectSubscriber() " + t.message
+                )
+            }
+        })
+    }
+
 }

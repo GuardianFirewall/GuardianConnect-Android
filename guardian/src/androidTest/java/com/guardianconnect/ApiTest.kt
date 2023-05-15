@@ -95,6 +95,9 @@ class ApiTest {
     @Mock
     private lateinit var callSetDeviceFilterConfig: Call<ResponseBody>
 
+    @Mock
+    private lateinit var callLogoutConnectSubscriber: Call<ResponseBody>
+
     @Test
     fun testCreateNewGRDConnectSubscriber() {
         val apiService = retrofitGRD.create(IApiCalls::class.java)
@@ -184,11 +187,7 @@ class ApiTest {
         val response = apiService.addConnectDevice(
             connectDeviceRequest
         ).execute()
-        response.body()?.string().let {
-            val connectDeviceResponse = Gson().fromJson(
-                it,
-                ConnectDeviceResponse::class.java
-            )
+        response.body()?.let {
 
             val apiService = retrofitGRD.create(IApiCalls::class.java)
             Mockito.`when`(callUpdateConnectDevice.execute()).thenReturn(
@@ -200,7 +199,7 @@ class ApiTest {
             connectDeviceUpdateRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
             connectDeviceUpdateRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
             connectDeviceUpdateRequest.deviceNickname = "test_nickname"
-            connectDeviceUpdateRequest.deviceUuid = connectDeviceResponse.epGrdDeviceUuid
+            connectDeviceUpdateRequest.deviceUuid = it.epGrdDeviceUuid
             val response = apiService.updateConnectDevice(
                 connectDeviceUpdateRequest
             ).execute()
@@ -224,11 +223,7 @@ class ApiTest {
         val response = apiService.addConnectDevice(
             connectDeviceRequest
         ).execute()
-        response.body()?.string().let {
-            val connectDeviceResponse = Gson().fromJson(
-                it,
-                ConnectDeviceResponse::class.java
-            )
+        response.body()?.let {
             val apiService = retrofitGRD.create(IApiCalls::class.java)
             Mockito.`when`(callDeleteConnectDevice.execute()).thenReturn(
                 Response.success(
@@ -238,7 +233,7 @@ class ApiTest {
             val connectDeviceDeleteRequest = ConnectDeviceDeleteRequest()
             connectDeviceDeleteRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
             connectDeviceDeleteRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
-            connectDeviceDeleteRequest.deviceUuid = connectDeviceResponse.epGrdDeviceUuid
+            connectDeviceDeleteRequest.deviceUuid = it.epGrdDeviceUuid
             val response = apiService.deleteConnectDevice(
                 connectDeviceDeleteRequest
             ).execute()
@@ -692,5 +687,22 @@ class ApiTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun testLogoutConnectSubscriber() {
+        val apiService = retrofitGRD.create(IApiCalls::class.java)
+        Mockito.`when`(callLogoutConnectSubscriber.execute()).thenReturn(
+            Response.success(
+                "Test".toResponseBody()
+            )
+        )
+        val logoutConnectSubscriberRequest = LogoutConnectSubscriberRequest()
+        logoutConnectSubscriberRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        logoutConnectSubscriberRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
+        val response = apiService.logoutConnectSubscriber(
+            logoutConnectSubscriberRequest
+        ).execute()
+        assertTrue(response.code() == 200)
     }
 }

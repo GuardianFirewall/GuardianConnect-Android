@@ -84,4 +84,7 @@ interface IApiCalls {
         @Path("deviceid") deviceid: String,
         @Body jsonObject: JsonObject
     ): Call<ResponseBody>
+
+    @POST("/api/v1.2/partners/subscriber/logout")
+    fun logoutConnectSubscriber(@Body logoutConnectSubscriberRequest: LogoutConnectSubscriberRequest): Call<ResponseBody>
 }
