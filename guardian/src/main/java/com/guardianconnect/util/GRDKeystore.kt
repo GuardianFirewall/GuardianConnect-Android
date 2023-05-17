@@ -111,6 +111,10 @@ class GRDKeystore {
         return returnString
     }
 
+    fun removePEToken() {
+        GRDConnectManager.getSharedPrefsEditor()?.remove(Constants.GRD_PE_TOKEN)?.apply()
+    }
+
     companion object {
         private const val TRANSFORMATION = "AES/GCM/NoPadding"
         private const val ANDROID_KEY_STORE = "AndroidKeyStore"

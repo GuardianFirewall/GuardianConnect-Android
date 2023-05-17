@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".GRDDNSActivity">
+
+    <Button
+        android:id="@+id/btnStartVPN"
+        android:layout_width="185dp"
+        android:layout_height="75dp"
+        android:background="@drawable/round_button_default"
+        android:text="START VPN"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.462"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.236" />
+
+    <Button
+        android:id="@+id/btnStopVPN"
+        android:layout_width="185dp"
+        android:layout_height="75dp"
+        android:background="@drawable/round_button_default"
+        android:text="STOP VPN"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.46"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.236" />
+
+    <TextView
+        android:id="@+id/tvIP"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="30dp"
+        android:text="IP:"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="158dp"
+        android:layout_height="48dp"
+        android:background="@color/background_light_grey"
+        android:drawableEnd="@drawable/edit_pen"
+        android:padding="10dp"
+        android:text=" 127.0.0.1 "
+        android:gravity="end"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/tvIP"
+        app:layout_constraintStart_toStartOf="@+id/textView4"
+        app:layout_constraintTop_toTopOf="@+id/tvIP" />
+
+    <TextView
+        android:id="@+id/tvDNS"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="30dp"
+        android:text="DNS:"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvIP" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="159dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="30dp"
+        android:background="@color/background_light_grey"
+        android:drawableEnd="@drawable/edit_pen"
+        android:padding="10dp"
+        android:text="1.1.1.1 "
+        android:gravity="end"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/tvDNS"
+        app:layout_constraintStart_toEndOf="@+id/tvDNS"
+        app:layout_constraintTop_toTopOf="@+id/tvDNS" />
+
+    <ScrollView
+        android:layout_width="412dp"
+        android:layout_height="428dp"
+        android:paddingStart="15dp"
+        android:paddingEnd="15dp"
+        android:layout_marginTop="15dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnStopVPN">
+
+        <TextView
+            android:id="@+id/logOutput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#E8EBED"
+            android:fadeScrollbars="true"
+            android:overScrollMode="never"
+            android:scrollbarAlwaysDrawVerticalTrack="true"
+            android:scrollbars="vertical"
+            android:text="16:43:36 \n
+✓  aloha46.viber.com \n
+✓  nlb-sn-b4adbf8f03275516.elb.us-east-1.amazonaws.com \n
+16:44:34 \n
+✓  graph.facebook.com \n
+✓  star.c10r.facebook.com \n
+16:44:54 \n
+✓  i.instagram.com \n
+✓  instagram.c10r.instagram.com \n
+16:44:55 \n
+✓  edgeapi.slack.com \n
+✓  slack.com \n
+16:45:06 \n
+✓  slackb.com \n
+16:49:59 \n
+✓  www.gstatic.com \n
+16:50:00 \n
+✓  aloha46.viber.com \n
+✓  nlb-sn-b4adbf8f03275516.elb.us-east-1.amazonaws.com \n
+16:51:28 \n
+✓  graph.facebook.com \n
+✓  star.c10r.facebook.com 16:51:42 \n
+✓  slack.com \n
+✗  sessions.bugsnag.com \n
+16:51:43 \n
+✓  edgeapi.slack.com \n
+✓  wss-mobile.slack.com \n
+✓  wss-primary.slack.com \n
+16:51:47 \n
+✓  slack-imgs.com \n
+16:52:12 \n
+✓  slackb.com \n
+16:52:35 \n
+✓  i.instagram.com \n
+✓  instagram.c10r.instagram.com \n
+16:53:36 \n
+✓  android-context-data.googleapis.com
+16:53:39
+✓  aloha46.viber.com
+✓  nlb-sn-b4adbf8f03275516.elb.us-east-1.amazonaws.com
+16:54:12
+✓  api.weather.com
+✓  e12930.dscj.akamaiedge.net"
+            android:textColor="#455a64"
+            android:textIsSelectable="true"
+            android:textSize="14sp" />
+
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
