@@ -4,6 +4,9 @@ import android.os.ParcelFileDescriptor
 import android.util.Log
 import com.guardianconnect.DnsOverHttpsClient
 import com.guardianconnect.DnsOverTlsClient
+import com.guardianconnect.GRDConnectManager
+import com.guardianconnect.GRDVPNHelper
+import kotlinx.coroutines.launch
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
@@ -14,6 +17,7 @@ import java.nio.ByteBuffer
 class GRDDNSProxy : VpnService() {
     private val TAG = "GRDDNSProxy"
     private var parcelFileDescriptor: ParcelFileDescriptor? = null
+    private var isVpnRunning = false
 
     private val blockedHostnames = listOf(
         "reddit.com",
@@ -31,14 +35,17 @@ class GRDDNSProxy : VpnService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand")
-        establishVpnConnection()
+        if (!isVpnRunning) {
+            establishVpnConnection()
+            isVpnRunning = true
+        }
         return START_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "onDestroy")
-        closeVpnConnection()
+        stopVpnConnection()
     }
 
     private fun establishVpnConnection() {
@@ -51,6 +58,9 @@ class GRDDNSProxy : VpnService() {
                 .establish()
             Log.d(TAG, "VPN connection established")
             startVpnConnection()
+            GRDConnectManager.getCoroutineScope().launch {
+                GRDVPNHelper.grdStatusFlow.emit(GRDVPNHelper.GRDVPNHelperStatus.CONNECTED.name)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -89,6 +99,14 @@ class GRDDNSProxy : VpnService() {
         }
 
         closeVpnConnection()
+    }
+
+    private fun stopVpnConnection() {
+        isVpnRunning = false
+        closeVpnConnection()
+        GRDConnectManager.getCoroutineScope().launch {
+            GRDVPNHelper.grdStatusFlow.emit(GRDVPNHelper.GRDVPNHelperStatus.DISCONNECTED.name)
+        }
     }
 
     private fun isPlainTextDns(): Boolean {

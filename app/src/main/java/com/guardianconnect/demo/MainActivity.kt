@@ -1,5 +1,6 @@
 package com.guardianconnect.demo
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -25,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var etPeToken: EditText
     private lateinit var btnPeToken: Button
+    private lateinit var btnDNSProxy: Button
     private var adapter: AllRegionsAdapter? = null
     private var rvList: RecyclerView? = null
     private val regionsAdapterList: ArrayList<GRDRegion> = ArrayList()
@@ -77,6 +79,10 @@ class MainActivity : AppCompatActivity() {
 
         val storedPET = GRDKeystore.instance.retrieveFromKeyStore(Constants.GRD_PE_TOKEN)
         etPeToken.setText(storedPET)
+
+        btnDNSProxy.setOnClickListener {
+            startActivity(Intent(this, GRDDNSActivity::class.java))
+        }
     }
 
     private fun collectFlowStates() {
@@ -169,6 +175,7 @@ class MainActivity : AppCompatActivity() {
         rvList = findViewById(R.id.rvList)
         etPeToken = findViewById(R.id.etPeToken)
         btnPeToken = findViewById(R.id.btnPeToken)
+        btnDNSProxy = findViewById(R.id.btnDNSProxy)
 
         if (GRDVPNHelper.isTunnelRunning()) {
             btnStartTunnel.visibility = View.GONE

@@ -18,6 +18,7 @@ class GRDDNSActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_grddnsactivity)
+        vpnServiceIntent = Intent(this, GRDDNSProxy::class.java)
 
         GRDDNSHelper.initGRDDNSHelper(applicationContext)
 
@@ -35,16 +36,34 @@ class GRDDNSActivity : AppCompatActivity() {
         btnStopVpn.visibility = View.GONE
         btnStartVpn.setOnClickListener {
             GRDDNSHelper.prepareGRDDNSProxyPermissions()
+            startService(vpnServiceIntent)
+            btnStartVpn.visibility = View.GONE
+            btnStopVpn.visibility = View.VISIBLE
         }
         btnStopVpn.setOnClickListener {
-            vpnServiceIntent = Intent(this, GRDDNSProxy::class.java)
             stopService(vpnServiceIntent)
+            btnStartVpn.visibility = View.VISIBLE
+            btnStopVpn.visibility = View.GONE
+        }
+
+        GRDConnectManager.getCoroutineScope().launch {
+            GRDVPNHelper.grdStatusFlow.collect {
+                when (it) {
+                    GRDVPNHelper.GRDVPNHelperStatus.CONNECTED.name -> {
+                        btnStartVpn.visibility = View.GONE
+                        btnStopVpn.visibility = View.VISIBLE
+                    }
+                    GRDVPNHelper.GRDVPNHelperStatus.DISCONNECTED.name -> {
+                        btnStartVpn.visibility = View.VISIBLE
+                        btnStopVpn.visibility = View.GONE
+                    }
+                }
+            }
         }
     }
 
     private val permissionActivityResultLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            vpnServiceIntent = Intent(this, GRDDNSProxy::class.java)
             startService(vpnServiceIntent)
         }
 }
