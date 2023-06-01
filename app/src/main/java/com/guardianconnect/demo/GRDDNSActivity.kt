@@ -1,7 +1,5 @@
 package com.guardianconnect.demo
 
-import GRDDNSProxy
-import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -13,12 +11,10 @@ import com.guardianconnect.GRDVPNHelper
 import kotlinx.coroutines.launch
 
 class GRDDNSActivity : AppCompatActivity() {
-    private var vpnServiceIntent: Intent? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_grddnsactivity)
-        vpnServiceIntent = Intent(this, GRDDNSProxy::class.java)
 
         GRDDNSHelper.initGRDDNSHelper(applicationContext)
 
@@ -36,12 +32,11 @@ class GRDDNSActivity : AppCompatActivity() {
         btnStopVpn.visibility = View.GONE
         btnStartVpn.setOnClickListener {
             GRDDNSHelper.prepareGRDDNSProxyPermissions()
-            startService(vpnServiceIntent)
             btnStartVpn.visibility = View.GONE
             btnStopVpn.visibility = View.VISIBLE
         }
         btnStopVpn.setOnClickListener {
-            stopService(vpnServiceIntent)
+            GRDDNSHelper.stopGRDDNSProxyService()
             btnStartVpn.visibility = View.VISIBLE
             btnStopVpn.visibility = View.GONE
         }
@@ -64,6 +59,6 @@ class GRDDNSActivity : AppCompatActivity() {
 
     private val permissionActivityResultLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            startService(vpnServiceIntent)
+            GRDDNSHelper.prepareGRDDNSProxyPermissions()
         }
 }

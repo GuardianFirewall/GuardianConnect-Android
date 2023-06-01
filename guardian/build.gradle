@@ -46,8 +46,8 @@ dependencies {
     implementation "com.journeyapps:zxing-android-embedded:$zxingEmbeddedVersion"
     implementation "com.google.code.gson:gson:$gsonVersion"
     implementation "androidx.preference:preference-ktx:$preferenceKtxVersion"
-    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.10.0'
-    implementation group: 'com.squareup.okhttp3', name: 'logging-interceptor', version: '4.10.0'
+    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.11.0'
+    implementation group: 'com.squareup.okhttp3', name: 'logging-interceptor', version: '4.11.0'
     implementation group: 'com.squareup.retrofit2', name: 'retrofit', version: '2.9.0'
     implementation group: 'com.squareup.retrofit2', name: 'converter-gson', version: '2.9.0'
     implementation 'androidx.test.ext:junit-ktx:1.1.5'
@@ -55,6 +55,8 @@ dependencies {
     androidTestImplementation "androidx.test:runner:1.5.2"
     testImplementation 'org.mockito:mockito-core:4.5.1'
     androidTestImplementation 'org.mockito:mockito-android:3.8.0'
+    implementation 'com.squareup.okhttp3:okhttp-dnsoverhttps:4.9.1'
+
 }
 
 ext {

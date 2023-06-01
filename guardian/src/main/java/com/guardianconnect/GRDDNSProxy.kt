@@ -1,23 +1,36 @@
+package com.guardianconnect
+
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
 import android.net.VpnService
+import android.os.Handler
+import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.util.Log
-import com.guardianconnect.DnsOverHttpsClient
-import com.guardianconnect.DnsOverTlsClient
-import com.guardianconnect.GRDConnectManager
-import com.guardianconnect.GRDVPNHelper
-import kotlinx.coroutines.launch
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.dnsoverhttps.DnsOverHttps
+import org.json.JSONObject
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.net.Inet4Address
+import java.net.Inet6Address
 import java.net.InetAddress
+import java.net.UnknownHostException
 import java.nio.ByteBuffer
 
-// TODO: To be tested
 class GRDDNSProxy : VpnService() {
     private val TAG = "GRDDNSProxy"
-    private var parcelFileDescriptor: ParcelFileDescriptor? = null
-    private var isVpnRunning = false
+    private val dnsResolutionMethod = DnsResolutionMethod.PLAIN_TEXT
+
+    private enum class DnsResolutionMethod {
+        PLAIN_TEXT,
+        DNS_OVER_HTTPS,
+        DNS_OVER_TLS
+    }
 
     private val blockedHostnames = listOf(
         "reddit.com",
@@ -26,12 +39,6 @@ class GRDDNSProxy : VpnService() {
         "apple.com",
         "google.com"
     )
-
-    private val dnsOverHttpsUrl =
-        "https://dns.google/dns-query" // Default DoH server URL (can be changed as needed)
-    private val dnsOverTlsAddress =
-        "1.1.1.1" // Default DoT server address (can be changed as needed)
-    private val dnsOverTlsPort = 853 // Default DoT server port (can be changed as needed)
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand")
@@ -48,195 +55,200 @@ class GRDDNSProxy : VpnService() {
         stopVpnConnection()
     }
 
+    private val handler = Handler(Looper.getMainLooper())
+
     private fun establishVpnConnection() {
-        try {
-            Log.d(TAG, "Establishing VPN connection...")
-            parcelFileDescriptor = Builder()
-                .setMtu(1500)
-                .addAddress("10.0.0.2", 24) // TODO: Replace with our VPN server address and port
-                .addRoute("0.0.0.0", 0)
-                .establish()
-            Log.d(TAG, "VPN connection established")
-            startVpnConnection()
-            GRDConnectManager.getCoroutineScope().launch {
-                GRDVPNHelper.grdStatusFlow.emit(GRDVPNHelper.GRDVPNHelperStatus.CONNECTED.name)
+        Thread {
+            try {
+                Log.d(TAG, "Establishing VPN connection...")
+                val vpnBuilder = getDNSviaSysProps(applicationContext)?.get(0)?.let {
+                    Builder()
+                        .setMtu(3000)
+                        .addAddress("10.0.2.15", 24)
+                        .addDnsServer(it)
+                }
+
+                for (hostname in blockedHostnames) {
+                    try {
+                        val ipAddress = resolveDns(hostname)
+                        ipAddress?.let {
+                            if (isIPv4(ipAddress))
+                                ipAddress.let { it1 -> vpnBuilder?.addRoute(it1, 32) }
+                            else if (isIPv6(ipAddress))
+                                ipAddress.let { it1 -> vpnBuilder?.addRoute(it1, 128) }
+                            else
+                                return@let
+                        }
+                    } catch (e: Exception) {
+                        e.message?.let { errorMessage ->
+                            handler.post {
+                                Log.e(TAG, errorMessage)
+                            }
+                        }
+                    }
+                }
+
+                parcelFileDescriptor = vpnBuilder?.establish()
+
+                handler.post {
+                    Log.d(TAG, "VPN connection established")
+                    startVpnConnection()
+                }
+            } catch (e: Exception) {
+                e.message?.let { errorMessage ->
+                    handler.post {
+                        Log.e(TAG, errorMessage)
+                    }
+                }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        }.start()
+    }
+
+    fun isIPv4(address: String): Boolean {
+        return try {
+            InetAddress.getByName(address).isReachable(1000) && InetAddress.getByName(address) is Inet4Address
+        } catch (e: UnknownHostException) {
+            false
         }
     }
 
+    fun isIPv6(address: String): Boolean {
+        return try {
+            InetAddress.getByName(address).isReachable(1000) && InetAddress.getByName(address) is Inet6Address
+        } catch (e: UnknownHostException) {
+            false
+        }
+    }
+
+
+    private fun getDNSviaSysProps(context: Context): Array<String?>? {
+        return try {
+            val result = HashSet<String?>()
+            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val dnsServers = connectivityManager.getLinkProperties(connectivityManager.activeNetwork)
+                ?.dnsServers
+            dnsServers?.let {
+                for (dnsServer in it) {
+                    val value = dnsServer.hostAddress
+                    if (value != null && value != "") {
+                        result.add(value)
+                    }
+                }
+            }
+            result.toTypedArray()
+        } catch (e: Exception) {
+            arrayOfNulls(0)
+        }
+    }
+
+
     private fun startVpnConnection() {
         val protectFd = parcelFileDescriptor?.fd
-        val vpnInput = FileInputStream(parcelFileDescriptor?.fileDescriptor).channel
-        val vpnOutput = FileOutputStream(parcelFileDescriptor?.fileDescriptor).channel
+        val vpnInput = FileInputStream(parcelFileDescriptor?.fileDescriptor)
+        val vpnOutput = FileOutputStream(parcelFileDescriptor?.fileDescriptor)
         val relayBuffer = ByteBuffer.allocate(1024)
-
         while (true) {
             relayBuffer.clear()
-            val bytesRead = vpnInput.read(relayBuffer)
+            val bytesRead: Int = try {
+                vpnInput.channel.read(relayBuffer)
+            } catch (e: IOException) {
+                break
+            }
             if (bytesRead <= 0) {
                 break
             }
             relayBuffer.flip()
-
             val dnsRequest = ByteArray(bytesRead)
-            relayBuffer.get(dnsRequest)
-
-            val dnsResponse = when {
-                isPlainTextDns() -> performPlainTextDnsResolution(dnsRequest)
-                isDnsOverHttps() -> performDnsOverHttpsResolution(dnsRequest)
-                isDnsOverTls() -> performDnsOverTlsResolution(dnsRequest)
-                else -> dnsRequest // Pass through the original DNS request
-            }
-
+            relayBuffer[dnsRequest]
+            val dnsResponse: ByteArray = dnsRequest
             relayBuffer.clear()
-            relayBuffer.put(dnsResponse)
+            dnsResponse.let { relayBuffer.put(it) }
             relayBuffer.flip()
-
-            vpnOutput.write(relayBuffer)
+            try {
+                vpnOutput.channel.write(relayBuffer)
+            } catch (e: IOException) {
+                break
+            }
             relayBuffer.clear()
         }
-
-        closeVpnConnection()
     }
 
-    private fun stopVpnConnection() {
-        isVpnRunning = false
-        closeVpnConnection()
-        GRDConnectManager.getCoroutineScope().launch {
-            GRDVPNHelper.grdStatusFlow.emit(GRDVPNHelper.GRDVPNHelperStatus.DISCONNECTED.name)
-        }
-    }
+    companion object {
+        var parcelFileDescriptor: ParcelFileDescriptor? = null
+        var isVpnRunning = false
 
-    private fun isPlainTextDns(): Boolean {
-        // If plain text DNS should be used
-        return true
-    }
-
-    private fun isDnsOverHttps(): Boolean {
-        // If DNS over HTTPS should be used
-        return true
-    }
-
-    private fun isDnsOverTls(): Boolean {
-        // If DNS over TLS should be used
-        return true
-    }
-
-    private fun performPlainTextDnsResolution(request: ByteArray): ByteArray {
-        val hostname = extractHostnameFromDnsRequest(request)
-
-        if (blockedHostnames.contains(hostname)) {
-            // Create a DNS response with 127.0.0.1 as the resolved IP address
-            return createDnsResponse(request, "127.0.0.1")
-        }
-        return request
-    }
-
-    private fun performDnsOverHttpsResolution(request: ByteArray): ByteArray {
-        val dnsOverHttpsClient = DnsOverHttpsClient(dnsOverHttpsUrl)
-
-        val hostname = extractHostnameFromDnsRequest(request)
-
-        if (blockedHostnames.contains(hostname)) {
-            // Create a DNS response with 127.0.0.1 as the resolved IP address
-            return createDnsResponse(request, "127.0.0.1")
-        }
-
-        // Perform DNS over HTTPS resolution
-        return try {
-            dnsOverHttpsClient.resolveDnsOverHttps(request)
-        } catch (e: Exception) {
-            Log.e(TAG, "DNS over HTTPS resolution failed", e)
-            request // Pass through the original DNS request on failure
-        }
-    }
-
-    private fun performDnsOverTlsResolution(request: ByteArray): ByteArray {
-        val dnsOverTlsClient = DnsOverTlsClient(dnsOverTlsAddress, dnsOverTlsPort)
-
-        val hostname = extractHostnameFromDnsRequest(request)
-
-        if (blockedHostnames.contains(hostname)) {
-            // Create a DNS response with 127.0.0.1 as the resolved IP address
-            return createDnsResponse(request, "127.0.0.1")
-        }
-
-        // Perform DNS over TLS resolution
-        return try {
-            dnsOverTlsClient.resolveDnsOverTls(request)
-        } catch (e: Exception) {
-            Log.e(TAG, "DNS over TLS resolution failed", e)
-            request // Pass through the original DNS request on failure
-        }
-    }
-
-    private fun extractHostnameFromDnsRequest(request: ByteArray): String {
-        // Skip the DNS header (12 bytes)
-        var index = 12
-        val hostnameBuilder = StringBuilder()
-
-        // Loop through the request to extract the hostname
-        while (index < request.size) {
-            val labelLength = request[index].toInt()
-
-            if (labelLength == 0) {
-                // End of the hostname
-                break
+        private fun closeVpnConnection() {
+            try {
+                parcelFileDescriptor?.close()
+                parcelFileDescriptor = null
+                Log.d("GRDDNSProxy", "VPN connection closed")
+            } catch (e: IOException) {
+                e.printStackTrace()
             }
-
-            if (index + labelLength >= request.size) {
-                // Malformed request, label length exceeds the request size
-                break
-            }
-
-            if (hostnameBuilder.isNotEmpty()) {
-                // Append a dot before each label
-                hostnameBuilder.append('.')
-            }
-
-            hostnameBuilder.append(String(request, index + 1, labelLength))
-            index += labelLength + 1
         }
 
-        return hostnameBuilder.toString()
-    }
-
-    private fun createDnsResponse(request: ByteArray, ipAddress: String): ByteArray {
-        // Create a DNS response with the specified IP address
-
-        val response = ByteArray(request.size)
-        System.arraycopy(request, 0, response, 0, request.size)
-
-        // Modify the DNS response to include the specified IP address
-        response[2] = (response[2].toInt() or 0x80).toByte() // Set the response flag (bit 15)
-        response[3] = (response[3].toInt() or 0x80).toByte() // Set the answer count to 1
-
-        // Replace the answer section with the specified IP address
-        response[request.size] = 0.toByte() // Label
-        response[request.size + 1] = 1.toByte() // Type: A (IPv4 address)
-        response[request.size + 2] = 0.toByte() // Class: IN (Internet)
-        response[request.size + 3] = 0.toByte() // Time to Live (TTL)
-        response[request.size + 4] = 0.toByte() // TTL
-        response[request.size + 5] = 0.toByte() // TTL
-        response[request.size + 6] = 0.toByte() // TTL
-        response[request.size + 7] = 60.toByte() // TTL
-        response[request.size + 8] = 0.toByte() // Data Length
-        response[request.size + 9] = 4.toByte() // Data Length
-        val ipBytes = InetAddress.getByName(ipAddress).address
-        System.arraycopy(ipBytes, 0, response, request.size + 10, 4) // IP address
-
-        return response
-    }
-
-    private fun closeVpnConnection() {
-        try {
-            parcelFileDescriptor?.close()
-            parcelFileDescriptor = null
-            Log.d(TAG, "VPN connection closed")
-        } catch (e: IOException) {
-            e.printStackTrace()
+        fun stopVpnConnection() {
+            isVpnRunning = false
+            closeVpnConnection()
         }
+    }
+
+    private fun resolveDns(hostname: String): String? {
+        return when (dnsResolutionMethod) {
+            DnsResolutionMethod.PLAIN_TEXT -> resolveDnsPlainText(hostname)
+            DnsResolutionMethod.DNS_OVER_HTTPS -> resolveDnsOverHttps(hostname)
+            DnsResolutionMethod.DNS_OVER_TLS -> resolveDnsOverTls(hostname)
+        }
+    }
+
+    private fun resolveDnsPlainText(hostname: String): String? {
+        return InetAddress.getLoopbackAddress().hostAddress
+    }
+
+    private fun resolveDnsOverHttps(hostname: String): String? {
+        val client = OkHttpClient()
+
+        val dnsQuery = "https://dns.google/resolve?name=$hostname"
+        val request = Request.Builder()
+            .url(dnsQuery)
+            .build()
+
+        client.newCall(request).execute().use { response ->
+            if (response.isSuccessful) {
+                val responseBody = response.body?.string()
+                responseBody?.let { body ->
+                    val jsonObject = JSONObject(body)
+                    val answersArray = jsonObject.getJSONArray("Answer")
+                    if (answersArray.length() > 0) {
+                        val answer = answersArray.getJSONObject(0)
+                        Log.d(TAG, hostname + " " + answer.getString("data"))
+                        return answer.getString("data")
+                    }
+                }
+            }
+        }
+        return InetAddress.getLoopbackAddress().hostAddress
+    }
+
+    private fun resolveDnsOverTls(hostname: String): String? {
+        val client = OkHttpClient()
+
+        val dnsRequest = "https://dns.google/dns-query".toHttpUrlOrNull()?.let {
+            DnsOverHttps.Builder()
+                .client(client)
+                .url(it)
+                .build()
+        }
+
+        val dnsResponse = dnsRequest?.lookup(hostname)
+
+        if (!dnsResponse.isNullOrEmpty()) {
+            for (address in dnsResponse) {
+                Log.d(TAG, "Resolved IP Address: $address")
+            }
+        } else {
+            Log.d(TAG, "DNS lookup failed.")
+        }
+        return InetAddress.getLoopbackAddress().hostAddress
     }
 }

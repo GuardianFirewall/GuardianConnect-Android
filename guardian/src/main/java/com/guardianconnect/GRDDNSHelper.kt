@@ -1,6 +1,5 @@
 package com.guardianconnect
 
-import GRDDNSProxy
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -30,5 +29,8 @@ object GRDDNSHelper {
     private fun startGRDDNSProxyService(context: Context) {
         val grdDNSProxyService = Intent(context.applicationContext, GRDDNSProxy::class.java)
         context.applicationContext?.startService(grdDNSProxyService)
+    }
+    fun stopGRDDNSProxyService() {
+        GRDDNSProxy.stopVpnConnection()
     }
 }
