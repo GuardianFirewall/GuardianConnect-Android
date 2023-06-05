@@ -86,7 +86,7 @@ object GRDVPNHelper {
 
     private suspend fun createTunnelWithExistingCredentials() {
         val grdCredentialManager = GRDCredentialManager()
-        val hostname = grdCredentialManager.getMainCredentials().hostname
+        val hostname = grdCredentialManager.getMainCredentials()?.hostname
         if (!hostname.isNullOrEmpty()) {
             Repository.instance.initRegionServer(hostname)
             val configString = GRDKeystore.instance.retrieveFromKeyStore(GRD_CONFIG_STRING)

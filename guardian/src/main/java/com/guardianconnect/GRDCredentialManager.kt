@@ -37,8 +37,11 @@ class GRDCredentialManager {
     }
 
     // Find credential for a given identifier
-    fun findCredentialByIdentifier(identifier: String): GRDCredential {
-        return getAllCredentials().first { it.identifier == identifier }
+    fun findCredentialByIdentifier(identifier: String): GRDCredential? {
+        return if (!getAllCredentials().isNullOrEmpty())
+            getAllCredentials()?.first { it.identifier == identifier }
+        else
+            null
     }
 
     // Add a new credential or update an existing credential
@@ -53,8 +56,11 @@ class GRDCredentialManager {
     }
 
     // Get main credentials
-    fun getMainCredentials(): GRDCredential {
-        return getAllCredentials().first { it.mainCredential == true }
+    fun getMainCredentials(): GRDCredential? {
+        return if (!getAllCredentials().isNullOrEmpty())
+            getAllCredentials()?.first { it.mainCredential == true }
+        else
+            null
     }
 
     // return the currently valid Credential
