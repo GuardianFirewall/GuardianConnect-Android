@@ -24,8 +24,10 @@ class GRDCredentialManager {
 
     // Delete only the main credential
     fun deleteMainCredential() {
-        credentialsArrayList.remove(getMainCredentials())
-        saveListOfCredentials(credentialsArrayList)
+        credentialsArrayList.isNotEmpty().let {
+            credentialsArrayList.remove(getMainCredentials())
+            saveListOfCredentials(credentialsArrayList)
+        }
     }
 
     // Remove a credential
@@ -38,8 +40,8 @@ class GRDCredentialManager {
 
     // Find credential for a given identifier
     fun findCredentialByIdentifier(identifier: String): GRDCredential? {
-        return if (!getAllCredentials().isNullOrEmpty())
-            getAllCredentials()?.first { it.identifier == identifier }
+        return if (getAllCredentials().isNotEmpty())
+            getAllCredentials().first { it.identifier == identifier }
         else
             null
     }
@@ -57,8 +59,8 @@ class GRDCredentialManager {
 
     // Get main credentials
     fun getMainCredentials(): GRDCredential? {
-        return if (!getAllCredentials().isNullOrEmpty())
-            getAllCredentials()?.first { it.mainCredential == true }
+        return if (getAllCredentials().isNotEmpty())
+            getAllCredentials().first { it.mainCredential == true }
         else
             null
     }
