@@ -76,7 +76,7 @@ object GRDVPNHelper {
                                 validForDays
                             )
                         } else {
-                            grdErrorFlow.emit(GRDVPNHelperStatus.MISSING_PET.name)
+                            grdErrorFlow.emit(GRDVPNHelperStatus.MISSING_PET.status)
                         }
                     }
                 }
@@ -159,12 +159,12 @@ object GRDVPNHelper {
                                 val serverStatusOK = any as Boolean
                                 if (serverStatusOK) {
                                     GRDConnectManager.getCoroutineScope().launch {
-                                        grdStatusFlow.emit(GRDVPNHelperStatus.SERVER_READY.name)
+                                        grdStatusFlow.emit(GRDVPNHelperStatus.SERVER_READY.status)
                                     }
                                     startTunnel()
                                 } else {
                                     GRDConnectManager.getCoroutineScope().launch {
-                                        grdErrorFlow.emit(GRDVPNHelperStatus.SERVER_ERROR.name)
+                                        grdErrorFlow.emit(GRDVPNHelperStatus.SERVER_ERROR.status)
                                     }
                                 }
                             }
@@ -189,15 +189,15 @@ object GRDVPNHelper {
         val tunnel = GRDConnectManager.getTunnelManager().tunnelMap[tunnelName]
         try {
             GRDConnectManager.getCoroutineScope().launch {
-                grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTING.name)
+                grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTING.status)
                 tunnel?.setStateAsync(Tunnel.State.UP)
-                grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTED.name)
+                grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTED.status)
             }
         } catch (e: Throwable) {
             val error = ErrorMessages[e]
             GRDConnectManager.getCoroutineScope().launch {
                 e.message?.let {
-                    grdErrorFlow.emit(GRDVPNHelperStatus.ERROR_CONNECTING.name)
+                    grdErrorFlow.emit(GRDVPNHelperStatus.ERROR_CONNECTING.status)
                 }
                 val message = context?.getString(R.string.starting_error, error)
                 Log.e(TAG, message, e)
@@ -209,9 +209,9 @@ object GRDVPNHelper {
     fun stopTunnel() {
         try {
             GRDConnectManager.getCoroutineScope().launch {
-                grdStatusFlow.emit(GRDVPNHelperStatus.DISCONNECTING.name)
+                grdStatusFlow.emit(GRDVPNHelperStatus.DISCONNECTING.status)
                 getActiveTunnel()?.setStateAsync(Tunnel.State.DOWN)
-                grdStatusFlow.emit(GRDVPNHelperStatus.DISCONNECTED.name)
+                grdStatusFlow.emit(GRDVPNHelperStatus.DISCONNECTED.status)
             }
         } catch (t: Throwable) {
             GRDConnectManager.getCoroutineScope().launch {
@@ -337,9 +337,9 @@ object GRDVPNHelper {
                             mainCredentials
                         )
                     } ?: run {
-                        iOnApiResponse.onError(GRDVPNHelperStatus.SERVER_ERROR.name)
+                        iOnApiResponse.onError(GRDVPNHelperStatus.SERVER_ERROR.status)
                         GRDConnectManager.getCoroutineScope().launch {
-                            grdErrorFlow.emit(GRDVPNHelperStatus.SERVER_ERROR.name)
+                            grdErrorFlow.emit(GRDVPNHelperStatus.SERVER_ERROR.status)
                         }
                     }
                 }
@@ -431,7 +431,7 @@ object GRDVPNHelper {
                 object : IOnApiResponse {
                     override fun onSuccess(any: Any?) {
                         GRDConnectManager.getCoroutineScope().launch {
-                            grdStatusFlow.emit(GRDVPNHelperStatus.VPN_CREDENTIALS_INVALIDATED.name)
+                            grdStatusFlow.emit(GRDVPNHelperStatus.VPN_CREDENTIALS_INVALIDATED.status)
                         }
                     }
 
@@ -510,7 +510,7 @@ object GRDVPNHelper {
         return haveCredentials && havePEToken
     }
 
-    enum class GRDVPNHelperStatus(status: String) {
+    enum class GRDVPNHelperStatus(val status: String) {
         UNKNOWN("VPN status: unknown."),
         MISSING_PET("PEToken is missing!"),
         ERROR_CONNECTING("Connecting error has occurred!"),

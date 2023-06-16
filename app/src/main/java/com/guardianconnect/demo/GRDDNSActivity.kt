@@ -44,11 +44,11 @@ class GRDDNSActivity : AppCompatActivity() {
         GRDConnectManager.getCoroutineScope().launch {
             GRDVPNHelper.grdStatusFlow.collect {
                 when (it) {
-                    GRDVPNHelper.GRDVPNHelperStatus.CONNECTED.name -> {
+                    GRDVPNHelper.GRDVPNHelperStatus.CONNECTED.status -> {
                         btnStartVpn.visibility = View.GONE
                         btnStopVpn.visibility = View.VISIBLE
                     }
-                    GRDVPNHelper.GRDVPNHelperStatus.DISCONNECTED.name -> {
+                    GRDVPNHelper.GRDVPNHelperStatus.DISCONNECTED.status -> {
                         btnStartVpn.visibility = View.VISIBLE
                         btnStopVpn.visibility = View.GONE
                     }

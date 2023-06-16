@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity() {
                 savePeToken(etPeToken.text.toString())
             } else {
                 progressBar.visibility = View.GONE
-                Log.d("MainActivity", GRDVPNHelper.GRDVPNHelperStatus.MISSING_PET.name)
+                Log.d("MainActivity", GRDVPNHelper.GRDVPNHelperStatus.MISSING_PET.status)
             }
         }
 
@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity() {
             GRDVPNHelper.grdStatusFlow.collect {
                 Log.d("MainActivity", it)
                 when (it) {
-                    GRDVPNHelper.GRDVPNHelperStatus.CONNECTED.name -> {
+                    GRDVPNHelper.GRDVPNHelperStatus.CONNECTED.status -> {
                         progressBar.visibility = View.GONE
                         btnStartTunnel.visibility = View.GONE
                         btnStopTunnel.visibility = View.VISIBLE
