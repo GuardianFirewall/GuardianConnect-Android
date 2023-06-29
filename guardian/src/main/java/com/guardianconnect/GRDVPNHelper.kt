@@ -327,7 +327,7 @@ object GRDVPNHelper {
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
                     val server = any as Server
-                    server.hostname()?.let {
+                    server.hostname?.let {
                         Repository.instance.initRegionServer(it)
                         connectVpnDevice(
                             subscriberCredentialString,

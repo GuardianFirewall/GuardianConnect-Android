@@ -5,24 +5,24 @@ import com.google.gson.annotations.SerializedName
 class AlertsResponse {
 
     @SerializedName("timestamp")
-    private val timestamp: Long? = null
+    var timestamp: Long? = null
 
     @SerializedName("uuid")
-    private val uuid: String? = null
+    var uuid: String? = null
 
     @SerializedName("action")
-    private val action: String? = null
+    var action: String? = null
 
     @SerializedName("title")
-    private val title: String? = null
+    var title: String? = null
 
     @SerializedName("message")
-    private val message: String? = null
+    var message: String? = null
 
     @SerializedName("host")
-    private val host: String? = null
+    var host: String? = null
 
     @SerializedName("category")
-    private val category: String? = null
+    var category: String? = null
 
 }

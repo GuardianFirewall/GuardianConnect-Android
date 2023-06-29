@@ -8,12 +8,12 @@ class RequestServersForRegion {
     var region: String? = null
 
     @SerializedName("paid")
-    val paid: Int? = null
+    var paid: Int? = null
 
     @SerializedName("feature-environment")
-    val featureEnvironment: Int? = null
+    var featureEnvironment: Int? = null
 
     @SerializedName("beta-capable")
-    val betaCapable: Int? = null
+    var betaCapable: Int? = null
 
 }

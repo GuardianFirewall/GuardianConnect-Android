@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
+import org.json.JSONException
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
@@ -134,10 +135,20 @@ class Repository {
                     iOnApiResponse.onSuccess(newVPNDeviceResponse)
                     Log.d(TAG, "New VPN device created.")
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError.toString())
-                        iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }
@@ -161,10 +172,20 @@ class Repository {
                     iOnApiResponse.onSuccess(response)
                     Log.d(TAG, "VPN credentials verified")
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError.toString())
-                        iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }
@@ -189,13 +210,20 @@ class Repository {
                     iOnApiResponse.onSuccess(response)
                     Log.d(TAG, "VPN credentials invalidated")
                 } else {
-                    val jObjError = response.errorBody()?.string()
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError)
-                        iOnApiResponse.onError(jObjError)
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
                     } else {
-                        iOnApiResponse.onError("Error")
-                        Log.d(TAG, "invalidateVPNCredentials error")
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }
@@ -223,10 +251,20 @@ class Repository {
                         Log.d(TAG, "Alerts downloaded successfully!")
                     }
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError.toString())
-                        iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }
@@ -250,10 +288,20 @@ class Repository {
                     iOnApiResponse.onSuccess(response)
                     Log.d(TAG, "Alerts download timestamp set successfully!")
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError.toString())
-                        iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }
@@ -281,9 +329,21 @@ class Repository {
                         Log.d(TAG, "Regions returned successfully!")
                     }
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    Log.d(TAG, jObjError.toString())
-                    iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
+                    }
                 }
             }
 
@@ -317,10 +377,20 @@ class Repository {
                         "List of servers returned successfully!"
                     )
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError.toString())
-                        iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }
@@ -354,10 +424,20 @@ class Repository {
                         "List of supported time zones returned successfully!"
                     )
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError.toString())
-                        iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }
@@ -397,10 +477,20 @@ class Repository {
                         )
                     }
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError.toString())
-                        iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }
@@ -445,10 +535,20 @@ class Repository {
                         )
                     }
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError.toString())
-                        iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }
@@ -485,10 +585,20 @@ class Repository {
                         Log.d(TAG, "Subscriber credentials returned successfully!")
                     }
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError.toString())
-                        iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }
@@ -510,16 +620,29 @@ class Repository {
         val call: Call<GRDConnectSubscriberResponse>? =
             apiCallsGRDConnect?.createNewGRDConnectSubscriber(grdConnectSubscriberRequest)
         call?.enqueue(object : Callback<GRDConnectSubscriberResponse> {
-            override fun onResponse(call: Call<GRDConnectSubscriberResponse>, response: Response<GRDConnectSubscriberResponse>) {
+            override fun onResponse(
+                call: Call<GRDConnectSubscriberResponse>,
+                response: Response<GRDConnectSubscriberResponse>
+            ) {
                 if (response.isSuccessful) {
                     val grdConnectSubscriberResponse = response.body()
                     iOnApiResponse.onSuccess(grdConnectSubscriberResponse)
                     Log.d(TAG, "New GRDConnect Subscriber created.")
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError.toString())
-                        iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }
@@ -541,16 +664,29 @@ class Repository {
         val call: Call<ConnectSubscriberUpdateResponse>? =
             apiCallsGRDConnect?.updateGRDConnectSubscriber(connectSubscriberUpdateRequest)
         call?.enqueue(object : Callback<ConnectSubscriberUpdateResponse> {
-            override fun onResponse(call: Call<ConnectSubscriberUpdateResponse>, response: Response<ConnectSubscriberUpdateResponse>) {
+            override fun onResponse(
+                call: Call<ConnectSubscriberUpdateResponse>,
+                response: Response<ConnectSubscriberUpdateResponse>
+            ) {
                 if (response.isSuccessful) {
                     val connectSubscriberUpdateResponse = response.body()
                     iOnApiResponse.onSuccess(connectSubscriberUpdateResponse)
                     Log.d(TAG, "GRDConnect Subscriber updated.")
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError.toString())
-                        iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }
@@ -572,16 +708,29 @@ class Repository {
         val call: Call<ConnectSubscriberValidateResponse>? =
             apiCallsGRDConnect?.validateGRDConnectSubscriber(connectSubscriberValidateRequest)
         call?.enqueue(object : Callback<ConnectSubscriberValidateResponse> {
-            override fun onResponse(call: Call<ConnectSubscriberValidateResponse>, response: Response<ConnectSubscriberValidateResponse>) {
+            override fun onResponse(
+                call: Call<ConnectSubscriberValidateResponse>,
+                response: Response<ConnectSubscriberValidateResponse>
+            ) {
                 if (response.isSuccessful) {
                     val connectSubscriberValidateResponse = response.body()
                     iOnApiResponse.onSuccess(connectSubscriberValidateResponse)
                     Log.d(TAG, "GRDConnect Subscriber validated.")
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError.toString())
-                        iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }
@@ -603,16 +752,29 @@ class Repository {
         val call: Call<ConnectDeviceResponse>? =
             apiCallsGRDConnect?.addConnectDevice(connectDeviceRequest)
         call?.enqueue(object : Callback<ConnectDeviceResponse> {
-            override fun onResponse(call: Call<ConnectDeviceResponse>, response: Response<ConnectDeviceResponse>) {
+            override fun onResponse(
+                call: Call<ConnectDeviceResponse>,
+                response: Response<ConnectDeviceResponse>
+            ) {
                 if (response.isSuccessful) {
                     val connectDeviceResponse = response.body()
                     iOnApiResponse.onSuccess(connectDeviceResponse)
                     Log.d(TAG, "GRDConnect Device added.")
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError.toString())
-                        iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }
@@ -634,16 +796,29 @@ class Repository {
         val call: Call<ConnectDeviceResponse>? =
             apiCallsGRDConnect?.updateConnectDevice(connectDeviceUpdateRequest)
         call?.enqueue(object : Callback<ConnectDeviceResponse> {
-            override fun onResponse(call: Call<ConnectDeviceResponse>, response: Response<ConnectDeviceResponse>) {
+            override fun onResponse(
+                call: Call<ConnectDeviceResponse>,
+                response: Response<ConnectDeviceResponse>
+            ) {
                 if (response.isSuccessful) {
                     val connectDeviceResponse = response.body()
                     iOnApiResponse.onSuccess(connectDeviceResponse)
                     Log.d(TAG, "GRDConnect Device updated.")
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError.toString())
-                        iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }
@@ -678,10 +853,20 @@ class Repository {
                         Log.d(TAG, "All Connect subscriber devices returned successfully!")
                     }
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError.toString())
-                        iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }
@@ -707,10 +892,20 @@ class Repository {
                 if (response.isSuccessful) {
                     iOnApiResponse.onSuccess("GRDConnectDevice successfully deleted.")
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError.toString())
-                        iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }
@@ -744,10 +939,20 @@ class Repository {
                 if (response.isSuccessful) {
                     iOnApiResponse.onSuccess("Device filter config blocklist settings successfully synced with the VPN gateways.")
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError.toString())
-                        iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }
@@ -775,10 +980,20 @@ class Repository {
                 if (response.isSuccessful) {
                     iOnApiResponse.onSuccess("GRDConnect Subscriber logout successfully.")
                 } else {
-                    val jObjError = response.errorBody()?.string()?.let { JSONObject(it) }
-                    if (jObjError != null) {
-                        Log.d(TAG, jObjError.toString())
-                        iOnApiResponse.onError(jObjError.toString())
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
             }

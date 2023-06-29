@@ -406,7 +406,7 @@ class ApiTest {
 
                 response.body().let { vpn ->
                     val vpnCredentials = VPNCredentials()
-                    vpnCredentials.apiAuthToken = vpn?.getApiAuthToken()
+                    vpnCredentials.apiAuthToken = vpn?.apiAuthToken
                     vpnCredentials.subscriberCredential =
                         subscriberCredentialResponse.subscriberCredential
 
@@ -469,7 +469,7 @@ class ApiTest {
 
                 response.body().let { vpn ->
                     val vpnCredentials = VPNCredentials()
-                    vpnCredentials.apiAuthToken = vpn?.getApiAuthToken()
+                    vpnCredentials.apiAuthToken = vpn?.apiAuthToken
                     vpnCredentials.subscriberCredential =
                         subscriberCredentialResponse.subscriberCredential
 
@@ -532,7 +532,7 @@ class ApiTest {
 
                 response.body().let { vpn ->
                     val vpnCredentials = VPNCredentials()
-                    vpnCredentials.apiAuthToken = vpn?.getApiAuthToken()
+                    vpnCredentials.apiAuthToken = vpn?.apiAuthToken
                     vpnCredentials.subscriberCredential =
                         subscriberCredentialResponse.subscriberCredential
 
@@ -598,7 +598,7 @@ class ApiTest {
 
                 response.body().let { vpn ->
                     val vpnCredentials = VPNCredentials()
-                    vpnCredentials.apiAuthToken = vpn?.getApiAuthToken()
+                    vpnCredentials.apiAuthToken = vpn?.apiAuthToken
                     vpnCredentials.subscriberCredential =
                         subscriberCredentialResponse.subscriberCredential
 
@@ -663,7 +663,7 @@ class ApiTest {
 
                 response.body().let { vpn ->
                     val vpnCredentials = VPNCredentials()
-                    vpnCredentials.apiAuthToken = vpn?.getApiAuthToken()
+                    vpnCredentials.apiAuthToken = vpn?.apiAuthToken
                     vpnCredentials.subscriberCredential =
                         subscriberCredentialResponse.subscriberCredential
 
@@ -675,7 +675,7 @@ class ApiTest {
                     val grdDeviceFilterConfigBlocklist = GRDDeviceFilterConfigBlocklist()
                     var map = HashMap<Any, Any>()
                     map.putAll(grdDeviceFilterConfigBlocklist.apiPortableBlocklist())
-                    map["api-auth-token"] = vpn?.getApiAuthToken().toString()
+                    map["api-auth-token"] = vpn?.apiAuthToken.toString()
                     val json = Gson().toJsonTree(map).asJsonObject
                     val response = vpn?.clientId?.let { it1 ->
                         apiService.setDeviceFilterConfig(

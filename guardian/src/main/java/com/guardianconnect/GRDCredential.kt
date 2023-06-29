@@ -2,6 +2,8 @@ package com.guardianconnect
 
 import com.guardianconnect.model.api.NewVPNDeviceResponse
 import com.guardianconnect.model.api.Server
+import com.guardianconnect.util.Constants.Companion.GRD_API_AUTH_TOKEN
+import com.guardianconnect.util.Constants.Companion.GRD_DEVICE_ID
 import com.guardianconnect.util.Constants.Companion.GRD_MAIN
 import com.guardianconnect.util.Constants.Companion.GRD_Main_Credential_WG_Private_Key
 import com.guardianconnect.util.Constants.Companion.GRD_Main_Credential_WG_Public_Key
@@ -68,20 +70,20 @@ class GRDCredential {
         if (mainCreds) {
             identifier = GRD_MAIN
         }
-        apiAuthToken = vpnDeviceResponse.getApiAuthToken()
-        hostname = server.hostname()
+        apiAuthToken = vpnDeviceResponse.apiAuthToken
+        hostname = server.hostname
         expirationDate =
             System.currentTimeMillis() + validForDays * 86400000
-        hostnameDisplayValue = server.getDisplayName()
+        hostnameDisplayValue = server.displayName
         checkedExpiration = false
         expired = false
         transportProtocol = grdTransportProtocolType
         if (grdTransportProtocolType == GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD) {
             devicePublicKey = keyPair.publicKey.toBase64()
             devicePrivateKey = keyPair.privateKey.toBase64()
-            serverPublicKey = vpnDeviceResponse.getServerPublicKey()
-            IPv4Address = vpnDeviceResponse.getMappedIpv4Address()
-            IPv6Address = vpnDeviceResponse.getMappedIpv6Address()
+            serverPublicKey = vpnDeviceResponse.serverPublicKey
+            IPv4Address = vpnDeviceResponse.mappedIpv4Address
+            IPv6Address = vpnDeviceResponse.mappedIpv6Address
             clientId = vpnDeviceResponse.clientId
 
             // Store the keypair
@@ -91,11 +93,19 @@ class GRDCredential {
             devicePrivateKey?.let {
                 GRDKeystore.instance.saveToKeyStore(GRD_Main_Credential_WG_Private_Key, it)
             }
+
+            clientId?.let {
+                GRDKeystore.instance.saveToKeyStore(GRD_DEVICE_ID, it)
+            }
+
+            apiAuthToken?.let {
+                GRDKeystore.instance.saveToKeyStore(GRD_API_AUTH_TOKEN, it)
+            }
         }
     }
 
     /* A function to return a truncated version of the complete hostname to show in the user interface */
     fun truncatedHost(server: Server): String? {
-        return server.hostname()?.split(".")?.get(0)
+        return server.hostname?.split(".")?.get(0)
     }
 }

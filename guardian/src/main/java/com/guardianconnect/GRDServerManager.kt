@@ -48,10 +48,10 @@ class GRDServerManager {
                     list.let {
                         val currentTimeZoneId = TimeZone.getDefault().id
                         for (item in it) {
-                            item.getTimezones()?.let { tz ->
+                            item.timezones?.let { tz ->
                                 for (timeZone in tz) {
                                     if (timeZone == currentTimeZoneId) {
-                                        item.getName()?.let { name ->
+                                        item.name?.let { name ->
                                             selectedRegion = name
                                             serversForRegion.region = selectedRegion
                                             Log.d(
@@ -123,15 +123,15 @@ class GRDServerManager {
                 val listOfServers = anyList.filterIsInstance<Server>()
                 listOfServers.let {
                     val filteredServers: List<Server> =
-                        listOfServers.filter { it.getCapacityScore() in setOf(0, 1) }
+                        listOfServers.filter { it.capacityScore in setOf(0, 1) }
                     var selectedServer: Server? = null
                     if (filteredServers.isNotEmpty()) {
                         selectedServer = filteredServers.random()
                     } else if (listOfServers.size == 1) {
                         selectedServer = listOfServers[0]
                     }
-                    Log.d(TAG, "Selected Server is: " + selectedServer?.getDisplayName())
-                    Log.d(TAG, "Selected server hostname is: " + selectedServer?.hostname())
+                    Log.d(TAG, "Selected Server is: " + selectedServer?.displayName)
+                    Log.d(TAG, "Selected server hostname is: " + selectedServer?.hostname)
                     iOnApiResponse.onSuccess(selectedServer)
                 }
             }

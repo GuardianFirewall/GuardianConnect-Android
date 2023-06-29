@@ -23,6 +23,8 @@ class Constants {
         const val GRD_REGIONS_LIST_FROM_SHARED_PREFS = "GRD_REGIONS_LIST_FROM_SHARED_PREFS"
         const val GRD_AUTOMATIC_REGION = "Automatic"
         const val GRD_PE_TOKEN = "GRD_PE_TOKEN"
+        const val GRD_DEVICE_ID = "GRD_DEVICE_ID"
+        const val GRD_API_AUTH_TOKEN = "GRD_API_AUTH_TOKEN"
         // TODO
         // this needs to be deleted as there is only one type of PET
         // the PET expiration date also only exists once and the namespace needs to be adjusted to

@@ -5,5 +5,5 @@ import com.google.gson.annotations.SerializedName
 class SubscriberCredentialResponse {
 
     @SerializedName("subscriber-credential")
-    val subscriberCredential: String? = null
+    var subscriberCredential: String? = null
 }
