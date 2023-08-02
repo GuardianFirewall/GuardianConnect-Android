@@ -402,7 +402,7 @@ object GRDVPNHelper {
 
     /*  Clear local cache - removes all values from the Android Keystore and SharedPreferences */
     fun clearLocalCache() {
-        GRDConnectManager.getSharedPrefsEditor()?.remove(GRD_CREDENTIAL_LIST)?.apply()
+        grdCredentialManager.getMainCredentials()?.let { grdCredentialManager.removeCredential(it) }
         GRDConnectManager.getSharedPrefsEditor()?.remove(GRD_CONFIG_STRING)?.apply()
         GRDConnectManager.getSharedPrefsEditor()?.remove(GRD_SUBSCRIBER_CREDENTIAL)?.apply()
     }
