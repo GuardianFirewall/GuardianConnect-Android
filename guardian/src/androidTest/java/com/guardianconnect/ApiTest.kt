@@ -249,11 +249,11 @@ class ApiTest {
                 listOf(ConnectDeviceResponse())
             )
         )
-        val connectDevicesAllRequest = ConnectDevicesAllRequest()
-        connectDevicesAllRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
-        connectDevicesAllRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
+        val connectDevicesAllDevicesRequest = ConnectDevicesAllDevicesRequest()
+        connectDevicesAllDevicesRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        connectDevicesAllDevicesRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
         val response = apiService.allConnectDevices(
-            connectDevicesAllRequest
+            connectDevicesAllDevicesRequest
         ).execute()
         assertTrue(response.body() != null)
     }

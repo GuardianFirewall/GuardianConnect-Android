@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val storedPET = GRDKeystore.instance.retrieveFromKeyStore(Constants.GRD_PE_TOKEN)
+        val storedPET = GRDPEToken.instance.retrievePEToken()
         etPeToken.setText(storedPET)
 
         btnDNSProxy.setOnClickListener {
@@ -190,10 +190,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun savePeToken(peToken: String) {
-        GRDKeystore.instance.saveToKeyStore(
-            Constants.GRD_PE_TOKEN,
-            peToken
-        )
+        GRDPEToken.instance.storePEToken(peToken)
     }
 
     private val permissionActivityResultLauncher =

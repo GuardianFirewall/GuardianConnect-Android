@@ -111,11 +111,11 @@ class GRDConnectDevice {
 
     // TODO: check the difference between this and GRDConnectSubscriber.allDevices()
     fun allDevices(
-        connectDevicesAllRequest: ConnectDevicesAllRequest,
+        connectDevicesAllDevicesRequest: ConnectDevicesAllDevicesRequest,
         iOnApiResponse: IOnApiResponse
     ) {
         val list = ArrayList<ConnectDeviceResponse>()
-        Repository.instance.allConnectDevices(connectDevicesAllRequest, object : IOnApiResponse {
+        Repository.instance.allConnectDevices(connectDevicesAllDevicesRequest, object : IOnApiResponse {
             override fun onSuccess(any: Any?) {
                 if (any != null) {
                     val anyList = any as List<*>

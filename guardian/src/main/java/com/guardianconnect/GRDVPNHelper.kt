@@ -10,8 +10,6 @@ import com.guardianconnect.model.EValidationMethod
 import com.guardianconnect.model.TunnelModel
 import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants.Companion.GRD_CONFIG_STRING
-import com.guardianconnect.util.Constants.Companion.GRD_CREDENTIAL_LIST
-import com.guardianconnect.util.Constants.Companion.GRD_PE_TOKEN
 import com.guardianconnect.util.Constants.Companion.GRD_SUBSCRIBER_CREDENTIAL
 import com.guardianconnect.util.Constants.Companion.GRD_WIREGUARD
 import com.guardianconnect.util.ErrorMessages
@@ -68,7 +66,7 @@ object GRDVPNHelper {
                         // No VPN credentials exist yet
                         // Check if a PE-Token is present on the device
                         val decryptedPEToken =
-                            GRDKeystore.instance.retrieveFromKeyStore(GRD_PE_TOKEN)
+                            GRDPEToken.instance.retrievePEToken()
                         if (!decryptedPEToken.isNullOrEmpty()) {
                             // Start the process to pick a VPN server & obtain new VPN credentials
                             createTunnelFirstTime(
@@ -505,7 +503,7 @@ object GRDVPNHelper {
     fun hasCredentials(): Boolean {
         val credentials = grdCredentialManager.retrieveCredential()
         val haveCredentials = credentials?.let { activeConnectionPossible(it) } ?: false
-        val havePEToken = !GRDKeystore.instance.retrieveFromKeyStore(GRD_PE_TOKEN).isNullOrEmpty()
+        val havePEToken = !GRDPEToken.instance.retrievePEToken().isNullOrEmpty()
 
         return haveCredentials && havePEToken
     }

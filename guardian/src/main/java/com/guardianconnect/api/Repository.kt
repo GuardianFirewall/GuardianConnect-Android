@@ -834,11 +834,11 @@ class Repository {
     }
 
     fun allConnectDevices(
-        connectDevicesAllRequest: ConnectDevicesAllRequest,
+        connectDevicesAllDevicesRequest: ConnectDevicesAllDevicesRequest,
         iOnApiResponse: IOnApiResponse
     ) {
         val call: Call<ResponseBody>? =
-            apiCallsGRDConnect?.allConnectDevices(connectDevicesAllRequest)
+            apiCallsGRDConnect?.allConnectDevices(connectDevicesAllDevicesRequest)
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {

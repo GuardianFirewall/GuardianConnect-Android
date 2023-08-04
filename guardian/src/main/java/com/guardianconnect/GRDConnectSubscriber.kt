@@ -1,13 +1,11 @@
 package com.guardianconnect
 
-import android.util.Log
 import com.google.gson.Gson
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
 import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_EMAIL
-import com.guardianconnect.util.Constants.Companion.GRD_PE_TOKEN
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_PE_TOKEN_EXP_DATE
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_SECRET
 import com.guardianconnect.util.GRDKeystore
@@ -187,10 +185,7 @@ class GRDConnectSubscriber {
                         grdConnectSubscriber.createdAt = Date(it * 1000L)
                     }
                     grdConnectSubscriberResponse.peToken?.let {
-                        GRDKeystore.instance.saveToKeyStore(
-                            GRD_PE_TOKEN,
-                            it
-                        )
+                        GRDPEToken.instance.storePEToken(it)
                     }
                     grdConnectSubscriberResponse.petExpires?.let {
                         GRDKeystore.instance.saveToKeyStore(
@@ -276,10 +271,7 @@ class GRDConnectSubscriber {
                         grdConnectSubscriber.createdAt = Date(it * 1000L)
                     }
                     connectSubscriberValidateResponse.peToken?.let {
-                        GRDKeystore.instance.saveToKeyStore(
-                            GRD_PE_TOKEN,
-                            it
-                        )
+                        GRDPEToken.instance.storePEToken(it)
                     }
                     GRDConnectManager.getCoroutineScope().launch {
                         GRDVPNHelper.grdMsgFlow.emit("GRDConnectSubscriber validated successfully!")
@@ -294,7 +286,7 @@ class GRDConnectSubscriber {
     }
 
     fun logoutConnectSubscriber() {
-        val pet = GRDKeystore.instance.retrieveFromKeyStore(GRD_PE_TOKEN)
+        val pet = GRDPEToken.instance.retrievePEToken()
         val publishableKey = GRDVPNHelper.connectPublishableKey
         if (pet != null && publishableKey.isNotEmpty()) {
             val logoutConnectSubscriberRequest = LogoutConnectSubscriberRequest()
@@ -320,11 +312,11 @@ class GRDConnectSubscriber {
 
     // TODO: check the difference between this and GRDConnectDevice.allDevices()
     fun allDevices(
-        connectDevicesAllRequest: ConnectDevicesAllRequest,
+        connectSubscriberAllDevicesRequest: ConnectSubscriberAllDevicesRequest,
         iOnApiResponse: IOnApiResponse
     ) {
         val list = ArrayList<ConnectDeviceResponse>()
-        Repository.instance.allConnectDevices(connectDevicesAllRequest, object : IOnApiResponse {
+        Repository.instance.allConnectDevices(connectSubscriberAllDevicesRequest, object : IOnApiResponse {
             override fun onSuccess(any: Any?) {
                 if (any != null) {
                     val anyList = any as List<*>
