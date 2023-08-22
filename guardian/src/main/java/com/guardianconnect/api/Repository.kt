@@ -882,11 +882,11 @@ class Repository {
     }
 
     fun deleteConnectDevice(
-        connectDeviceDeleteRequest: ConnectDeviceDeleteRequest,
+        connectDeleteDeviceRequest: ConnectDeleteDeviceRequest,
         iOnApiResponse: IOnApiResponse
     ) {
         val call: Call<ResponseBody>? =
-            apiCallsGRDConnect?.deleteConnectDevice(connectDeviceDeleteRequest)
+            apiCallsGRDConnect?.deleteConnectDevice(connectDeleteDeviceRequest)
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {

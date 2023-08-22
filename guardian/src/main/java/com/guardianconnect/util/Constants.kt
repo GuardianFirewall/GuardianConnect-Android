@@ -36,5 +36,7 @@ class Constants {
         const val GRD_BLOCKLIST_BLOCK_ADS = "block-ads"
         const val GRD_BLOCKLIST_BLOCK_PHISHING = "block-phishing"
         const val API_ERROR = "Cannot make API requests!"
+        const val GRD_PE_TOKEN_CONNECT_API_ENV = "GRD_PE_TOKEN_CONNECT_API_ENV"
+        const val GRD_PE_TOKEN_EXPIRATION_DATE = "GRD_PE_TOKEN_EXPIRATION_DATE"
     }
 }

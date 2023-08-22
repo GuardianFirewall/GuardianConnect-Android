@@ -90,18 +90,21 @@ class GRDConnectDevice {
     }
 
     fun deleteConnectDevice(
-        connectDeviceDeleteRequest: ConnectDeviceDeleteRequest
+        connectDeviceDeleteRequest: ConnectDeviceDeleteRequest,
+        iOnApiResponse: IOnApiResponse
     ) {
         Repository.instance.deleteConnectDevice(
             connectDeviceDeleteRequest,
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
+                    iOnApiResponse.onSuccess(any)
                     GRDConnectManager.getCoroutineScope().launch {
                         any?.let { GRDVPNHelper.grdMsgFlow.emit(it as String) }
                     }
                 }
 
                 override fun onError(error: String?) {
+                    iOnApiResponse.onError(error)
                     GRDConnectManager.getCoroutineScope().launch {
                         error?.let { GRDVPNHelper.grdErrorFlow.emit(it) }
                     }
