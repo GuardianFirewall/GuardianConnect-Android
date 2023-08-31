@@ -8,5 +8,5 @@ class ConnectSubscriberAllDevicesRequest: ConnectDevicesAllDevicesRequest() {
     var epGrdSubscriberIdentifier: String? = null
 
     @SerializedName("ep-grd-subscriber-secret")
-    var epGrdSubscriberSecret: Boolean? = null
+    var epGrdSubscriberSecret: String? = null
 }
