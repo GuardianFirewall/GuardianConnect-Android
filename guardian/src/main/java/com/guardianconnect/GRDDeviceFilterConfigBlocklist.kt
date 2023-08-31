@@ -95,7 +95,7 @@ class GRDDeviceFilterConfigBlocklist {
     fun titleForDeviceFilterConfigBlocklist(config: DeviceFilterConfigBlocklist): String {
         when (config) {
             DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistDisableFirewall -> {
-                return "Disable Firewall"
+                return "Bypass Firewall Rules"
 
             }
             DeviceFilterConfigBlocklist.DeviceFilterConfigBlocklistBlockAds -> {
