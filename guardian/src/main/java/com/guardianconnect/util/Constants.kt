@@ -38,5 +38,6 @@ class Constants {
         const val API_ERROR = "Cannot make API requests!"
         const val GRD_PE_TOKEN_CONNECT_API_ENV = "GRD_PE_TOKEN_CONNECT_API_ENV"
         const val GRD_PE_TOKEN_EXPIRATION_DATE = "GRD_PE_TOKEN_EXPIRATION_DATE"
+        const val GRD_CONNECT_USER_PREFERRED_DNS_SERVERS = "GRD_CONNECT_USER_PREFERRED_DNS_SERVERS"
     }
 }
