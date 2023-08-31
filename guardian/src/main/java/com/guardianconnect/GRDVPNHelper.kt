@@ -10,6 +10,7 @@ import com.guardianconnect.model.EValidationMethod
 import com.guardianconnect.model.TunnelModel
 import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants.Companion.GRD_CONFIG_STRING
+import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_USER_PREFERRED_DNS_SERVERS
 import com.guardianconnect.util.Constants.Companion.GRD_SUBSCRIBER_CREDENTIAL
 import com.guardianconnect.util.Constants.Companion.GRD_WIREGUARD
 import com.guardianconnect.util.ErrorMessages
@@ -381,7 +382,8 @@ object GRDVPNHelper {
                     val configString =
                         grdWireGuardConfiguration.getWireGuardConfigString(
                             grdCredential,
-                            null
+                            GRDConnectManager.getSharedPrefs()
+                                ?.getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null)
                         )
                     GRDKeystore.instance.saveToKeyStore(GRD_CONFIG_STRING, configString)
                     iOnApiResponse.onSuccess(configString)
@@ -396,6 +398,18 @@ object GRDVPNHelper {
                     }
                 }
             })
+    }
+
+    fun setPreferredDNSServer(dnsServerNumber: String) {
+        GRDConnectManager.getSharedPrefsEditor()?.putString(
+            GRD_CONNECT_USER_PREFERRED_DNS_SERVERS,
+            dnsServerNumber
+        )?.apply()
+    }
+
+    fun getPreferredDNSServers(): String? {
+        return GRDConnectManager.getSharedPrefs()
+            ?.getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null)
     }
 
     /*  Clear local cache - removes all values from the Android Keystore and SharedPreferences */
