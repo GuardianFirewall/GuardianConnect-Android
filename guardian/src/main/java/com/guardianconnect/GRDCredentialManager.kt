@@ -24,9 +24,11 @@ class GRDCredentialManager {
 
     // Delete only the main credential
     fun deleteMainCredential() {
-        credentialsArrayList.isNotEmpty().let {
+        if (credentialsArrayList.isNotEmpty()) {
             credentialsArrayList.remove(getMainCredentials())
             saveListOfCredentials(credentialsArrayList)
+        } else {
+            GRDConnectManager.getSharedPrefsEditor()?.remove(GRD_CREDENTIAL_LIST)?.apply()
         }
     }
 
