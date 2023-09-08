@@ -103,6 +103,8 @@ class GRDCredentialManager {
         if (inputArrayList.isNotEmpty()) {
             val stringToSave = Gson().toJson(inputArrayList)
             GRDKeystore.instance.saveToKeyStore(GRD_CREDENTIAL_LIST, stringToSave)
+        } else {
+            GRDConnectManager.getSharedPrefsEditor()?.remove(GRD_CREDENTIAL_LIST)?.apply()
         }
     }
 
