@@ -881,6 +881,54 @@ class Repository {
         })
     }
 
+    fun allConnectDevices(
+        request: ConnectSubscriberAllDevicesRequest,
+        iOnApiResponse: IOnApiResponse
+    ) {
+        val call: Call<ResponseBody>? =
+            apiCallsGRDConnect?.allConnectDevices(request)
+        call?.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                if (response.isSuccessful) {
+                    response.body()?.string().let {
+                        val objectList = ArrayList(
+                            Gson().fromJson(
+                                it,
+                                Array<ConnectDeviceResponse>::class.java
+                            ).asList()
+                        )
+                        iOnApiResponse.onSuccess(objectList)
+                        Log.d(TAG, "All Connect subscriber devices returned successfully!")
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                iOnApiResponse.onError(t.message)
+                Log.d(
+                    TAG,
+                    API_ERROR + " allConnectDevices() " + t.message
+                )
+            }
+        })
+    }
+
     fun deleteConnectDevice(
         connectDeleteDeviceRequest: ConnectDeleteDeviceRequest,
         iOnApiResponse: IOnApiResponse

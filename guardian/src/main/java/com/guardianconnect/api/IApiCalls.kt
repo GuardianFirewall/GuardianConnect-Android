@@ -77,7 +77,10 @@ interface IApiCalls {
     fun deleteConnectDevice(@Body connectDeleteDeviceRequest: ConnectDeleteDeviceRequest): Call<ResponseBody>
 
     @POST("/api/v1.2/partners/subscriber/devices/list")
-    fun allConnectDevices(@Body connectDevicesAllDevicesRequest: ConnectDevicesAllDevicesRequest): Call<ResponseBody>
+    fun allConnectDevices(@Body request: ConnectDevicesAllDevicesRequest): Call<ResponseBody>
+
+    @POST("/api/v1.2/partners/subscriber/devices/list")
+    fun allConnectDevices(@Body request: ConnectSubscriberAllDevicesRequest): Call<ResponseBody>
 
     @POST("/api/v1.2/device/{deviceid}/alerts")
     fun setDeviceFilterConfig(
