@@ -12,8 +12,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.guardianconnect.*
-import com.guardianconnect.util.Constants
+import com.guardianconnect.GRDConnectManager
+import com.guardianconnect.GRDPEToken
+import com.guardianconnect.GRDRegion
+import com.guardianconnect.GRDServerManager
+import com.guardianconnect.GRDVPNHelper
 import com.guardianconnect.util.Constants.Companion.GRD_CONFIG_STRING
 import com.guardianconnect.util.GRDKeystore
 import kotlinx.coroutines.launch
@@ -60,7 +63,7 @@ class MainActivity : AppCompatActivity() {
             if (!etConfig.text.isNullOrEmpty()) {
                 btnResetConfiguration.isClickable = true
             }
-            GRDVPNHelper.restartTunnel()
+            GRDVPNHelper.stopClearTunnel()
             btnResetConfiguration.isClickable = false
             btnStartTunnel.visibility = View.VISIBLE
             btnStopTunnel.visibility = View.GONE
@@ -151,6 +154,7 @@ class MainActivity : AppCompatActivity() {
         return object : IOnClickListener {
             override fun onClick(grdRegion: GRDRegion?) {
                 grdRegion?.let { grdRegion.setPreferredRegion(it) }
+                GRDVPNHelper.updateTunnelRegion()
             }
         }
     }

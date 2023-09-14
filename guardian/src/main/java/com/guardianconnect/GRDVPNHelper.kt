@@ -228,13 +228,13 @@ object GRDVPNHelper {
         return GRDConnectManager.getTunnelManager().tunnelMap[tunnelName]
     }
 
-    fun restartTunnel() {
+    fun stopClearTunnel() {
         try {
             GRDConnectManager.getCoroutineScope().launch {
                 getActiveTunnel()?.setStateAsync(Tunnel.State.DOWN)
                 clearVPNConfiguration()
                 GRDConnectManager.getCoroutineScope().launch {
-                    grdMsgFlow.emit("Tunnel successfully restarted!")
+                    grdMsgFlow.emit("Tunnel successfully cleared!")
                 }
             }
         } catch (e: Exception) {
@@ -244,6 +244,27 @@ object GRDVPNHelper {
         }
     }
 
+    fun restartTunnel() {
+        try {
+            GRDConnectManager.getCoroutineScope().launch {
+                getActiveTunnel()?.setStateAsync(Tunnel.State.DOWN)
+                clearVPNConfiguration()
+                createAndStartTunnel()
+            }
+        } catch (e: Exception) {
+            GRDConnectManager.getCoroutineScope().launch {
+                grdErrorFlow.emit("Error restarting tunnel! " + e.message)
+            }
+        }
+    }
+
+    fun updateTunnelRegion() {
+        if (isTunnelRunning()) {
+            restartTunnel()
+        } else {
+            clearVPNConfiguration()
+        }
+    }
 
     /*  Function that handles the various tasks required to establish a new VPN connection.
     Create new VPN credentials on the selected VPN node with the created Subscriber Credential
@@ -429,7 +450,7 @@ object GRDVPNHelper {
             val vpnCredential = VPNCredentials()
             vpnCredential.apiAuthToken = grdCredentialObject.apiAuthToken
             vpnCredential.subscriberCredential = subscriberCredentialsJSON
-            grdCredentialManager.credentialsArrayList.clear()
+            grdCredentialManager.deleteMainCredential()
             // TODO
             // this change should be complete and prevent the PET from being killed as well
             // whenever the reset config button is tapped in the sample app
