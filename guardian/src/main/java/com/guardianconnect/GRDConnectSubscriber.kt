@@ -312,7 +312,7 @@ class GRDConnectSubscriber {
 
     // TODO: check the difference between this and GRDConnectDevice.allDevices()
     fun allDevices(
-        connectSubscriberAllDevicesRequest: ConnectSubscriberAllDevicesRequest,
+        connectSubscriberAllDevicesRequest: ConnectDevicesAllDevicesRequest,
         iOnApiResponse: IOnApiResponse
     ) {
         val list = ArrayList<ConnectDeviceResponse>()
