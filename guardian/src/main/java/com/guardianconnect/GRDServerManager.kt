@@ -9,6 +9,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
+import com.guardianconnect.enumeration.GRDServerFeatureEnvironment
 import com.guardianconnect.model.api.RequestServersForRegion
 import com.guardianconnect.model.api.Server
 import com.guardianconnect.model.api.TimeZonesResponse
@@ -24,6 +25,9 @@ import kotlin.collections.ArrayList
 class GRDServerManager {
 
     private val TAG = GRDServerManager::class.java.simpleName
+
+    var preferBetaCapableServers: Boolean? = null
+    var vpnServerFeatureEnvironment: GRDServerFeatureEnvironment? = null
 
     /*  Function that calls the GRDHousekeeping APIs to get the list of available time zones
         compares the device's current time zone to the available ones and selects a region
