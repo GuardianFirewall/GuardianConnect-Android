@@ -329,12 +329,13 @@ class GRDConnectSubscriber {
                 } else {
                     iOnApiResponse.onSuccess(null)
                     GRDConnectManager.getCoroutineScope().launch {
-                        GRDVPNHelper.grdErrorFlow.emit("GRDConnectDevices are null!")
+                        GRDVPNHelper.grdMsgFlow.emit("No GRDConnectDevices available")
                     }
                 }
             }
 
             override fun onError(error: String?) {
+                iOnApiResponse.onError(error)
                 GRDConnectManager.getCoroutineScope().launch {
                     error?.let { GRDVPNHelper.grdErrorFlow.emit(it) }
                 }
