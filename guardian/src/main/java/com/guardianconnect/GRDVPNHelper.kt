@@ -6,6 +6,7 @@ import android.content.Intent
 import android.util.Log
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
+import com.guardianconnect.enumeration.GRDServerFeatureEnvironment
 import com.guardianconnect.model.EValidationMethod
 import com.guardianconnect.model.TunnelModel
 import com.guardianconnect.model.api.*
@@ -35,15 +36,18 @@ object GRDVPNHelper {
     private val TAG = GRDVPNHelper::class.java.simpleName
     val grdSubscriberCredential = GRDSubscriberCredential()
     var grdCredentialManager = GRDCredentialManager()
-    var grdServerManager = GRDServerManager()
     private var context: Context? = null
     var connectAPIHostname: String = ""
     var connectPublishableKey: String = ""
     var tunnelName: String = ""
     var validForDays: Long = 60
+    private var preferBetaCapableServers: Boolean? = null
+    private var vpnServerFeatureEnvironment: GRDServerFeatureEnvironment? = null
 
     fun initHelper(context: Context) {
         this.context = context
+        preferBetaCapableServers = false
+        vpnServerFeatureEnvironment = GRDServerFeatureEnvironment.ServerFeatureEnvironmentProduction
     }
 
     fun createAndStartTunnel() {
@@ -343,6 +347,10 @@ object GRDVPNHelper {
         mainCredentials: Boolean,
         iOnApiResponse: IOnApiResponse
     ) {
+        val grdServerManager = GRDServerManager()
+        grdServerManager.preferBetaCapableServers = preferBetaCapableServers
+        grdServerManager.vpnServerFeatureEnvironment = vpnServerFeatureEnvironment
+
         grdServerManager.selectServerFromRegion(
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {

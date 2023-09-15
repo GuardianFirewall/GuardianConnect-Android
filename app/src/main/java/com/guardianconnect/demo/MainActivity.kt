@@ -161,7 +161,7 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun loadRegionsList() {
-        GRDVPNHelper.grdServerManager.returnAllAvailableRegions(object :
+        GRDServerManager().returnAllAvailableRegions(object :
             GRDServerManager.OnRegionListener {
             override fun onRegionsAvailable(listOfGRDRegions: List<GRDRegion>) {
                 regionsAdapterList.addAll(listOfGRDRegions)
