@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -140,6 +141,7 @@ class TunnelManager(
                 throwable = e
             }
             tunnel.onStateChanged(newState)
+            grdTunnelStatusFlow.emit(newState)
             saveState()
             if (throwable != null)
                 throw throwable
@@ -176,4 +178,7 @@ class TunnelManager(
     companion object {
         private const val TAG = "TunnelManager"
     }
+
+    val grdTunnelStatusFlow = MutableSharedFlow<Tunnel.State>()
 }
+

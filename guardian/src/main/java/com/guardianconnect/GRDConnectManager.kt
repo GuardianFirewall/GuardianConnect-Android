@@ -11,7 +11,12 @@ import com.guardianconnect.configStore.FileConfigStore
 import com.guardianconnect.util.applicationScope
 import com.wireguard.android.backend.Backend
 import com.wireguard.android.backend.GoBackend
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+
 
 class GRDConnectManager {
 
@@ -48,6 +53,14 @@ class GRDConnectManager {
             } catch (e: Throwable) {
                 GRDVPNHelper.grdErrorFlow.emit(Log.getStackTraceString(e))
             }
+
+            collectFlow(tunnelManager)
+        }
+    }
+
+    private suspend fun collectFlow(tunnelManager: TunnelManager) {
+        tunnelManager.grdTunnelStatusFlow.collect {
+            Log.d(TAG, "TUNNEL STATE: $it")
         }
     }
 

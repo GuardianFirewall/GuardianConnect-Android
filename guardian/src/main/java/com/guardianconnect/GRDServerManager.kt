@@ -43,7 +43,12 @@ class GRDServerManager {
         if (!grdRegion.getPreferredRegion().isNullOrEmpty()) {
             Log.d(TAG, "Using user preferred region: " + grdRegion.getPreferredRegion().toString())
             serversForRegion.region = grdRegion.getPreferredRegion()
-            requestListOfServersForRegion(serversForRegion, iOnApiResponse)
+            requestListOfServersForRegion(
+                serversForRegion,
+                iOnApiResponse,
+                preferBetaCapableServers,
+                vpnServerFeatureEnvironment
+            )
         } else {
             Repository.instance.getListOfSupportedTimeZones(object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
@@ -74,7 +79,9 @@ class GRDServerManager {
 
                         requestListOfServersForRegion(
                             serversForRegion,
-                            iOnApiResponse
+                            iOnApiResponse,
+                            preferBetaCapableServers,
+                            vpnServerFeatureEnvironment
                         )
                     }
                 }
@@ -89,7 +96,9 @@ class GRDServerManager {
 
     fun requestListOfServersForRegion(
         serversForRegion: RequestServersForRegion,
-        iOnApiResponse: IOnApiResponse
+        iOnApiResponse: IOnApiResponse,
+        preferBetaCapableServers: Boolean?,
+        vpnServerFeatureEnvironment: GRDServerFeatureEnvironment?
     ) {
         Repository.instance.requestListOfServersForRegion(
             serversForRegion,
@@ -159,7 +168,8 @@ class GRDServerManager {
             onRegionListener.onRegionsAvailable(emptyList())
 
         } else {
-            val caps: NetworkCapabilities? = connectivityManager.getNetworkCapabilities(activeNetwork)
+            val caps: NetworkCapabilities? =
+                connectivityManager.getNetworkCapabilities(activeNetwork)
             if (caps == null) {
                 onRegionListener.onRegionsAvailable(emptyList())
                 return
@@ -167,7 +177,8 @@ class GRDServerManager {
 
             val vpnInUse = caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
             val listFromSharedPreferences =
-                GRDConnectManager.getSharedPrefs()?.getString(GRD_REGIONS_LIST_FROM_SHARED_PREFS, "")
+                GRDConnectManager.getSharedPrefs()
+                    ?.getString(GRD_REGIONS_LIST_FROM_SHARED_PREFS, "")
             val list = ArrayList<GRDRegion>()
             val automaticGRDRegion = GRDRegion()
             automaticGRDRegion.namePretty = GRD_AUTOMATIC_REGION
