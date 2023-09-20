@@ -43,11 +43,12 @@ class GRDServerManager {
         if (!grdRegion.getPreferredRegion().isNullOrEmpty()) {
             Log.d(TAG, "Using user preferred region: " + grdRegion.getPreferredRegion().toString())
             serversForRegion.region = grdRegion.getPreferredRegion()
+            serversForRegion.featureEnvironment = vpnServerFeatureEnvironment
+            serversForRegion.betaCapable = preferBetaCapableServers
+            Log.d(TAG, "serversForRegion: $serversForRegion")
             requestListOfServersForRegion(
                 serversForRegion,
-                iOnApiResponse,
-                preferBetaCapableServers,
-                vpnServerFeatureEnvironment
+                iOnApiResponse
             )
         } else {
             Repository.instance.getListOfSupportedTimeZones(object : IOnApiResponse {
@@ -79,9 +80,7 @@ class GRDServerManager {
 
                         requestListOfServersForRegion(
                             serversForRegion,
-                            iOnApiResponse,
-                            preferBetaCapableServers,
-                            vpnServerFeatureEnvironment
+                            iOnApiResponse
                         )
                     }
                 }
@@ -96,9 +95,7 @@ class GRDServerManager {
 
     fun requestListOfServersForRegion(
         serversForRegion: RequestServersForRegion,
-        iOnApiResponse: IOnApiResponse,
-        preferBetaCapableServers: Boolean?,
-        vpnServerFeatureEnvironment: GRDServerFeatureEnvironment?
+        iOnApiResponse: IOnApiResponse
     ) {
         Repository.instance.requestListOfServersForRegion(
             serversForRegion,

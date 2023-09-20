@@ -1,6 +1,7 @@
 package com.guardianconnect.model.api
 
 import com.google.gson.annotations.SerializedName
+import com.guardianconnect.enumeration.GRDServerFeatureEnvironment
 
 class RequestServersForRegion {
 
@@ -11,9 +12,12 @@ class RequestServersForRegion {
     var paid: Int? = null
 
     @SerializedName("feature-environment")
-    var featureEnvironment: Int? = null
+    var featureEnvironment: GRDServerFeatureEnvironment? = null
 
     @SerializedName("beta-capable")
-    var betaCapable: Int? = null
+    var betaCapable: Boolean? = null
 
+    override fun toString(): String {
+        return "region:$region, featureEnvironment:$featureEnvironment, betaCapable:$betaCapable, paid:$paid"
+    }
 }

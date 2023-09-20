@@ -2,6 +2,10 @@ package com.guardianconnect
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.net.ConnectivityManager
+import android.net.ConnectivityManager.NetworkCallback
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
@@ -17,7 +21,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-
 class GRDConnectManager {
 
     private val futureBackend = CompletableDeferred<Backend>()
@@ -28,6 +31,7 @@ class GRDConnectManager {
     private var sharedPreference: SharedPreferences? = null
     private var editor: SharedPreferences.Editor? = null
     private lateinit var guardianContext: Context
+    private lateinit var connectivityManager: ConnectivityManager
 
     fun init(context: Context) {
         instance = this
@@ -55,6 +59,36 @@ class GRDConnectManager {
             }
 
             collectFlow(tunnelManager)
+        }
+        connectivityManager = context.getSystemService(ConnectivityManager::class.java)
+        connectivityManager.registerDefaultNetworkCallback(
+            createNetworkListener()
+        )
+    }
+
+    private fun createNetworkListener() = object : NetworkCallback() {
+
+        override fun onAvailable(network: Network) {
+            Log.d(TAG, "onAvailable")
+            val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+            val hasVPNTransport = networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+
+            if(hasVPNTransport == true){
+                Log.d(TAG, "onAvailable hasVPNTransport TRUE")
+            }else{
+                Log.d(TAG, "onAvailable hasVPNTransport FALSE")
+            }
+        }
+
+        override fun onLost(network: Network) {
+            Log.d(TAG, "onLost")
+            val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+            val hahVPNTransport = networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+            if(hahVPNTransport == true){
+                Log.d(TAG, "onLost hasVPNTransport TRUE")
+            }else{
+                Log.d(TAG, "onLost hasVPNTransport FALSE")
+            }
         }
     }
 
