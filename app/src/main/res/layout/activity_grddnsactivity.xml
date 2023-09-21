@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".GRDDNSActivity">
+    tools:context="com.guardianconnect.demo.GRDDNSActivity">
 
     <Button
         android:id="@+id/btnStartVPN"

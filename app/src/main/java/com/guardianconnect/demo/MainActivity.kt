@@ -1,6 +1,9 @@
 package com.guardianconnect.demo
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -19,9 +22,12 @@ import com.guardianconnect.GRDServerManager
 import com.guardianconnect.GRDVPNHelper
 import com.guardianconnect.util.Constants.Companion.GRD_CONFIG_STRING
 import com.guardianconnect.util.GRDKeystore
+import com.guardianconnect.util.applicationScope
+import com.wireguard.android.backend.Tunnel
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
+    private var myReceiver: MyBroadcastReceiver? = null
     private lateinit var etConfig: EditText
     private lateinit var btnStartTunnel: Button
     private lateinit var btnStopTunnel: Button
@@ -38,6 +44,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         etConfig = findViewById(R.id.etConfig)
+
+        val intentFilter = IntentFilter()
+        intentFilter.addAction("com.guardianconnect.action.GRD_REFRESH_TUNNEL_STATES")
+        intentFilter.addAction("com.guardianconnect.action.GRD_SET_TUNNEL_UP")
+        intentFilter.addAction("com.guardianconnect.action.GRD_SET_TUNNEL_DOWN")
+        myReceiver = MyBroadcastReceiver()
+        registerReceiver(myReceiver, intentFilter)
+
         initGRDVPNHelper()
         initUI()
         initRecyclerView()
@@ -159,7 +173,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     private fun loadRegionsList() {
         GRDServerManager().returnAllAvailableRegions(object :
             GRDServerManager.OnRegionListener {
@@ -206,4 +219,38 @@ class MainActivity : AppCompatActivity() {
             GRDVPNHelper.createAndStartTunnel()
             progressBar.visibility = View.GONE
         }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (myReceiver != null) unregisterReceiver(myReceiver)
+    }
+
+    class MyBroadcastReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            Log.d("MainActivity","Intent action name: ${intent.action}" )
+
+            applicationScope.launch {
+                val manager = GRDConnectManager.getTunnelManager()
+                if (intent == null) return@launch
+                val action = intent.action ?: return@launch
+                if ("com.guardianconnect.action.GRD_REFRESH_TUNNEL_STATES" == action) {
+                    manager.refreshTunnelStates()
+                    return@launch
+                }
+                val state: Tunnel.State = when (action) {
+                    "com.guardianconnect.action.GRD_SET_TUNNEL_UP" -> Tunnel.State.UP
+                    "com.guardianconnect.action.GRD_SET_TUNNEL_DOWN" -> Tunnel.State.DOWN
+                    else -> return@launch
+                }
+                val tunnelName = intent.getStringExtra("tunnel") ?: return@launch
+                val tunnels = manager.getTunnels()
+                val tunnel = tunnels[tunnelName] ?: return@launch
+                try {
+                    manager.setTunnelState(tunnel, state)
+                } catch (e: Throwable) {
+                    GRDVPNHelper.grdErrorFlow.emit(e.stackTraceToString())
+                }
+            }
+        }
+    }
 }

@@ -1,6 +1,7 @@
 package com.guardianconnect
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.ConnectivityManager.NetworkCallback
@@ -15,6 +16,7 @@ import com.guardianconnect.configStore.FileConfigStore
 import com.guardianconnect.util.applicationScope
 import com.wireguard.android.backend.Backend
 import com.wireguard.android.backend.GoBackend
+import com.wireguard.android.backend.Tunnel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +34,8 @@ class GRDConnectManager {
     private var editor: SharedPreferences.Editor? = null
     private lateinit var guardianContext: Context
     private lateinit var connectivityManager: ConnectivityManager
+    private var tunnelState: Tunnel.State? = null
+    private var tunnelStateLabel: String? = null
 
     fun init(context: Context) {
         instance = this
@@ -60,41 +64,61 @@ class GRDConnectManager {
 
             collectFlow(tunnelManager)
         }
+
         connectivityManager = context.getSystemService(ConnectivityManager::class.java)
         connectivityManager.registerDefaultNetworkCallback(
-            createNetworkListener()
+            createNetworkListener
         )
     }
 
-    private fun createNetworkListener() = object : NetworkCallback() {
+    private val createNetworkListener = object : NetworkCallback() {
 
         override fun onAvailable(network: Network) {
             Log.d(TAG, "onAvailable")
-            val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
-            val hasVPNTransport = networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
 
-            if(hasVPNTransport == true){
-                Log.d(TAG, "onAvailable hasVPNTransport TRUE")
-            }else{
-                Log.d(TAG, "onAvailable hasVPNTransport FALSE")
+            val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+            val hasVPNTransport =
+                networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+            val hasNetCapability =
+                networkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
+
+            if (hasVPNTransport == true && hasNetCapability == false) {
+                val intent = Intent("com.guardianconnect.ACTION_SEND")
+                intent.action = tunnelStateLabel
+                intent.putExtra("tunnel", GRDVPNHelper.tunnelName)
+                intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES)
+                guardianContext.sendBroadcast(intent)
+            } else {
+                val intent = Intent("com.guardianconnect.ACTION_SEND")
+                intent.action = tunnelStateLabel
+                intent.putExtra("tunnel", GRDVPNHelper.tunnelName)
+                intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES)
+                guardianContext.sendBroadcast(intent)
             }
         }
 
         override fun onLost(network: Network) {
             Log.d(TAG, "onLost")
-            val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
-            val hahVPNTransport = networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
-            if(hahVPNTransport == true){
-                Log.d(TAG, "onLost hasVPNTransport TRUE")
-            }else{
-                Log.d(TAG, "onLost hasVPNTransport FALSE")
-            }
         }
     }
 
     private suspend fun collectFlow(tunnelManager: TunnelManager) {
         tunnelManager.grdTunnelStatusFlow.collect {
             Log.d(TAG, "TUNNEL STATE: $it")
+            tunnelState = it
+            tunnelStateLabel = when (it) {
+                Tunnel.State.UP -> {
+                    "com.guardianconnect.action.GRD_SET_TUNNEL_UP"
+                }
+
+                Tunnel.State.DOWN -> {
+                    "com.guardianconnect.action.GRD_SET_TUNNEL_DOWN"
+                }
+
+                Tunnel.State.TOGGLE -> {
+                    "com.guardianconnect.action.GRD_REFRESH_TUNNEL_STATES"
+                }
+            }
         }
     }
 
@@ -129,5 +153,4 @@ class GRDConnectManager {
         @JvmStatic
         fun getSharedPrefsEditor() = get().editor
     }
-
 }
