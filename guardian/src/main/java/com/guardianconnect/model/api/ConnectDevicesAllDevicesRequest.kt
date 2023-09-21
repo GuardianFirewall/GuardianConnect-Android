@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 open class ConnectDevicesAllDevicesRequest {
 
-    // includes in all requests
+    // included in all requests
     @SerializedName("connect-publishable-key")
     var connectPublishableKey: String? = null
 

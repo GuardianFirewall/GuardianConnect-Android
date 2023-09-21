@@ -90,7 +90,7 @@ class GRDConnectDevice {
     }
 
     fun deleteConnectDevice(
-        connectDeviceDeleteRequest: ConnectDeviceDeleteRequest,
+        connectDeviceDeleteRequest: ConnectDeleteDeviceRequest,
         iOnApiResponse: IOnApiResponse
     ) {
         Repository.instance.deleteConnectDevice(
