@@ -927,13 +927,14 @@ class Repository {
         apiAuthToken: String,
         iOnApiResponse: IOnApiResponse
     ) {
-        val grdDeviceFilterConfigBlocklist = GRDDeviceFilterConfigBlocklist()
+        val grdDeviceFilterConfigBlocklist =
+            GRDDeviceFilterConfigBlocklist().currentBlocklistConfig()
         val map = HashMap<Any, Any>()
-        map.putAll(grdDeviceFilterConfigBlocklist.apiPortableBlocklist())
+        grdDeviceFilterConfigBlocklist?.apiPortableBlocklist()?.let { map.putAll(it) }
         map["api-auth-token"] = apiAuthToken
         val json = Gson().toJsonTree(map).asJsonObject
         val call: Call<ResponseBody>? =
-            apiCallsGRDConnect?.setDeviceFilterConfig(deviceId, json)
+            apiCalls?.setDeviceFilterConfig(deviceId, json)
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {

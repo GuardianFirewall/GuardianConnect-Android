@@ -79,7 +79,7 @@ interface IApiCalls {
     @POST("/api/v1.2/partners/subscriber/devices/list")
     fun allConnectDevices(@Body request: ConnectDevicesAllDevicesRequest): Call<ResponseBody>
 
-    @POST("/api/v1.2/device/{deviceid}/alerts")
+    @POST("/api/v1.3/device/{deviceid}/config/filters")
     fun setDeviceFilterConfig(
         @Path("deviceid") deviceid: String,
         @Body jsonObject: JsonObject
