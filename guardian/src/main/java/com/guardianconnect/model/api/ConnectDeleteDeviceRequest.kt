@@ -17,7 +17,7 @@ open class ConnectDeleteDeviceRequest {
     var epGrdSubscriberIdentifier: String? = null
 
     @SerializedName("ep-grd-subscriber-secret")
-    var epGrdSubscriberSecret: Boolean? = null
+    var epGrdSubscriberSecret: String? = null
 
     // PE-Tokens are used from devices in the Connect Device role
     @SerializedName("pe-token")
