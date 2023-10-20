@@ -230,7 +230,7 @@ class ApiTest {
                     "Test".toResponseBody()
                 )
             )
-            val connectDeviceDeleteRequest = ConnectDeleteDeviceRequest()
+            val connectDeviceDeleteRequest = ConnectDeviceDeleteRequest()
             connectDeviceDeleteRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
             connectDeviceDeleteRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
             connectDeviceDeleteRequest.deviceUuid = it.epGrdDeviceUuid
