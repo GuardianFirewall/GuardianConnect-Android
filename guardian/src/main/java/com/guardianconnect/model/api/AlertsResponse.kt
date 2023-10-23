@@ -2,27 +2,26 @@ package com.guardianconnect.model.api
 
 import com.google.gson.annotations.SerializedName
 
-class AlertsResponse {
+data class AlertsResponse(
 
     @SerializedName("timestamp")
-    var timestamp: Long? = null
+    var timestamp: Long? = null,
 
     @SerializedName("uuid")
-    var uuid: String? = null
+    var uuid: String? = null,
 
     @SerializedName("action")
-    var action: String? = null
+    var action: String? = null,
 
     @SerializedName("title")
-    var title: String? = null
+    var title: String? = null,
 
     @SerializedName("message")
-    var message: String? = null
+    var message: String? = null,
 
     @SerializedName("host")
-    var host: String? = null
+    var host: String? = null,
 
     @SerializedName("category")
     var category: String? = null
-
-}
+)

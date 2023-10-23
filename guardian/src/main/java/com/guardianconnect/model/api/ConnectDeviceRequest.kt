@@ -2,12 +2,11 @@ package com.guardianconnect.model.api
 
 import com.google.gson.annotations.SerializedName
 
-class ConnectDeviceRequest: ConnectDevicesAllDevicesRequest() {
+data class ConnectDeviceRequest(
 
     @SerializedName("ep-grd-device-nickname")
-    var epGrdDeviceNickname: String? = null
+    var epGrdDeviceNickname: String? = null,
 
     @SerializedName("ep-grd-device-accepted-tos")
     var epGrdDeviceAcceptedTos: Boolean? = null
-
-}
+) : ConnectDevicesAllDevicesRequest()
