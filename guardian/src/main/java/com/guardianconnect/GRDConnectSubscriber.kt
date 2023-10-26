@@ -342,4 +342,19 @@ class GRDConnectSubscriber {
             }
         })
     }
+
+    companion object {
+        fun getLocalInstance(): GRDConnectSubscriber? {
+            val secret = GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER_SECRET)
+            val grdConnectSubscriberString = GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER)
+
+            return if (!secret.isNullOrEmpty() && !grdConnectSubscriberString.isNullOrEmpty()) {
+                val grdConnectSubscriber = Gson().fromJson(grdConnectSubscriberString, GRDConnectSubscriber::class.java)
+                grdConnectSubscriber.secret = secret
+                grdConnectSubscriber
+            } else {
+                null
+            }
+        }
+    }
 }
