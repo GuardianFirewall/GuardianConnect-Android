@@ -2,6 +2,7 @@ package com.guardianconnect
 
 import android.util.Log
 import com.google.gson.annotations.SerializedName
+import com.guardianconnect.util.Constants.Companion.GRD_AUTOMATIC_REGION
 import com.guardianconnect.util.Constants.Companion.GRD_PREFERRED_REGION_NAME_PRETTY
 import com.guardianconnect.util.Constants.Companion.GRD_Preferred_Region
 
@@ -21,11 +22,30 @@ class GRDRegion {
     @SerializedName("name-pretty")
     var namePretty: String? = null
 
+    companion object {
+        fun automaticRegion(): GRDRegion {
+            val auto = GRDRegion()
+            auto.continent = GRD_AUTOMATIC_REGION
+            auto.name = GRD_AUTOMATIC_REGION
+            auto.namePretty = GRD_AUTOMATIC_REGION
+            return auto
+        }
+    }
 
     /*  Permanently override the region that the device should connect to.
         The function should take the name property of the region object and store it into the
         SharedPreferences for the key GRD_Preferred_Region */
     fun setPreferredRegion(grdRegion: GRDRegion) {
+        //
+        // Note from CJ 2023-11-06
+        // If we're passing the automatic region nothing should be stored
+        // and the preferred region object in the shared preferences
+        // should be removed entirely instead
+        if (grdRegion.name == GRD_AUTOMATIC_REGION) {
+            grdRegion.clearPreferredRegion()
+            return
+        }
+
         val grdRegionName = grdRegion.name
         val grdRegionNamePretty = grdRegion.namePretty
         GRDConnectManager.getSharedPrefs()?.edit()
