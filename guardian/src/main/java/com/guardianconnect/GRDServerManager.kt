@@ -177,9 +177,8 @@ class GRDServerManager {
                 GRDConnectManager.getSharedPrefs()
                     ?.getString(GRD_REGIONS_LIST_FROM_SHARED_PREFS, "")
             val list = ArrayList<GRDRegion>()
-            val automaticGRDRegion = GRDRegion()
-            automaticGRDRegion.namePretty = GRD_AUTOMATIC_REGION
-            list.add(0, automaticGRDRegion)
+            var auto = GRDRegion.automaticRegion()
+            list.add(0, auto)
 
             // Make API call only when VPN is not in use
             if (vpnInUse && !listFromSharedPreferences.isNullOrEmpty()) {
