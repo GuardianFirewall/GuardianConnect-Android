@@ -16,6 +16,7 @@ class Constants {
         const val GRD_CONNECT_DEVICE = "GRD_CONNECT_DEVICE"
         const val GRD_CREDENTIAL_LIST = "GRD_CREDENTIAL_LIST"
         const val GRD_MAIN = "main"
+        const val GRD_PERSISTENT_LOG = "kGRDPersistentLog"
         const val GRD_Main_Credential_WG_Public_Key = "GRD-Main-Credential-WG-Public-Key"
         const val GRD_Main_Credential_WG_Private_Key = "GRD-Main-Credential-WG-Private-Key"
         const val GRD_Preferred_Region = "GRD_Preferred_Region"
