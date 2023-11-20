@@ -563,6 +563,47 @@ class Repository {
         })
     }
 
+    fun signOutUser(
+        signOutUserRequest: SignOutUserRequest,
+        iOnApiResponse: IOnApiResponse
+    ) {
+        val call: Call<ResponseBody>? =
+            apiCallsGRDConnect?.signOutUser(signOutUserRequest)
+        call?.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                if (response.isSuccessful) {
+                    iOnApiResponse.onSuccess("User sign out successfully.")
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                GRDConnectManager.getCoroutineScope().launch {
+                    t.message?.let { GRDVPNHelper.grdErrorFlow.emit(it) }
+                }
+                Log.d(
+                    TAG,
+                    API_ERROR + " signOutUser() " + t.message
+                )
+            }
+        })
+    }
+
     fun getSubscriberCredentialsElse(
         validationMethodElse: ValidationMethodElse,
         iOnApiResponse: IOnApiResponse

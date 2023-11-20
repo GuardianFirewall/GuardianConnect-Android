@@ -13,6 +13,11 @@ interface IApiCalls {
     @GET("/vpnsrv/api/server-status")
     fun getServerStatus(): Call<ResponseBody>
 
+    @POST("/api/v1/users/sign-out")
+    fun signOutUser(
+        @Body signOutUserRequest: SignOutUserRequest
+    ): Call<ResponseBody>
+
     @POST("/api/v1.3/device")
     fun createNewVPNDevice(@Body newVPNDevice: NewVPNDevice): Call<NewVPNDeviceResponse>
 

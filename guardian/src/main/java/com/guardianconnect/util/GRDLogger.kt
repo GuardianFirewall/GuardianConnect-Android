@@ -33,9 +33,13 @@ object GRDLogger {
             if (!b && iskGRDPersistentLogEnabled()) {
                 arrayOfStrings.removeAt(0)
                 arrayOfStrings += message
-                Log.println(logPriority, tag, message)
+                val messagesAsString = arrayOfStrings.joinToString("\n") { it }
+                GRDConnectManager.getSharedPrefsEditor()
+                    ?.putString(GRD_PERSISTENT_LOG_ENABLED, messagesAsString)
+                    ?.apply()
             }
         }
+        Log.println(logPriority, tag, message)
     }
 
     fun d(tag: String, message: String) {
