@@ -230,7 +230,7 @@ class ApiTest {
                     "Test".toResponseBody()
                 )
             )
-            val connectDeviceDeleteRequest = ConnectDeviceDeleteRequest()
+            val connectDeviceDeleteRequest = ConnectDeleteDeviceRequest()
             connectDeviceDeleteRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
             connectDeviceDeleteRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
             connectDeviceDeleteRequest.deviceUuid = it.epGrdDeviceUuid
@@ -673,7 +673,7 @@ class ApiTest {
                         )
                     )
                     val grdDeviceFilterConfigBlocklist = GRDDeviceFilterConfigBlocklist()
-                    var map = HashMap<Any, Any>()
+                    val map = HashMap<Any, Any>()
                     map.putAll(grdDeviceFilterConfigBlocklist.apiPortableBlocklist())
                     map["api-auth-token"] = vpn?.apiAuthToken.toString()
                     val json = Gson().toJsonTree(map).asJsonObject

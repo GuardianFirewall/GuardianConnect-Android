@@ -2,15 +2,12 @@ package com.guardianconnect
 
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
-import com.guardianconnect.model.api.NewVPNDeviceResponse
 import com.guardianconnect.model.api.SignOutUserRequest
-import com.guardianconnect.util.Constants
 import com.guardianconnect.util.Constants.Companion.GRD_PE_TOKEN
 import com.guardianconnect.util.Constants.Companion.GRD_PE_TOKEN_CONNECT_API_ENV
 import com.guardianconnect.util.Constants.Companion.GRD_PE_TOKEN_EXPIRATION_DATE
 import com.guardianconnect.util.GRDKeystore
 import kotlinx.coroutines.launch
-import okhttp3.ResponseBody
 import java.util.Date
 
 class GRDPEToken {

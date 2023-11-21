@@ -75,7 +75,7 @@ class GRDServerManager {
                         }
 
                         if (selectedRegion.isEmpty()) {
-                            iOnApiResponse.onError("No available servers for your timezone: " + currentTimeZoneId)
+                            iOnApiResponse.onError("No available servers for your timezone: $currentTimeZoneId")
                         }
 
                         requestListOfServersForRegion(
@@ -177,7 +177,7 @@ class GRDServerManager {
                 GRDConnectManager.getSharedPrefs()
                     ?.getString(GRD_REGIONS_LIST_FROM_SHARED_PREFS, "")
             val list = ArrayList<GRDRegion>()
-            var auto = GRDRegion.automaticRegion()
+            val auto = GRDRegion.automaticRegion()
             list.add(0, auto)
 
             // Make API call only when VPN is not in use
