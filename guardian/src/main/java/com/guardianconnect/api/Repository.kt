@@ -963,6 +963,50 @@ class Repository {
         })
     }
 
+    fun getConnectDeviceReference(
+        connectDeviceReferenceRequest: ConnectDeviceReferenceRequest,
+        iOnApiResponse: IOnApiResponse
+    ) {
+        val call: Call<ConnectDeviceReferenceResponse>? =
+            apiCallsGRDConnect?.getConnectDeviceReference(connectDeviceReferenceRequest)
+        call?.enqueue(object : Callback<ConnectDeviceReferenceResponse> {
+            override fun onResponse(
+                call: Call<ConnectDeviceReferenceResponse>,
+                response: Response<ConnectDeviceReferenceResponse>
+            ) {
+                if (response.isSuccessful) {
+                    val connectDeviceReferenceResponse = response.body()
+                    iOnApiResponse.onSuccess(connectDeviceReferenceResponse)
+                    Log.d(TAG, "Connect subscriber device reference returned successfully!")
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<ConnectDeviceReferenceResponse>, t: Throwable) {
+                iOnApiResponse.onError(t.message)
+                Log.d(
+                    TAG,
+                    API_ERROR + " getConnectDeviceReference() " + t.message
+                )
+            }
+        })
+    }
+
     fun setDeviceFilterConfig(
         deviceId: String,
         apiAuthToken: String,
