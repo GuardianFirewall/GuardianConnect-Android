@@ -112,36 +112,41 @@ class GRDConnectDevice {
             })
     }
 
-    // TODO: check the difference between this and GRDConnectSubscriber.allDevices()
+    //This one is most likely going to be removed. We have GRDConnectSubscriber.allDevices().
+    //For now we’ll leave it unused.
     fun allDevices(
         connectDevicesAllDevicesRequest: ConnectDevicesAllDevicesRequest,
         iOnApiResponse: IOnApiResponse
     ) {
         val list = ArrayList<ConnectDeviceResponse>()
-        Repository.instance.allConnectDevices(connectDevicesAllDevicesRequest, object : IOnApiResponse {
-            override fun onSuccess(any: Any?) {
-                if (any != null) {
-                    val anyList = any as List<*>
-                    val allDevices = anyList.filterIsInstance<ConnectDeviceResponse>()
-                    list.addAll(allDevices)
-                    iOnApiResponse.onSuccess(list)
-                    GRDConnectManager.getCoroutineScope().launch {
-                        GRDVPNHelper.grdMsgFlow.emit("All GRDConnectDevices returned.")
-                    }
-                } else {
-                    iOnApiResponse.onSuccess(null)
-                    GRDConnectManager.getCoroutineScope().launch {
-                        GRDVPNHelper.grdErrorFlow.emit("GRDConnectDevices are null!")
+        Repository.instance.allConnectDevices(
+            connectDevicesAllDevicesRequest,
+            object : IOnApiResponse {
+                override fun onSuccess(any: Any?) {
+                    if (any != null) {
+                        val anyList = any as List<*>
+                        val allDevices =
+                            anyList.filterIsInstance<ConnectDeviceResponse>()
+                        list.addAll(allDevices)
+                        initGRDConnectDevice()
+                        iOnApiResponse.onSuccess(list)
+                        GRDConnectManager.getCoroutineScope().launch {
+                            GRDVPNHelper.grdMsgFlow.emit("All GRDConnectDevices returned.")
+                        }
+                    } else {
+                        iOnApiResponse.onSuccess(null)
+                        GRDConnectManager.getCoroutineScope().launch {
+                            GRDVPNHelper.grdErrorFlow.emit("GRDConnectDevices are null!")
+                        }
                     }
                 }
-            }
 
-            override fun onError(error: String?) {
-                GRDConnectManager.getCoroutineScope().launch {
-                    error?.let { GRDVPNHelper.grdErrorFlow.emit(it) }
+                override fun onError(error: String?) {
+                    GRDConnectManager.getCoroutineScope().launch {
+                        error?.let { GRDVPNHelper.grdErrorFlow.emit(it) }
+                    }
                 }
-            }
-        })
+            })
     }
 
     fun store(grdConnectDevice: GRDConnectDevice): Error? {
@@ -161,5 +166,4 @@ class GRDConnectDevice {
         }
         return null
     }
-
 }

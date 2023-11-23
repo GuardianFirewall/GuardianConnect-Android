@@ -17,5 +17,7 @@ data class ConnectDeviceResponse(
     var epGrdDevicePetExpires: Long? = null,
 
     @SerializedName("ep-grd-device-uuid")
-    var epGrdDeviceUuid: String? = null
+    var epGrdDeviceUuid: String? = null,
+
+    var currentDevice: Boolean = false
 )

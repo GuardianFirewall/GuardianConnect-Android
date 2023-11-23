@@ -348,7 +348,6 @@ class GRDConnectSubscriber {
         )
     }
 
-    // TODO: check the difference between this and GRDConnectDevice.allDevices()
     fun allDevices(
         connectSubscriberAllDevicesRequest: ConnectDevicesAllDevicesRequest,
         iOnApiResponse: IOnApiResponse
@@ -360,8 +359,17 @@ class GRDConnectSubscriber {
                 override fun onSuccess(any: Any?) {
                     if (any != null) {
                         val anyList = any as List<*>
-                        val allDevices = anyList.filterIsInstance<ConnectDeviceResponse>()
+                        val allDevices =
+                            anyList.filterIsInstance<ConnectDeviceResponse>()
                         list.addAll(allDevices)
+
+                        val grdConnectDevice = GRDConnectDevice()
+                        grdConnectDevice.initGRDConnectDevice()
+                        list.forEach { device ->
+                            if (device.epGrdDeviceUuid == grdConnectDevice.epGrdDeviceUuid) {
+                                device.currentDevice = true
+                            }
+                        }
                         iOnApiResponse.onSuccess(list)
                         GRDConnectManager.getCoroutineScope().launch {
                             GRDVPNHelper.grdMsgFlow.emit("All GRDConnectDevices returned.")
