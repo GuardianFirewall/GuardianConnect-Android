@@ -28,6 +28,8 @@ class GRDConnectSubscriber {
 
     var createdAt: Date? = null
 
+    var device: GRDConnectDevice? = null
+
     fun initGRDConnectSubscriber() {
         try {
             val secret =
@@ -46,6 +48,7 @@ class GRDConnectSubscriber {
                 this.subscriptionNameFormatted = grdConnectSubscriber.subscriptionNameFormatted
                 this.subscriptionExpirationDate = grdConnectSubscriber.subscriptionExpirationDate
                 this.createdAt = grdConnectSubscriber.createdAt
+                this.device = grdConnectSubscriber.device
             }
         } catch (exception: Exception) {
             GRDConnectManager.getCoroutineScope().launch {
@@ -193,6 +196,7 @@ class GRDConnectSubscriber {
                             it.toString()
                         )
                     }
+                    grdConnectSubscriber.device = grdConnectSubscriberResponse.grdConnectDevice
                     store(grdConnectSubscriber)
                     iOnApiResponse.onSuccess(grdConnectSubscriber)
                 }
@@ -389,6 +393,22 @@ class GRDConnectSubscriber {
                     }
                 }
             })
+    }
+
+    fun checkGuardianAccountSetupState(iOnApiResponse: IOnApiResponse) {
+        val accountSignUpStateRequest = AccountSignUpStateRequest()
+        accountSignUpStateRequest.epGrdSubscriberIdentifier = getLocalInstance()?.identifier
+        accountSignUpStateRequest.epGrdSubscriberSecret = getLocalInstance()?.secret
+        Repository.instance.getAccountCreationState(accountSignUpStateRequest, object : IOnApiResponse {
+            override fun onSuccess(any: Any?) {
+                iOnApiResponse.onSuccess(null)
+            }
+
+            override fun onError(error: String?) {
+                iOnApiResponse.onError(error)
+            }
+
+        })
     }
 
     companion object {

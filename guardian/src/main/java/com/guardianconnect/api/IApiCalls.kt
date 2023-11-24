@@ -63,7 +63,7 @@ interface IApiCalls {
     @POST("/api/v1.2/subscriber-credential/create")
     fun getSubscriberCredentialsElse(@Body validationMethodElse: ValidationMethodElse): Call<ResponseBody>
 
-    @POST("/api/v1.2/partners/subscribers/new")
+    @POST("/api/v1.3/partners/subscribers/new")
     fun createNewGRDConnectSubscriber(@Body grdConnectSubscriberRequest: GRDConnectSubscriberRequest): Call<GRDConnectSubscriberResponse>
 
     @PUT("/api/v1.2/partners/subscriber/update")
@@ -88,6 +88,11 @@ interface IApiCalls {
     fun getConnectDeviceReference(
         @Body request: ConnectDeviceReferenceRequest
     ): Call<ConnectDeviceReferenceResponse>
+
+    @POST("/api/v1.2/partners/subscriber/account-creation-state")
+    fun getAccountSignUpState(
+        @Body request: AccountSignUpStateRequest
+    ): Call<ResponseBody>
 
     @POST("/api/v1.3/device/{deviceid}/config/filters")
     fun setDeviceFilterConfig(

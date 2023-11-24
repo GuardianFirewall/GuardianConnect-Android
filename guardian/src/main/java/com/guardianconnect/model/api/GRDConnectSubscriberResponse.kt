@@ -1,6 +1,7 @@
 package com.guardianconnect.model.api
 
 import com.google.gson.annotations.SerializedName
+import com.guardianconnect.GRDConnectDevice
 
 data class GRDConnectSubscriberResponse(
 
@@ -23,5 +24,8 @@ data class GRDConnectSubscriberResponse(
     var peToken: String? = null,
 
     @SerializedName("pet-expires")
-    var petExpires: Long? = null
+    var petExpires: Long? = null,
+
+    @SerializedName("grd-connect-device")
+    var grdConnectDevice: GRDConnectDevice? = null
 )

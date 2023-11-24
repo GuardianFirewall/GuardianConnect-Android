@@ -6,6 +6,7 @@ import com.google.gson.GsonBuilder
 import com.guardianconnect.*
 import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants.Companion.API_ERROR
+import com.guardianconnect.util.Constants.Companion.kGRDErrGuardianAccountNotSetup
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
@@ -1006,6 +1007,56 @@ class Repository {
             }
         })
     }
+
+    fun getAccountCreationState(
+        request: AccountSignUpStateRequest,
+        iOnApiResponse: IOnApiResponse
+    ) {
+        val call: Call<ResponseBody>? =
+            apiCallsGRDConnect?.getAccountSignUpState(request)
+
+        call?.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
+            ) {
+                if (response.isSuccessful) {
+                    val accountCreationStateResponse = response.body()
+                    iOnApiResponse.onSuccess(accountCreationStateResponse)
+                    Log.d(TAG, "Account creation state retrieved successfully!")
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+
+                            val httpStatusCode = response.code()
+                            if (httpStatusCode == 400 && jObjError.toString().contains("not yet setup")) {
+                                iOnApiResponse.onError(kGRDErrGuardianAccountNotSetup)
+                            } else {
+                                iOnApiResponse.onError(jObjError.toString())
+                            }
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                // Handle failure scenario
+                iOnApiResponse.onError(t.message)
+                Log.d(TAG, API_ERROR + " getAccountCreationState() " + t.message)
+            }
+        })
+    }
+
 
     fun setDeviceFilterConfig(
         deviceId: String,

@@ -41,5 +41,6 @@ class Constants {
         const val GRD_PE_TOKEN_CONNECT_API_ENV = "GRD_PE_TOKEN_CONNECT_API_ENV"
         const val GRD_PE_TOKEN_EXPIRATION_DATE = "GRD_PE_TOKEN_EXPIRATION_DATE"
         const val GRD_CONNECT_USER_PREFERRED_DNS_SERVERS = "GRD_CONNECT_USER_PREFERRED_DNS_SERVERS"
+        const val kGRDErrGuardianAccountNotSetup = "Guardian account setup not yet completed!"
     }
 }
