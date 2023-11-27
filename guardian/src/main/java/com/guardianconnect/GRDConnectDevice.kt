@@ -22,6 +22,8 @@ class GRDConnectDevice {
 
     var epGrdDeviceUuid: String? = null
 
+    var currentDevice: Boolean? = false
+
     fun initGRDConnectDevice() {
         try {
             val grdConnectDeviceString =

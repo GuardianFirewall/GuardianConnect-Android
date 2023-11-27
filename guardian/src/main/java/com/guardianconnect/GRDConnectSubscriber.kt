@@ -336,6 +336,7 @@ class GRDConnectSubscriber {
                             connectDeviceReferenceResponse.epGrdDeviceSubscriberPet
                         grdConnectDevice.epGrdDeviceUuid =
                             connectDeviceReferenceResponse.epGrdDeviceUuid
+                        grdConnectDevice.currentDevice = true
 
                         iOnApiResponse.onSuccess(grdConnectDevice)
                     } else {
