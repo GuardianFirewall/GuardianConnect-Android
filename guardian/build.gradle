@@ -13,6 +13,13 @@ android {
         dataBinding = true
     }
 
+    publishing {
+        singleVariant("release") {
+            withJavadocJar()
+            withSourcesJar()
+        }
+    }
+
     defaultConfig {
         minSdkVersion 24
         targetSdkVersion 33
@@ -61,7 +68,7 @@ dependencies {
 
 ext {
     PUBLISH_GROUP_ID = 'com.guardianapp.connect'
-    PUBLISH_VERSION = '0.3.7'
+    PUBLISH_VERSION = '0.4.0'
     PUBLISH_ARTIFACT_ID = 'GuardianConnect'
 }
 apply from: 'publish-remote.gradle'

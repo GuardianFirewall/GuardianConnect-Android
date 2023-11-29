@@ -14,9 +14,13 @@ task androidSourcesJar(type: Jar) {
     }
 }
 
-artifacts {
-    archives androidSourcesJar
-}
+//
+// Note from CJ 2023-11-29
+// This was commented out below to get gradle to build and publish the library again
+// after upgrading to gradle 8.x
+//artifacts {
+//    archives androidSourcesJar
+//}
 
 group = PUBLISH_GROUP_ID
 version = PUBLISH_VERSION
@@ -38,7 +42,11 @@ afterEvaluate {
                     from components.java
                 }
 
-                artifact androidSourcesJar
+                //
+                // Note from CJ 2023-11-29
+                // This was commented out below to get gradle to build and publish the library again
+                // after upgrading to gradle 8.x
+                //artifact androidSourcesJar
 //                artifacts javaDocJar
 
                 // Mostly self-explanatory metadata
