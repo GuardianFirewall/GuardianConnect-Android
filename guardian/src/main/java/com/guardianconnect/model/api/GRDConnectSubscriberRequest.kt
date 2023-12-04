@@ -17,5 +17,8 @@ data class GRDConnectSubscriberRequest(
     var epGrdSubscriberEmail: String? = null,
 
     @SerializedName("connect-publishable-key")
-    var connectPublishableKey: String? = null
+    var connectPublishableKey: String? = null,
+
+    @SerializedName("ep-grd-subscriber-pet-nickname")
+    var nickname: String? = null
 )

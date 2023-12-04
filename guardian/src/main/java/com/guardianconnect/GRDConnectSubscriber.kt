@@ -368,12 +368,11 @@ class GRDConnectSubscriber {
                             anyList.filterIsInstance<ConnectDeviceResponse>()
                         list.addAll(allDevices)
 
-                        val currentDevice = this@GRDConnectSubscriber.device
-                        if (currentDevice != null) {
-                            list.forEach { device ->
-                                if (device.epGrdDeviceUuid == currentDevice.epGrdDeviceUuid) {
-                                    device.currentDevice = true
-                                }
+                        val grdConnectDevice = GRDConnectDevice()
+                        grdConnectDevice.initGRDConnectDevice()
+                        list.forEach { device ->
+                            if (device.epGrdDeviceUuid == grdConnectDevice.epGrdDeviceUuid) {
+                                device.currentDevice = true
                             }
                         }
                         iOnApiResponse.onSuccess(list)
