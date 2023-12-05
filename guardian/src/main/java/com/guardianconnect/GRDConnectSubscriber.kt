@@ -9,7 +9,6 @@ import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_EMAIL
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_PE_TOKEN_EXP_DATE
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_SECRET
 import com.guardianconnect.util.GRDKeystore
-import kotlinx.coroutines.launch
 import java.util.Date
 
 class GRDConnectSubscriber {
@@ -30,8 +29,9 @@ class GRDConnectSubscriber {
 
     var device: GRDConnectDevice? = null
 
-    fun initGRDConnectSubscriber() {
-        try {
+
+    fun initGRDConnectSubscriber(): Error? {
+        return try {
             val secret =
                 GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER_SECRET)
             val grdConnectSubscriberString =
@@ -50,10 +50,9 @@ class GRDConnectSubscriber {
                 this.createdAt = grdConnectSubscriber.createdAt
                 this.device = grdConnectSubscriber.device
             }
-        } catch (exception: Exception) {
-            GRDConnectManager.getCoroutineScope().launch {
-                GRDVPNHelper.grdErrorFlow.emit(exception.stackTraceToString())
-            }
+            null
+        } catch (error: Error) {
+            return error
         }
     }
 
@@ -62,8 +61,10 @@ class GRDConnectSubscriber {
        class property secret is stored as NULL in order to guarantee that the secret is never saved
        unencrypted. The function should return an error or NULL to indicate a successful or failed
        operation */
-    fun store(grdConnectSubscriber: GRDConnectSubscriber): Error? {
-        try {
+    fun store(
+        grdConnectSubscriber: GRDConnectSubscriber
+    ): Error? {
+        return try {
             grdConnectSubscriber.secret?.let {
                 GRDKeystore.instance.saveToKeyStore(
                     GRD_CONNECT_SUBSCRIBER_SECRET,
@@ -75,21 +76,15 @@ class GRDConnectSubscriber {
                 GRD_CONNECT_SUBSCRIBER,
                 Gson().toJson(grdConnectSubscriber)
             )
-            GRDConnectManager.getCoroutineScope().launch {
-                GRDVPNHelper.grdMsgFlow.emit("GRDConnectSubscriber stored successfully!")
-            }
+            null
         } catch (error: Error) {
-            GRDConnectManager.getCoroutineScope().launch {
-                GRDVPNHelper.grdErrorFlow.emit(error.stackTraceToString())
-            }
-            return error
+            error
         }
-        return null
     }
 
     /*  Returns the current GRDConnectSubscriber object out of the Shared Preferences with secret */
     fun currentSubscriber(): GRDConnectSubscriber? {
-        try {
+        return try {
             val secret =
                 GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER_SECRET)
 
@@ -100,38 +95,24 @@ class GRDConnectSubscriber {
                 val grdConnectSubscriber =
                     Gson().fromJson(string, GRDConnectSubscriber::class.java)
                 secret.let { secret -> grdConnectSubscriber.secret = secret }
-                GRDConnectManager.getCoroutineScope().launch {
-                    GRDVPNHelper.grdMsgFlow.emit("Current subscriber returned successfully!")
-                }
-                return grdConnectSubscriber
+                grdConnectSubscriber
             }
         } catch (exception: Exception) {
-            GRDConnectManager.getCoroutineScope().launch {
-                GRDVPNHelper.grdErrorFlow.emit(exception.stackTraceToString())
-            }
-            return null
+            null
         }
     }
 
     /*  Returns the current GRDConnectSubscriber object out of the Shared Preferences */
     fun currentSubscriberWithoutSecret(): GRDConnectSubscriber? {
-        try {
+        return try {
             val grdConnectSubscriberString =
                 GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER)
 
             grdConnectSubscriberString.let {
-                val grdConnectSubscriber =
-                    Gson().fromJson(it, GRDConnectSubscriber::class.java)
-                GRDConnectManager.getCoroutineScope().launch {
-                    GRDVPNHelper.grdMsgFlow.emit("Current subscriber returned successfully!")
-                }
-                return grdConnectSubscriber
+                Gson().fromJson(it, GRDConnectSubscriber::class.java)
             }
         } catch (exception: Exception) {
-            GRDConnectManager.getCoroutineScope().launch {
-                GRDVPNHelper.grdErrorFlow.emit(exception.stackTraceToString())
-            }
-            return null
+            null
         }
     }
 
@@ -143,14 +124,8 @@ class GRDConnectSubscriber {
                 GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER_SECRET)
             if (secret?.isNotEmpty() == true)
                 this.secret = secret
-            GRDConnectManager.getCoroutineScope().launch {
-                GRDVPNHelper.grdMsgFlow.emit("GRDConnectSubscriber secret returned successfully!")
-            }
             null
         } catch (error: Error) {
-            GRDConnectManager.getCoroutineScope().launch {
-                GRDVPNHelper.grdErrorFlow.emit(error.stackTraceToString())
-            }
             error
         }
     }
@@ -216,7 +191,8 @@ class GRDConnectSubscriber {
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
                     val grdConnectSubscriber = GRDConnectSubscriber()
-                    val connectSubscriberUpdateResponse = any as ConnectSubscriberUpdateResponse
+                    val connectSubscriberUpdateResponse =
+                        any as ConnectSubscriberUpdateResponse
                     grdConnectSubscriber.identifier =
                         connectSubscriberUpdateResponse.epGrdSubscriberIdentifier
                     grdConnectSubscriber.secret =
@@ -231,9 +207,6 @@ class GRDConnectSubscriber {
                     }
                     connectSubscriberUpdateResponse.epGrdSubscriberCreatedAt?.let {
                         grdConnectSubscriber.createdAt = Date(it * 1000L)
-                    }
-                    GRDConnectManager.getCoroutineScope().launch {
-                        GRDVPNHelper.grdMsgFlow.emit("GRDConnectSubscriber updated successfully!")
                     }
                     iOnApiResponse.onSuccess(grdConnectSubscriber)
                 }
@@ -253,7 +226,8 @@ class GRDConnectSubscriber {
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
                     val grdConnectSubscriber = GRDConnectSubscriber()
-                    val connectSubscriberValidateResponse = any as ConnectSubscriberValidateResponse
+                    val connectSubscriberValidateResponse =
+                        any as ConnectSubscriberValidateResponse
                     grdConnectSubscriber.identifier =
                         connectSubscriberValidateRequest.epGrdSubscriberIdentifier
                     grdConnectSubscriber.secret =
@@ -277,9 +251,6 @@ class GRDConnectSubscriber {
                     connectSubscriberValidateResponse.peToken?.let {
                         GRDPEToken.instance.storePEToken(it)
                     }
-                    GRDConnectManager.getCoroutineScope().launch {
-                        GRDVPNHelper.grdMsgFlow.emit("GRDConnectSubscriber validated successfully!")
-                    }
                     iOnApiResponse.onSuccess(grdConnectSubscriber)
                 }
 
@@ -289,7 +260,9 @@ class GRDConnectSubscriber {
             })
     }
 
-    fun logoutConnectSubscriber() {
+    fun logoutConnectSubscriber(
+        iOnApiResponse: IOnApiResponse
+    ) {
         val pet = GRDPEToken.instance.retrievePEToken()
         val publishableKey = GRDVPNHelper.connectPublishableKey
         if (pet != null && publishableKey.isNotEmpty()) {
@@ -300,15 +273,11 @@ class GRDConnectSubscriber {
                 logoutConnectSubscriberRequest,
                 object : IOnApiResponse {
                     override fun onSuccess(any: Any?) {
-                        GRDConnectManager.getCoroutineScope().launch {
-                            GRDVPNHelper.grdMsgFlow.emit(any.toString())
-                        }
+                        iOnApiResponse.onSuccess(null)
                     }
 
                     override fun onError(error: String?) {
-                        GRDConnectManager.getCoroutineScope().launch {
-                            error?.let { GRDVPNHelper.grdErrorFlow.emit(it) }
-                        }
+                        iOnApiResponse.onError(error)
                     }
                 })
         }
@@ -340,9 +309,7 @@ class GRDConnectSubscriber {
 
                         iOnApiResponse.onSuccess(grdConnectDevice)
                     } else {
-                        GRDConnectManager.getCoroutineScope().launch {
-                            GRDVPNHelper.grdMsgFlow.emit("No GRDConnectDevice refs available")
-                        }
+                        iOnApiResponse.onError("No GRDConnectDevice refs available")
                     }
                 }
 
@@ -377,22 +344,13 @@ class GRDConnectSubscriber {
                             }
                         }
                         iOnApiResponse.onSuccess(list)
-                        GRDConnectManager.getCoroutineScope().launch {
-                            GRDVPNHelper.grdMsgFlow.emit("All GRDConnectDevices returned.")
-                        }
                     } else {
                         iOnApiResponse.onSuccess(null)
-                        GRDConnectManager.getCoroutineScope().launch {
-                            GRDVPNHelper.grdMsgFlow.emit("No GRDConnectDevices available")
-                        }
                     }
                 }
 
                 override fun onError(error: String?) {
                     iOnApiResponse.onError(error)
-                    GRDConnectManager.getCoroutineScope().launch {
-                        error?.let { GRDVPNHelper.grdErrorFlow.emit(it) }
-                    }
                 }
             })
     }
@@ -401,16 +359,18 @@ class GRDConnectSubscriber {
         val accountSignUpStateRequest = AccountSignUpStateRequest()
         accountSignUpStateRequest.epGrdSubscriberIdentifier = getLocalInstance()?.identifier
         accountSignUpStateRequest.epGrdSubscriberSecret = getLocalInstance()?.secret
-        Repository.instance.getAccountCreationState(accountSignUpStateRequest, object : IOnApiResponse {
-            override fun onSuccess(any: Any?) {
-                iOnApiResponse.onSuccess(null)
-            }
+        Repository.instance.getAccountCreationState(
+            accountSignUpStateRequest,
+            object : IOnApiResponse {
+                override fun onSuccess(any: Any?) {
+                    iOnApiResponse.onSuccess(null)
+                }
 
-            override fun onError(error: String?) {
-                iOnApiResponse.onError(error)
-            }
+                override fun onError(error: String?) {
+                    iOnApiResponse.onError(error)
+                }
 
-        })
+            })
     }
 
     companion object {
