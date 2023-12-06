@@ -295,7 +295,6 @@ class GRDConnectSubscriber {
                         val connectDeviceReferenceResponse =
                             any as ConnectDeviceReferenceResponse
                         val grdConnectDevice = GRDConnectDevice()
-
                         connectDeviceReferenceResponse.epGrdDeviceCreatedAt?.let {
                             grdConnectDevice.epGrdDeviceCreatedAt = Date(it * 1000L)
                         }
@@ -307,7 +306,13 @@ class GRDConnectSubscriber {
                             connectDeviceReferenceResponse.epGrdDeviceUuid
                         grdConnectDevice.currentDevice = true
 
+                        //
+                        // Note from CJ 2023-12-06
+                        // Setting the GRDConnectSubscriber instance's device to the GRDConnectDevice
+                        // that was returned by the server to allow for easy access to the data
+                        this@GRDConnectSubscriber.device = grdConnectDevice
                         iOnApiResponse.onSuccess(grdConnectDevice)
+
                     } else {
                         iOnApiResponse.onError("No GRDConnectDevice refs available")
                     }
