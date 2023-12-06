@@ -24,8 +24,8 @@ class GRDConnectDevice {
 
     var currentDevice: Boolean? = false
 
-    fun initGRDConnectDevice() {
-        try {
+    fun initGRDConnectDevice(): Error? {
+        return try {
             val grdConnectDeviceString =
                 GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_DEVICE)
             grdConnectDeviceString.let { string ->
@@ -38,10 +38,9 @@ class GRDConnectDevice {
                 this.epGrdDevicePetExpires = grdConnectDevice.epGrdDevicePetExpires
                 this.epGrdDeviceUuid = grdConnectDevice.epGrdDeviceUuid
             }
-        } catch (exception: Exception) {
-            GRDConnectManager.getCoroutineScope().launch {
-                GRDVPNHelper.grdErrorFlow.emit(exception.stackTraceToString())
-            }
+            null
+        } catch (error: Error) {
+            error
         }
     }
 
@@ -100,16 +99,10 @@ class GRDConnectDevice {
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
                     iOnApiResponse.onSuccess(any)
-                    GRDConnectManager.getCoroutineScope().launch {
-                        any?.let { GRDVPNHelper.grdMsgFlow.emit(it as String) }
-                    }
                 }
 
                 override fun onError(error: String?) {
                     iOnApiResponse.onError(error)
-                    GRDConnectManager.getCoroutineScope().launch {
-                        error?.let { GRDVPNHelper.grdErrorFlow.emit(it) }
-                    }
                 }
             })
     }
@@ -132,14 +125,8 @@ class GRDConnectDevice {
                         list.addAll(allDevices)
                         initGRDConnectDevice()
                         iOnApiResponse.onSuccess(list)
-                        GRDConnectManager.getCoroutineScope().launch {
-                            GRDVPNHelper.grdMsgFlow.emit("All GRDConnectDevices returned.")
-                        }
                     } else {
                         iOnApiResponse.onSuccess(null)
-                        GRDConnectManager.getCoroutineScope().launch {
-                            GRDVPNHelper.grdErrorFlow.emit("GRDConnectDevices are null!")
-                        }
                     }
                 }
 
@@ -152,20 +139,14 @@ class GRDConnectDevice {
     }
 
     fun store(grdConnectDevice: GRDConnectDevice): Error? {
-        try {
+        return try {
             GRDKeystore.instance.saveToKeyStore(
                 GRD_CONNECT_DEVICE,
                 Gson().toJson(grdConnectDevice)
             )
-            GRDConnectManager.getCoroutineScope().launch {
-                GRDVPNHelper.grdMsgFlow.emit("GRDConnectDevice stored successfully!")
-            }
+            null
         } catch (error: Error) {
-            GRDConnectManager.getCoroutineScope().launch {
-                GRDVPNHelper.grdErrorFlow.emit(error.stackTraceToString())
-            }
-            return error
+            error
         }
-        return null
     }
 }

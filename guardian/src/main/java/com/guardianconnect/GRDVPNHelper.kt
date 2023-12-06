@@ -48,6 +48,7 @@ object GRDVPNHelper {
         this.context = context
         preferBetaCapableServers = false
         vpnServerFeatureEnvironment = GRDServerFeatureEnvironment.ServerFeatureEnvironmentProduction
+        observeStatus()
     }
 
     fun createAndStartTunnel() {
@@ -549,6 +550,45 @@ object GRDVPNHelper {
         val havePEToken = !GRDPEToken.instance.retrievePEToken().isNullOrEmpty()
 
         return haveCredentials && havePEToken
+    }
+
+    private fun observeStatus() {
+        GRDConnectManager.getCoroutineScope().launch {
+            grdStatusFlow.collect {
+                when (it) {
+                    GRDVPNHelperStatus.CONNECTED.status -> {
+                        handleOkHttpClient(GRDVPNHelperStatus.CONNECTED.status)
+                    }
+
+                    GRDVPNHelperStatus.DISCONNECTED.status -> {
+                        handleOkHttpClient(GRDVPNHelperStatus.DISCONNECTED.status)
+                    }
+
+                    GRDVPNHelperStatus.ERROR_CONNECTING.status -> {
+                        handleOkHttpClient(GRDVPNHelperStatus.ERROR_CONNECTING.status)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun handleOkHttpClient(status: String) {
+        if (Repository.instance.httpClient == Repository.instance.defaultHTTPClient()) {
+            Repository.instance.httpClient = null
+            Repository.instance.initConnectAPIServer()
+            Repository.instance.initConnectSubscriberServer(connectAPIHostname)
+
+            val hostname = GRDCredentialManager().getMainCredentials()?.hostname
+            if (!hostname.isNullOrEmpty()) {
+                Repository.instance.initRegionServer(hostname)
+            }
+        }
+        Log.d(TAG, status)
+        Log.d(
+            TAG, "httpClient: ${Repository.instance.httpClient}, " +
+                    "Default httpClient: ${Repository.instance.defaultHTTPClient()}, " +
+                    "Host name: ${GRDCredentialManager().getMainCredentials()?.hostname}"
+        )
     }
 
     enum class GRDVPNHelperStatus(val status: String) {

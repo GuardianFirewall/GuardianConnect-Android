@@ -1016,7 +1016,9 @@ class Repository {
                             Log.d(TAG, jObjError.toString())
 
                             val httpStatusCode = response.code()
-                            if (httpStatusCode == 400 && jObjError.toString().contains("not yet setup")) {
+                            if (httpStatusCode == 400 && jObjError.toString()
+                                    .contains("not yet setup")
+                            ) {
                                 iOnApiResponse.onError(kGRDErrGuardianAccountNotSetup)
                             } else {
                                 iOnApiResponse.onError(jObjError.toString())
