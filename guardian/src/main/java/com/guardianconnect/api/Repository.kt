@@ -33,7 +33,7 @@ class Repository {
         val instance = Repository()
     }
 
-    private fun defaultHTTPClient(): OkHttpClient {
+    fun defaultHTTPClient(): OkHttpClient {
         val interceptorConnect = HttpLoggingInterceptor()
         interceptorConnect.setLevel(HttpLoggingInterceptor.Level.BODY)
         return OkHttpClient
