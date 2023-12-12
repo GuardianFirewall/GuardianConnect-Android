@@ -82,40 +82,6 @@ class GRDConnectSubscriber {
         }
     }
 
-    /*  Returns the current GRDConnectSubscriber object out of the Shared Preferences with secret */
-    fun currentSubscriber(): GRDConnectSubscriber? {
-        return try {
-            val secret =
-                GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER_SECRET)
-
-            val grdConnectSubscriberString =
-                GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER)
-
-            grdConnectSubscriberString.let { string ->
-                val grdConnectSubscriber =
-                    Gson().fromJson(string, GRDConnectSubscriber::class.java)
-                secret.let { secret -> grdConnectSubscriber.secret = secret }
-                grdConnectSubscriber
-            }
-        } catch (exception: Exception) {
-            null
-        }
-    }
-
-    /*  Returns the current GRDConnectSubscriber object out of the Shared Preferences */
-    fun currentSubscriberWithoutSecret(): GRDConnectSubscriber? {
-        return try {
-            val grdConnectSubscriberString =
-                GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER)
-
-            grdConnectSubscriberString.let {
-                Gson().fromJson(it, GRDConnectSubscriber::class.java)
-            }
-        } catch (exception: Exception) {
-            null
-        }
-    }
-
     /*  Retrieves the GRDConnectSubscriber secret string from the Android Keystore and set the
         instance’s secret property */
     fun loadFromKeystore(): Error? {
@@ -362,8 +328,8 @@ class GRDConnectSubscriber {
 
     fun checkGuardianAccountSetupState(iOnApiResponse: IOnApiResponse) {
         val accountSignUpStateRequest = AccountSignUpStateRequest()
-        accountSignUpStateRequest.epGrdSubscriberIdentifier = getLocalInstance()?.identifier
-        accountSignUpStateRequest.epGrdSubscriberSecret = getLocalInstance()?.secret
+        accountSignUpStateRequest.epGrdSubscriberIdentifier = currentSubscriber()?.identifier
+        accountSignUpStateRequest.epGrdSubscriberSecret = currentSubscriber()?.secret
         Repository.instance.getAccountCreationState(
             accountSignUpStateRequest,
             object : IOnApiResponse {
@@ -379,7 +345,7 @@ class GRDConnectSubscriber {
     }
 
     companion object {
-        fun getLocalInstance(): GRDConnectSubscriber? {
+        fun currentSubscriber(): GRDConnectSubscriber? {
             val secret = GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER_SECRET)
             val grdConnectSubscriberString =
                 GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER)
