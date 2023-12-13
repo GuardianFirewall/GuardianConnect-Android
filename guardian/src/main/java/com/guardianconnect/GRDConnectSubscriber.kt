@@ -10,6 +10,7 @@ import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_PE_TO
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_SECRET
 import com.guardianconnect.util.GRDKeystore
 import java.util.Date
+import kotlin.jvm.Throws
 
 class GRDConnectSubscriber {
 
@@ -29,8 +30,8 @@ class GRDConnectSubscriber {
 
     var device: GRDConnectDevice? = null
 
-
-    fun initGRDConnectSubscriber(): Error? {
+    @Throws(Exception::class)
+    fun initGRDConnectSubscriber(): Exception? {
         return try {
             val secret =
                 GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER_SECRET)
@@ -51,8 +52,8 @@ class GRDConnectSubscriber {
                 this.device = grdConnectSubscriber.device
             }
             null
-        } catch (error: Error) {
-            return error
+        } catch (exception: Exception) {
+            return exception
         }
     }
 
