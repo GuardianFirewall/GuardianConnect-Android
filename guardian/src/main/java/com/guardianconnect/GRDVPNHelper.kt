@@ -34,8 +34,8 @@ import java.io.StringReader
 object GRDVPNHelper {
 
     private val TAG = GRDVPNHelper::class.java.simpleName
-    val grdSubscriberCredential = GRDSubscriberCredential()
-    var grdCredentialManager = GRDCredentialManager()
+    var grdSubscriberCredential: GRDSubscriberCredential? = null
+    var grdCredentialManager: GRDCredentialManager? = null
     private var context: Context? = null
     var connectAPIHostname: String = ""
     var connectPublishableKey: String = ""
@@ -46,6 +46,8 @@ object GRDVPNHelper {
 
     fun initHelper(context: Context) {
         this.context = context
+        grdSubscriberCredential = GRDSubscriberCredential()
+        grdCredentialManager = GRDCredentialManager()
         preferBetaCapableServers = false
         vpnServerFeatureEnvironment = GRDServerFeatureEnvironment.ServerFeatureEnvironmentProduction
         observeStatus()
@@ -64,7 +66,7 @@ object GRDVPNHelper {
                 tunnelName.isEmpty() -> grdErrorFlow.emit("Tunnel name should not be empty!")
 
                 // Check if VPN credentials are already present in the GRDCredentialManager
-                else -> grdCredentialManager.retrieveCredential().let {
+                else -> grdCredentialManager?.retrieveCredential().let {
                     if (it?.let { it1 -> activeConnectionPossible(it1) } == true) {
                         // If VPN credentials already exist try to start the VPN tunnel again
                         createTunnelWithExistingCredentials()
@@ -275,7 +277,6 @@ object GRDVPNHelper {
     Create new VPN credentials on the selected VPN node with the created Subscriber Credential
     Create a new WireGuard configuration with the VPN credentials from the VPN node
     Connect WireGuard to the VPN node */
-
     fun configureAndConnect(
         peToken: String,
         validForDays: Long,
@@ -283,9 +284,9 @@ object GRDVPNHelper {
         iOnApiResponse: IOnApiResponse
     ) {
         var subscriberCredential: String? = null
-        if (!grdSubscriberCredential.isExpired()) {
+        if (grdSubscriberCredential?.isExpired() == false) {
             subscriberCredential =
-                grdSubscriberCredential.retrieveSubscriberCredentialJWTFormat()
+                grdSubscriberCredential?.retrieveSubscriberCredentialJWTFormat()
         }
         subscriberCredential?.let {
             initRegionAndConnectDevice(it, validForDays, mainCredentials, iOnApiResponse)
@@ -321,7 +322,7 @@ object GRDVPNHelper {
                 override fun onSuccess(any: Any?) {
                     val subCredentialResponse = any as SubscriberCredentialResponse
                     subCredentialResponse.subscriberCredential?.let { scs ->
-                        grdSubscriberCredential.storeSubscriberCredentialJWTFormat(scs)
+                        grdSubscriberCredential?.storeSubscriberCredentialJWTFormat(scs)
                         iOnApiResponse.onSuccess(scs)
                     } ?: run {
                         iOnApiResponse.onError("Missing subscriberCredential")
@@ -407,7 +408,7 @@ object GRDVPNHelper {
                         server,
                         keyPairGenerated
                     )
-                    grdCredentialManager.addOrUpdateCredential(grdCredential)
+                    grdCredentialManager?.addOrUpdateCredential(grdCredential)
                     val grdWireGuardConfiguration = GRDWireGuardConfiguration()
                     val configString =
                         grdWireGuardConfiguration.getWireGuardConfigString(
@@ -444,22 +445,23 @@ object GRDVPNHelper {
 
     /*  Clear local cache - removes all values from the Android Keystore and SharedPreferences */
     fun clearLocalCache() {
-        grdCredentialManager.getMainCredentials()?.let { grdCredentialManager.removeCredential(it) }
+        grdCredentialManager?.getMainCredentials()
+            ?.let { grdCredentialManager?.removeCredential(it) }
         GRDConnectManager.getSharedPrefsEditor()?.remove(GRD_CONFIG_STRING)?.apply()
         GRDConnectManager.getSharedPrefsEditor()?.remove(GRD_SUBSCRIBER_CREDENTIAL)?.apply()
     }
 
     /* Handles VPN credential invalidation on the server and removal locally on the device. */
     fun clearVPNConfiguration() {
-        val grdCredentialObject = grdCredentialManager.retrieveCredential()
+        val grdCredentialObject = grdCredentialManager?.retrieveCredential()
         val subscriberCredentialsJSON =
-            grdSubscriberCredential.retrieveSubscriberCredentialJWTFormat()
+            grdSubscriberCredential?.retrieveSubscriberCredentialJWTFormat()
         val deviceId = grdCredentialObject?.clientId
         if (deviceId != null) {
             val vpnCredential = VPNCredentials()
             vpnCredential.apiAuthToken = grdCredentialObject.apiAuthToken
             vpnCredential.subscriberCredential = subscriberCredentialsJSON
-            grdCredentialManager.deleteMainCredential()
+            grdCredentialManager?.deleteMainCredential()
             // TODO
             // this change should be complete and prevent the PET from being killed as well
             // whenever the reset config button is tapped in the sample app
@@ -545,7 +547,7 @@ object GRDVPNHelper {
     }
 
     fun hasCredentials(): Boolean {
-        val credentials = grdCredentialManager.retrieveCredential()
+        val credentials = grdCredentialManager?.retrieveCredential()
         val haveCredentials = credentials?.let { activeConnectionPossible(it) } ?: false
         val havePEToken = !GRDPEToken.instance.retrievePEToken().isNullOrEmpty()
 
