@@ -41,10 +41,6 @@ class GRDKeystore {
     class Decryptor {
         private lateinit var keyStore: KeyStore
 
-        init {
-            initKeyStore()
-        }
-
         fun initKeyStore() {
             keyStore = KeyStore.getInstance(ANDROID_KEY_STORE)
             keyStore.load(null)
@@ -92,6 +88,7 @@ class GRDKeystore {
 
         try {
             returnString = if (!encryptedValue.isNullOrEmpty()) {
+                decryptor.initKeyStore()
                 val decryptedValue =
                     decryptor.decryptData(
                         key,

@@ -27,6 +27,7 @@ class Repository {
     var apiCalls: IApiCalls? = null
     var apiCallsConnect: IApiCalls? = null
     var apiCallsGRDConnect: IApiCalls? = null
+    var connectPublishableKey: String? = null
     val TAG: String = Repository::class.java.simpleName
 
     companion object {
