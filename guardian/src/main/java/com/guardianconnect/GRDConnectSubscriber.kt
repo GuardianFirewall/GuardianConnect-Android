@@ -6,7 +6,6 @@ import com.guardianconnect.api.Repository
 import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_EMAIL
-import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_PE_TOKEN_EXP_DATE
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_SECRET
 import com.guardianconnect.util.GRDKeystore
 import java.util.Date
@@ -57,6 +56,46 @@ class GRDConnectSubscriber {
         }
     }
 
+    fun initFromMap(map: Map<String, Any>): GRDConnectSubscriber {
+        for ((key, value) in map.entries) {
+            when (key) {
+                "identifier" -> {
+                    identifier = value as String
+                }
+
+                "secret" -> {
+                    secret = value as String
+                }
+
+                "email" -> {
+                    email = value as String
+                }
+
+                "subscriptionSKU" -> {
+                    subscriptionSKU = value as String
+                }
+
+                "subscriptionNameFormatted" -> {
+                    subscriptionNameFormatted = value as String
+                }
+
+                "subscriptionExpirationDate" -> {
+                    subscriptionExpirationDate = Date((value as Long) * 1000)
+                }
+
+                "createdAt" -> {
+                    createdAt = Date((value as Long) * 1000)
+                }
+
+                "device" -> {
+                    //TODO temporarily assign null
+                    device = null
+                }
+            }
+        }
+        return this@GRDConnectSubscriber
+    }
+
     /* Save the GRDConnectSubscriber that encodes the current subscriber object to then store it in
        the Shared Preferences. Secret is stored separately encrypted in the Android Keystore and the
        class property secret is stored as NULL in order to guarantee that the secret is never saved
@@ -99,46 +138,16 @@ class GRDConnectSubscriber {
 
     /* Returns an error or the new initialized GRDConnectSubscriber object */
     fun registerNewConnectSubscriber(
-        grdConnectSubscriberRequest: GRDConnectSubscriberRequest,
+        acceptedTOS: Boolean,
         iOnApiResponse: IOnApiResponse
     ) {
         Repository.instance.createNewGRDConnectSubscriber(
-            grdConnectSubscriberRequest,
+            acceptedTOS,
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
-                    val grdConnectSubscriber = GRDConnectSubscriber()
-                    val grdConnectSubscriberResponse = any as GRDConnectSubscriberResponse
-                    grdConnectSubscriber.identifier =
-                        grdConnectSubscriberResponse.epGrdSubscriberIdentifier
-                    grdConnectSubscriber.secret = grdConnectSubscriberRequest.epGrdSubscriberSecret
-                    grdConnectSubscriber.email = grdConnectSubscriberRequest.epGrdSubscriberEmail
-                    if (grdConnectSubscriberRequest.epGrdSubscriberEmail != null) {
-                        GRDConnectManager.getSharedPrefs()?.edit()
-                            ?.putString(
-                                GRD_CONNECT_SUBSCRIBER_EMAIL,
-                                grdConnectSubscriberRequest.epGrdSubscriberEmail
-                            )?.apply()
-                    }
-                    grdConnectSubscriber.subscriptionSKU =
-                        grdConnectSubscriberResponse.epGrdSubscriptionSku
-                    grdConnectSubscriber.subscriptionNameFormatted =
-                        grdConnectSubscriberResponse.epGrdSubscriptionNameFormatted
-                    grdConnectSubscriberResponse.epGrdSubscriptionExpirationDate?.let {
-                        grdConnectSubscriber.subscriptionExpirationDate = Date(it * 1000L)
-                    }
-                    grdConnectSubscriberResponse.epGrdSubscriberCreatedAt?.let {
-                        grdConnectSubscriber.createdAt = Date(it * 1000L)
-                    }
-                    grdConnectSubscriberResponse.peToken?.let {
-                        GRDPEToken.instance.storePEToken(it)
-                    }
-                    grdConnectSubscriberResponse.petExpires?.let {
-                        GRDKeystore.instance.saveToKeyStore(
-                            GRD_CONNECT_SUBSCRIBER_PE_TOKEN_EXP_DATE,
-                            it.toString()
-                        )
-                    }
-                    grdConnectSubscriber.device = grdConnectSubscriberResponse.grdConnectDevice
+                    val response = any as Map<String, Any>
+                    val grdConnectSubscriber = initFromMap(response)
+
                     store(grdConnectSubscriber)
                     iOnApiResponse.onSuccess(grdConnectSubscriber)
                 }

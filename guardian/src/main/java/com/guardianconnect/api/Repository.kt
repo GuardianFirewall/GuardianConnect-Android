@@ -684,6 +684,52 @@ class Repository {
         })
     }
 
+    fun createNewGRDConnectSubscriber(
+        acceptedTOS: Boolean,
+        iOnApiResponse: IOnApiResponse
+    ) {
+        val grdConnectSubscriberRequest = GRDConnectSubscriberRequest()
+        grdConnectSubscriberRequest.acceptedTos = acceptedTOS
+        val call: Call<GRDConnectSubscriberResponse>? =
+            apiCallsGRDConnect?.createNewGRDConnectSubscriber(grdConnectSubscriberRequest)
+        call?.enqueue(object : Callback<GRDConnectSubscriberResponse> {
+            override fun onResponse(
+                call: Call<GRDConnectSubscriberResponse>,
+                response: Response<GRDConnectSubscriberResponse>
+            ) {
+                if (response.isSuccessful) {
+                    val grdConnectSubscriberResponse = response.body()
+                    iOnApiResponse.onSuccess(grdConnectSubscriberResponse)
+                    Log.d(TAG, "New GRDConnect Subscriber created.")
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
+                            iOnApiResponse.onError(jObjError.toString())
+                        } catch (e: JSONException) {
+                            // Handle the case when the error response is not in JSON format
+                            Log.e(TAG, "Error response is not in JSON format")
+                            iOnApiResponse.onError("Error response is not in JSON format")
+                        }
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<GRDConnectSubscriberResponse>, t: Throwable) {
+                iOnApiResponse.onError(t.message)
+                Log.d(
+                    TAG,
+                    API_ERROR + " createNewGRDConnectSubscriber() " + t.message
+                )
+            }
+        })
+    }
+
     fun updateGRDConnectSubscriber(
         connectSubscriberUpdateRequest: ConnectSubscriberUpdateRequest,
         iOnApiResponse: IOnApiResponse
