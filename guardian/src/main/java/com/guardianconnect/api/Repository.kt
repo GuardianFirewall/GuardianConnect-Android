@@ -3,8 +3,10 @@ package com.guardianconnect.api
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import com.guardianconnect.*
 import com.guardianconnect.model.api.*
+import com.guardianconnect.util.Constants
 import com.guardianconnect.util.Constants.Companion.API_ERROR
 import com.guardianconnect.util.Constants.Companion.kGRDErrGuardianAccountNotSetup
 import kotlinx.coroutines.launch
@@ -66,7 +68,7 @@ class Repository {
             .setLenient()
             .create()
         val retrofitConnect: Retrofit = Retrofit.Builder()
-            .baseUrl("https://connect-api.guardianapp.com")
+            .baseUrl("https://${Constants.kGRDConnectAPIHostname}")
             .addConverterFactory(GsonConverterFactory.create(gsonConnect))
             .client(httpClient ?: defaultHTTPClient())
             .build()
@@ -641,20 +643,24 @@ class Repository {
     }
 
     fun createNewGRDConnectSubscriber(
-        grdConnectSubscriberRequest: GRDConnectSubscriberRequest,
+        requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
-        val call: Call<GRDConnectSubscriberResponse>? =
-            apiCallsGRDConnect?.createNewGRDConnectSubscriber(grdConnectSubscriberRequest)
-        call?.enqueue(object : Callback<GRDConnectSubscriberResponse> {
-            override fun onResponse(
-                call: Call<GRDConnectSubscriberResponse>,
-                response: Response<GRDConnectSubscriberResponse>
-            ) {
+        requestBody["connect-publishable-key"] = Repository.instance.connectPublishableKey.toString()
+        val call: Call<ResponseBody>? = apiCallsGRDConnect?.createNewGRDConnectSubscriber(requestBody)
+        call?.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
-                    val grdConnectSubscriberResponse = response.body()
+                    var grdConnectSubscriberResponse = mapOf<String, Any>()
+                    val body = response.body()?.string()
+                    if (body != null) {
+                        val type = object: TypeToken<Map<String, Any>>(){}.type
+                        grdConnectSubscriberResponse = Gson().fromJson(body, type)
+                    }
+
                     iOnApiResponse.onSuccess(grdConnectSubscriberResponse)
                     Log.d(TAG, "New GRDConnect Subscriber created.")
+
                 } else {
                     val errorBody = response.errorBody()?.string()
                     if (errorBody != null) {
@@ -674,53 +680,7 @@ class Repository {
                 }
             }
 
-            override fun onFailure(call: Call<GRDConnectSubscriberResponse>, t: Throwable) {
-                iOnApiResponse.onError(t.message)
-                Log.d(
-                    TAG,
-                    API_ERROR + " createNewGRDConnectSubscriber() " + t.message
-                )
-            }
-        })
-    }
-
-    fun createNewGRDConnectSubscriber(
-        acceptedTOS: Boolean,
-        iOnApiResponse: IOnApiResponse
-    ) {
-        val grdConnectSubscriberRequest = GRDConnectSubscriberRequest()
-        grdConnectSubscriberRequest.acceptedTos = acceptedTOS
-        val call: Call<GRDConnectSubscriberResponse>? =
-            apiCallsGRDConnect?.createNewGRDConnectSubscriber(grdConnectSubscriberRequest)
-        call?.enqueue(object : Callback<GRDConnectSubscriberResponse> {
-            override fun onResponse(
-                call: Call<GRDConnectSubscriberResponse>,
-                response: Response<GRDConnectSubscriberResponse>
-            ) {
-                if (response.isSuccessful) {
-                    val grdConnectSubscriberResponse = response.body()
-                    iOnApiResponse.onSuccess(grdConnectSubscriberResponse)
-                    Log.d(TAG, "New GRDConnect Subscriber created.")
-                } else {
-                    val errorBody = response.errorBody()?.string()
-                    if (errorBody != null) {
-                        try {
-                            val jObjError = JSONObject(errorBody)
-                            Log.d(TAG, jObjError.toString())
-                            iOnApiResponse.onError(jObjError.toString())
-                        } catch (e: JSONException) {
-                            // Handle the case when the error response is not in JSON format
-                            Log.e(TAG, "Error response is not in JSON format")
-                            iOnApiResponse.onError("Error response is not in JSON format")
-                        }
-                    } else {
-                        Log.e(TAG, "Error response body is null")
-                        iOnApiResponse.onError("Error response body is null")
-                    }
-                }
-            }
-
-            override fun onFailure(call: Call<GRDConnectSubscriberResponse>, t: Throwable) {
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,
