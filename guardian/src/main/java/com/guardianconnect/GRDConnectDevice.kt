@@ -12,17 +12,57 @@ import kotlin.collections.ArrayList
 
 class GRDConnectDevice {
 
-    var epGrdDeviceCreatedAt: Date? = null
+    var createdAt: Date? = null
 
-    var epGrdDeviceNickname: String? = null
+    var nickname: String? = null
 
-    var epGrdDevicePeToken: String? = null
+    var peToken: String? = null
 
-    var epGrdDevicePetExpires: Date? = null
+    var petExpires: Date? = null
 
-    var epGrdDeviceUuid: String? = null
+    var uuid: String? = null
 
     var currentDevice: Boolean? = false
+
+    companion object {
+        const val kGRDConnectDeviceKey = "ep-grd-device"
+        const val kGRDConnectDeviceNicknameKey = "ep-grd-device-nickname"
+        const val kGRDConnectDeviceUUIDKey = "ep-grd-device-uuid"
+        const val kGRDConnectDeviceCreatedAtKey = "ep-grd-device-created-at"
+
+        fun initFromMap(map: Map<String, Any>): GRDConnectDevice? {
+            val device = map[kGRDConnectDeviceKey] as? Map<String, Any>
+            if (device == null) {
+                return null
+            }
+
+            val newDevice = GRDConnectDevice()
+            newDevice.nickname = device[kGRDConnectDeviceNicknameKey] as? String
+            newDevice.uuid = device[kGRDConnectDeviceUUIDKey] as? String
+            newDevice.peToken = map["pe-token"] as? String
+
+            val petExpiresUnix = map["pet-expires"] as? Double
+            if (petExpiresUnix != null) {
+                newDevice.petExpires = Date(petExpiresUnix.toLong() * 1000)
+            }
+
+            val createdAtUnix = device[kGRDConnectDeviceCreatedAtKey] as? Double
+            if (createdAtUnix != null) {
+                newDevice.createdAt = Date(createdAtUnix.toLong() * 1000)
+            }
+
+            return newDevice
+        }
+
+        fun currentDevice(): GRDConnectDevice? {
+            val grdConnectDeviceString = GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_DEVICE)
+            if (grdConnectDeviceString.isNullOrEmpty()) {
+                return null
+            }
+
+            return Gson().fromJson(grdConnectDeviceString, GRDConnectDevice::class.java)
+        }
+    }
 
     fun initGRDConnectDevice(): Error? {
         return try {
@@ -32,11 +72,11 @@ class GRDConnectDevice {
                 val grdConnectDevice =
                     Gson().fromJson(string, GRDConnectDevice::class.java)
 
-                this.epGrdDeviceCreatedAt = grdConnectDevice.epGrdDeviceCreatedAt
-                this.epGrdDeviceNickname = grdConnectDevice.epGrdDeviceNickname
-                this.epGrdDevicePeToken = grdConnectDevice.epGrdDevicePeToken
-                this.epGrdDevicePetExpires = grdConnectDevice.epGrdDevicePetExpires
-                this.epGrdDeviceUuid = grdConnectDevice.epGrdDeviceUuid
+                this.createdAt = grdConnectDevice.createdAt
+                this.nickname = grdConnectDevice.nickname
+                this.peToken = grdConnectDevice.peToken
+                this.petExpires = grdConnectDevice.petExpires
+                this.uuid = grdConnectDevice.uuid
             }
             null
         } catch (error: Error) {
@@ -53,14 +93,14 @@ class GRDConnectDevice {
                 val connectDeviceResponse = any as ConnectDeviceResponse
                 val grdConnectDevice = GRDConnectDevice()
                 connectDeviceResponse.epGrdDeviceCreatedAt?.let {
-                    grdConnectDevice.epGrdDeviceCreatedAt = Date(it * 1000L)
+                    grdConnectDevice.createdAt = Date(it * 1000L)
                 }
-                grdConnectDevice.epGrdDeviceNickname = connectDeviceResponse.epGrdDeviceNickname
-                grdConnectDevice.epGrdDevicePeToken = connectDeviceResponse.epGrdDevicePeToken
+                grdConnectDevice.nickname = connectDeviceResponse.epGrdDeviceNickname
+                grdConnectDevice.peToken = connectDeviceResponse.epGrdDevicePeToken
                 connectDeviceResponse.epGrdDevicePetExpires?.let {
-                    grdConnectDevice.epGrdDevicePetExpires = Date(it * 1000L)
+                    grdConnectDevice.petExpires = Date(it * 1000L)
                 }
-                grdConnectDevice.epGrdDeviceUuid = connectDeviceResponse.epGrdDeviceUuid
+                grdConnectDevice.uuid = connectDeviceResponse.epGrdDeviceUuid
 
                 store(grdConnectDevice)
                 iOnApiResponse.onSuccess(grdConnectDevice)
