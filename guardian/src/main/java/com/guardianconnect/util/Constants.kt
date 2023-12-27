@@ -27,12 +27,6 @@ class Constants {
         const val GRD_PE_TOKEN = "GRD_PE_TOKEN"
         const val GRD_DEVICE_ID = "GRD_DEVICE_ID"
         const val GRD_API_AUTH_TOKEN = "GRD_API_AUTH_TOKEN"
-        // TODO
-        // this needs to be deleted as there is only one type of PET
-        // the PET expiration date also only exists once and the namespace needs to be adjusted to
-        // not specify being specifically for the Connect subscriber PET
-        //const val GRD_CONNECT_SUBSCRIBER_PE_TOKEN = "GRD_CONNECT_SUBSCRIBER_PE_TOKEN"
-        const val GRD_CONNECT_SUBSCRIBER_PE_TOKEN_EXP_DATE = "GRD_CONNECT_SUBSCRIBER_PE_TOKEN_EXP_DATE"
         const val GRD_BLOCKLIST_BITMASK_STATE = "BITMASK_STATE"
         const val GRD_BLOCKLIST_BLOCK_NONE = "block-none"
         const val GRD_BLOCKLIST_BLOCK_ADS = "block-ads"
@@ -42,5 +36,6 @@ class Constants {
         const val GRD_PE_TOKEN_EXPIRATION_DATE = "GRD_PE_TOKEN_EXPIRATION_DATE"
         const val GRD_CONNECT_USER_PREFERRED_DNS_SERVERS = "GRD_CONNECT_USER_PREFERRED_DNS_SERVERS"
         const val kGRDErrGuardianAccountNotSetup = "Guardian account setup not yet completed!"
+        const val kGRDConnectAPIHostname = "connect-api.guardianapp.com"
     }
 }
