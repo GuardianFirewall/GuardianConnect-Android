@@ -10,6 +10,7 @@ import com.guardianconnect.enumeration.GRDServerFeatureEnvironment
 import com.guardianconnect.model.EValidationMethod
 import com.guardianconnect.model.TunnelModel
 import com.guardianconnect.model.api.*
+import com.guardianconnect.util.Constants
 import com.guardianconnect.util.Constants.Companion.GRD_CONFIG_STRING
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_USER_PREFERRED_DNS_SERVERS
 import com.guardianconnect.util.Constants.Companion.GRD_SUBSCRIBER_CREDENTIAL
@@ -530,7 +531,7 @@ object GRDVPNHelper {
 
     fun setVariables() {
         if (connectAPIHostname.isEmpty()) {
-            connectAPIHostname = "connect-api.guardianapp.com"
+            connectAPIHostname = Constants.kGRDConnectAPIHostname
         }
         if (tunnelName.isEmpty()) {
             GRDConnectManager.getCoroutineScope().launch {
@@ -542,6 +543,8 @@ object GRDVPNHelper {
                 grdErrorFlow.emit("Connect public key is empty!")
             }
         }
+
+        Repository.instance.connectPublishableKey = connectPublishableKey
         Repository.instance.initConnectAPIServer()
         Repository.instance.initConnectSubscriberServer(connectAPIHostname)
     }
