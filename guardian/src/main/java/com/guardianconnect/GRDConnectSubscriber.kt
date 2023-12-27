@@ -29,6 +29,56 @@ class GRDConnectSubscriber {
 
     var device: GRDConnectDevice? = null
 
+    companion object {
+        const val kGRDConnectSubscriberIdentifierKey                   = "ep-grd-subscriber-identifier"
+        const val kGRDConnectSubscriberSecretKey                       = "ep-grd-subscriber-secret"
+        const val kGRDConnectSubscriberEmailKey                        = "ep-grd-subscriber-email"
+        const val kGuardianConnectSubscriberPETNickname                = "ep-grd-subscriber-pet-nickname"
+        const val kGRDConnectSubscriberSubscriptionSKUKey              = "ep-grd-subscription-sku"
+        const val kGRDConnectSubscriberSubscriptionNameFormattedKey    = "ep-grd-subscription-name-formatted"
+        const val kGRDConnectSubscriberSubscriptionExpirationDateKey   = "ep-grd-subscription-expiration-date"
+        const val kGRDConnectSubscriberCreatedAtKey                    = "ep-grd-subscriber-created-at"
+        const val kGRDConnectSubscriberAcceptedTOSKey                  = "ep-grd-subscriber-accepted-tos"
+
+        fun initFromMap(map: Map<String, Any>): GRDConnectSubscriber {
+            val newSubscriber = GRDConnectSubscriber()
+            newSubscriber.identifier = map[kGRDConnectSubscriberIdentifierKey] as? String
+            newSubscriber.secret = map[kGRDConnectSubscriberSecretKey] as? String
+            newSubscriber.email = map[kGRDConnectSubscriberEmailKey] as? String
+            newSubscriber.subscriptionSKU = map[kGRDConnectSubscriberSubscriptionSKUKey] as? String
+            newSubscriber.subscriptionNameFormatted = map[kGRDConnectSubscriberSubscriptionNameFormattedKey] as? String
+
+            val subDateUnix = map[kGRDConnectSubscriberSubscriptionExpirationDateKey] as? Double
+            if (subDateUnix != null) {
+                newSubscriber.subscriptionExpirationDate = Date(subDateUnix.toLong() * 1000)
+            }
+            val createdAtUnix = map[kGRDConnectSubscriberCreatedAtKey] as? Double
+            if (createdAtUnix != null) {
+                newSubscriber.createdAt = Date(createdAtUnix.toLong() * 1000)
+            }
+
+            // Skip for the time being until the same function is
+            // implemented in GRDConnectDevice
+            newSubscriber.device = GRDConnectDevice.initFromMap(map)
+            newSubscriber.device?.currentDevice = true
+
+            return newSubscriber
+        }
+
+        fun currentSubscriber(): GRDConnectSubscriber? {
+            val secret = GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER_SECRET)
+            val grdConnectSubscriberString = GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER)
+
+            return if (!secret.isNullOrEmpty() && !grdConnectSubscriberString.isNullOrEmpty()) {
+                val grdConnectSubscriber = Gson().fromJson(grdConnectSubscriberString, GRDConnectSubscriber::class.java)
+                grdConnectSubscriber.secret = secret
+                grdConnectSubscriber
+            } else {
+                null
+            }
+        }
+    }
+
     @Throws(Exception::class)
     fun initGRDConnectSubscriber(): Exception? {
         return try {
@@ -54,46 +104,6 @@ class GRDConnectSubscriber {
         } catch (exception: Exception) {
             return exception
         }
-    }
-
-    fun initFromMap(map: Map<String, Any>): GRDConnectSubscriber {
-        for ((key, value) in map.entries) {
-            when (key) {
-                "identifier" -> {
-                    identifier = value as String
-                }
-
-                "secret" -> {
-                    secret = value as String
-                }
-
-                "email" -> {
-                    email = value as String
-                }
-
-                "subscriptionSKU" -> {
-                    subscriptionSKU = value as String
-                }
-
-                "subscriptionNameFormatted" -> {
-                    subscriptionNameFormatted = value as String
-                }
-
-                "subscriptionExpirationDate" -> {
-                    subscriptionExpirationDate = Date((value as Long) * 1000)
-                }
-
-                "createdAt" -> {
-                    createdAt = Date((value as Long) * 1000)
-                }
-
-                "device" -> {
-                    //TODO temporarily assign null
-                    device = null
-                }
-            }
-        }
-        return this@GRDConnectSubscriber
     }
 
     /* Save the GRDConnectSubscriber that encodes the current subscriber object to then store it in
@@ -139,13 +149,17 @@ class GRDConnectSubscriber {
     /* Returns an error or the new initialized GRDConnectSubscriber object */
     fun registerNewConnectSubscriber(
         acceptedTOS: Boolean,
+        deviceNickname: String,
         iOnApiResponse: IOnApiResponse
     ) {
+        val requestBody = mutableMapOf<String, Any>(kGRDConnectSubscriberIdentifierKey to this.identifier.toString(), kGRDConnectSubscriberSecretKey to this.secret.toString(), kGRDConnectSubscriberAcceptedTOSKey to acceptedTOS, kGuardianConnectSubscriberPETNickname to deviceNickname)
         Repository.instance.createNewGRDConnectSubscriber(
-            acceptedTOS,
+            requestBody,
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
                     val response = any as Map<String, Any>
+                    val pet = GRDPEToken.newPETFromMap(response, GRDVPNHelper.connectAPIHostname)
+                    pet?.store()
                     val grdConnectSubscriber = initFromMap(response)
 
                     store(grdConnectSubscriber)
@@ -272,13 +286,13 @@ class GRDConnectSubscriber {
                             any as ConnectDeviceReferenceResponse
                         val grdConnectDevice = GRDConnectDevice()
                         connectDeviceReferenceResponse.epGrdDeviceCreatedAt?.let {
-                            grdConnectDevice.epGrdDeviceCreatedAt = Date(it * 1000L)
+                            grdConnectDevice.createdAt = Date(it * 1000L)
                         }
-                        grdConnectDevice.epGrdDeviceNickname =
+                        grdConnectDevice.nickname =
                             connectDeviceReferenceResponse.epGrdDeviceNickname
-                        grdConnectDevice.epGrdDevicePeToken =
+                        grdConnectDevice.peToken =
                             connectDeviceReferenceResponse.epGrdDeviceSubscriberPet
-                        grdConnectDevice.epGrdDeviceUuid =
+                        grdConnectDevice.uuid =
                             connectDeviceReferenceResponse.epGrdDeviceUuid
                         grdConnectDevice.currentDevice = true
 
@@ -319,7 +333,7 @@ class GRDConnectSubscriber {
                         val currentDevice = this@GRDConnectSubscriber.device
                         if (currentDevice != null) {
                             list.forEach { device ->
-                                if (device.epGrdDeviceUuid == currentDevice.epGrdDeviceUuid) {
+                                if (device.epGrdDeviceUuid == currentDevice.uuid) {
                                     device.currentDevice = true
                                 }
                             }
@@ -352,22 +366,5 @@ class GRDConnectSubscriber {
                 }
 
             })
-    }
-
-    companion object {
-        fun currentSubscriber(): GRDConnectSubscriber? {
-            val secret = GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER_SECRET)
-            val grdConnectSubscriberString =
-                GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER)
-
-            return if (!secret.isNullOrEmpty() && !grdConnectSubscriberString.isNullOrEmpty()) {
-                val grdConnectSubscriber =
-                    Gson().fromJson(grdConnectSubscriberString, GRDConnectSubscriber::class.java)
-                grdConnectSubscriber.secret = secret
-                grdConnectSubscriber
-            } else {
-                null
-            }
-        }
     }
 }
