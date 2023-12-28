@@ -646,15 +646,20 @@ class Repository {
         requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
-        requestBody["connect-publishable-key"] = Repository.instance.connectPublishableKey.toString()
-        val call: Call<ResponseBody>? = apiCallsGRDConnect?.createNewGRDConnectSubscriber(requestBody)
+        requestBody["connect-publishable-key"] =
+            Repository.instance.connectPublishableKey.toString()
+        val call: Call<ResponseBody>? =
+            apiCallsGRDConnect?.createNewGRDConnectSubscriber(requestBody)
         call?.enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+            override fun onResponse(
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
+            ) {
                 if (response.isSuccessful) {
                     var grdConnectSubscriberResponse = mapOf<String, Any>()
                     val body = response.body()?.string()
                     if (body != null) {
-                        val type = object: TypeToken<Map<String, Any>>(){}.type
+                        val type = object : TypeToken<Map<String, Any>>() {}.type
                         grdConnectSubscriberResponse = Gson().fromJson(body, type)
                     }
 
@@ -691,18 +696,24 @@ class Repository {
     }
 
     fun updateGRDConnectSubscriber(
-        connectSubscriberUpdateRequest: ConnectSubscriberUpdateRequest,
+        requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
-        val call: Call<ConnectSubscriberUpdateResponse>? =
-            apiCallsGRDConnect?.updateGRDConnectSubscriber(connectSubscriberUpdateRequest)
-        call?.enqueue(object : Callback<ConnectSubscriberUpdateResponse> {
+        val call: Call<ResponseBody>? =
+            apiCallsGRDConnect?.updateGRDConnectSubscriber(requestBody)
+        call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
-                call: Call<ConnectSubscriberUpdateResponse>,
-                response: Response<ConnectSubscriberUpdateResponse>
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
             ) {
                 if (response.isSuccessful) {
-                    val connectSubscriberUpdateResponse = response.body()
+                    var connectSubscriberUpdateResponse = mapOf<String, Any>()
+                    val body = response.body()?.string()
+                    if (body != null) {
+                        val type = object : TypeToken<Map<String, Any>>() {}.type
+                        connectSubscriberUpdateResponse = Gson().fromJson(body, type)
+                    }
+
                     iOnApiResponse.onSuccess(connectSubscriberUpdateResponse)
                     Log.d(TAG, "GRDConnect Subscriber updated.")
                 } else {
@@ -724,7 +735,7 @@ class Repository {
                 }
             }
 
-            override fun onFailure(call: Call<ConnectSubscriberUpdateResponse>, t: Throwable) {
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,
@@ -735,18 +746,25 @@ class Repository {
     }
 
     fun validateGRDConnectSubscriber(
-        connectSubscriberValidateRequest: ConnectSubscriberValidateRequest,
+        requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
-        val call: Call<ConnectSubscriberValidateResponse>? =
-            apiCallsGRDConnect?.validateGRDConnectSubscriber(connectSubscriberValidateRequest)
-        call?.enqueue(object : Callback<ConnectSubscriberValidateResponse> {
+        val call: Call<ResponseBody>? =
+            apiCallsGRDConnect?.validateGRDConnectSubscriber(requestBody)
+        call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
-                call: Call<ConnectSubscriberValidateResponse>,
-                response: Response<ConnectSubscriberValidateResponse>
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
             ) {
                 if (response.isSuccessful) {
-                    val connectSubscriberValidateResponse = response.body()
+                    var connectSubscriberValidateResponse = mapOf<String, Any>()
+                    val body = response.body()?.string()
+                    if (body != null) {
+                        val type = object : TypeToken<Map<String, Any>>() {}.type
+                        connectSubscriberValidateResponse = Gson().fromJson(body, type)
+                    }
+
+                    //val connectSubscriberValidateResponse = response.body()
                     iOnApiResponse.onSuccess(connectSubscriberValidateResponse)
                     Log.d(TAG, "GRDConnect Subscriber validated.")
                 } else {
@@ -768,7 +786,7 @@ class Repository {
                 }
             }
 
-            override fun onFailure(call: Call<ConnectSubscriberValidateResponse>, t: Throwable) {
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,
@@ -956,15 +974,15 @@ class Repository {
     }
 
     fun getConnectDeviceReference(
-        connectDeviceReferenceRequest: ConnectDeviceReferenceRequest,
+        requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
-        val call: Call<ConnectDeviceReferenceResponse>? =
-            apiCallsGRDConnect?.getConnectDeviceReference(connectDeviceReferenceRequest)
-        call?.enqueue(object : Callback<ConnectDeviceReferenceResponse> {
+        val call: Call<ResponseBody>? =
+            apiCallsGRDConnect?.getConnectDeviceReference(requestBody)
+        call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
-                call: Call<ConnectDeviceReferenceResponse>,
-                response: Response<ConnectDeviceReferenceResponse>
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
             ) {
                 if (response.isSuccessful) {
                     val connectDeviceReferenceResponse = response.body()
@@ -989,7 +1007,7 @@ class Repository {
                 }
             }
 
-            override fun onFailure(call: Call<ConnectDeviceReferenceResponse>, t: Throwable) {
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,
@@ -1000,7 +1018,7 @@ class Repository {
     }
 
     fun getAccountCreationState(
-        request: AccountSignUpStateRequest,
+        request: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
         val call: Call<ResponseBody>? =
@@ -1100,7 +1118,7 @@ class Repository {
     }
 
     fun logoutConnectSubscriber(
-        logoutConnectSubscriberRequest: LogoutConnectSubscriberRequest,
+        logoutConnectSubscriberRequest: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
         val call: Call<ResponseBody>? =

@@ -19,7 +19,9 @@ interface IApiCalls {
     ): Call<ResponseBody>
 
     @POST("/api/v1.3/device")
-    fun createNewVPNDevice(@Body newVPNDevice: NewVPNDevice): Call<NewVPNDeviceResponse>
+    fun createNewVPNDevice(
+        @Body newVPNDevice: NewVPNDevice
+    ): Call<NewVPNDeviceResponse>
 
     @POST("/api/v1.3/device/{deviceid}/verify-credentials")
     fun verifyVPNCredentials(
@@ -49,49 +51,71 @@ interface IApiCalls {
     fun requestAllGuardianRegions(): Call<ResponseBody>
 
     @POST("/api/v1.2/servers/hostnames-for-region")
-    fun requestListOfServersForRegion(@Body RequestServersForRegion: RequestServersForRegion): Call<ResponseBody>
+    fun requestListOfServersForRegion(
+        @Body RequestServersForRegion: RequestServersForRegion
+    ): Call<ResponseBody>
 
     @GET("/api/v1.1/servers/timezones-for-regions")
     fun getListOfSupportedTimeZones(): Call<ResponseBody>
 
     @POST("/api/v1.2/subscriber-credential/create")
-    fun getSubscriberCredentialsPEToken(@Body validationMethodPEToken: ValidationMethodPEToken): Call<ResponseBody>
+    fun getSubscriberCredentialsPEToken(
+        @Body validationMethodPEToken: ValidationMethodPEToken
+    ): Call<ResponseBody>
 
     @POST("/api/v1.2/subscriber-credential/create")
-    fun getSubscriberCredentialsIAPAndroid(@Body validationMethodIAPAndroid: ValidationMethodIAPAndroid): Call<ResponseBody>
+    fun getSubscriberCredentialsIAPAndroid(
+        @Body validationMethodIAPAndroid: ValidationMethodIAPAndroid
+    ): Call<ResponseBody>
 
     @POST("/api/v1.2/subscriber-credential/create")
-    fun getSubscriberCredentialsElse(@Body validationMethodElse: ValidationMethodElse): Call<ResponseBody>
+    fun getSubscriberCredentialsElse(
+        @Body validationMethodElse: ValidationMethodElse
+    ): Call<ResponseBody>
 
     @POST("/api/v1.3/partners/subscribers/new")
-    fun createNewGRDConnectSubscriber(@Body request:@JvmSuppressWildcards Map<String, Any>): Call<ResponseBody>
+    fun createNewGRDConnectSubscriber(
+        @Body request: @JvmSuppressWildcards Map<String, Any>
+    ): Call<ResponseBody>
 
     @PUT("/api/v1.2/partners/subscriber/update")
-    fun updateGRDConnectSubscriber(@Body connectSubscriberUpdateRequest: ConnectSubscriberUpdateRequest): Call<ConnectSubscriberUpdateResponse>
+    fun updateGRDConnectSubscriber(
+        @Body request: @JvmSuppressWildcards MutableMap<String, Any>
+    ): Call<ResponseBody>
 
     @POST("/api/v1.2/partners/subscriber/validate")
-    fun validateGRDConnectSubscriber(@Body connectSubscriberValidateRequest: ConnectSubscriberValidateRequest): Call<ConnectSubscriberValidateResponse>
+    fun validateGRDConnectSubscriber(
+        @Body request: @JvmSuppressWildcards MutableMap<String, Any>
+    ): Call<ResponseBody>
 
     @POST("/api/v1.2/partners/subscriber/devices/add")
-    fun addConnectDevice(@Body connectDeviceRequest: ConnectDeviceRequest): Call<ConnectDeviceResponse>
+    fun addConnectDevice(
+        @Body connectDeviceRequest: ConnectDeviceRequest
+    ): Call<ConnectDeviceResponse>
 
     @PUT("/api/v1.2/partners/subscriber/device/update")
-    fun updateConnectDevice(@Body connectDeviceUpdateRequest: ConnectDeviceUpdateRequest): Call<ConnectDeviceResponse>
+    fun updateConnectDevice(
+        @Body connectDeviceUpdateRequest: ConnectDeviceUpdateRequest
+    ): Call<ConnectDeviceResponse>
 
     @POST("/api/v1.2/partners/subscriber/device/delete")
-    fun deleteConnectDevice(@Body connectDeleteDeviceRequest: ConnectDeleteDeviceRequest): Call<ResponseBody>
+    fun deleteConnectDevice(
+        @Body connectDeleteDeviceRequest: ConnectDeleteDeviceRequest
+    ): Call<ResponseBody>
 
     @POST("/api/v1.2/partners/subscriber/devices/list")
-    fun allConnectDevices(@Body request: ConnectDevicesAllDevicesRequest): Call<ResponseBody>
+    fun allConnectDevices(
+        @Body request: ConnectDevicesAllDevicesRequest
+    ): Call<ResponseBody>
 
     @POST("/api/v1.2/partners/subscriber/device-reference")
     fun getConnectDeviceReference(
-        @Body request: ConnectDeviceReferenceRequest
-    ): Call<ConnectDeviceReferenceResponse>
+        @Body request: MutableMap<String, Any>
+    ): Call<ResponseBody>
 
     @POST("/api/v1.2/partners/subscriber/account-creation-state")
     fun getAccountSignUpState(
-        @Body request: AccountSignUpStateRequest
+        @Body request: MutableMap<String, Any>
     ): Call<ResponseBody>
 
     @POST("/api/v1.3/device/{deviceid}/config/filters")
@@ -101,5 +125,7 @@ interface IApiCalls {
     ): Call<ResponseBody>
 
     @POST("/api/v1.2/partners/subscriber/logout")
-    fun logoutConnectSubscriber(@Body logoutConnectSubscriberRequest: LogoutConnectSubscriberRequest): Call<ResponseBody>
+    fun logoutConnectSubscriber(
+        @Body logoutConnectSubscriberRequest: MutableMap<String, Any>
+    ): Call<ResponseBody>
 }

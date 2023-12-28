@@ -42,13 +42,13 @@ class ApiTest {
         .build()
 
     @Mock
-    private lateinit var callGRDConnectSubscriber: Call<GRDConnectSubscriberResponse>
+    private lateinit var callGRDConnectSubscriber: Call<MutableMap<String, Any>>
 
     @Mock
-    private lateinit var callGRDConnectSubscriberValidate: Call<ConnectSubscriberValidateResponse>
+    private lateinit var callGRDConnectSubscriberValidate: Call<MutableMap<String, Any>>
 
     @Mock
-    private lateinit var callGRDConnectSubscriberUpdate: Call<ConnectSubscriberUpdateResponse>
+    private lateinit var callGRDConnectSubscriberUpdate: Call<MutableMap<String, Any>>
 
     @Mock
     private lateinit var callConnectDevice: Call<ConnectDeviceResponse>
@@ -60,7 +60,7 @@ class ApiTest {
     private lateinit var callDeleteConnectDevice: Call<ResponseBody>
 
     @Mock
-    private lateinit var callListAllConnectDevices: Call<List<ConnectDeviceResponse>>
+    private lateinit var callListAllConnectDevices: Call<List<MutableMap<String, Any>>>
 
     @Mock
     private lateinit var callGRDRegions: Call<List<GRDRegion>>
@@ -101,17 +101,16 @@ class ApiTest {
     @Test
     fun testCreateNewGRDConnectSubscriber() {
         val apiService = retrofitGRD.create(IApiCalls::class.java)
-        Mockito.`when`(callGRDConnectSubscriber.execute()).thenReturn(
-            Response.success(
-                GRDConnectSubscriberResponse()
+        Mockito.`when`(callGRDConnectSubscriber.execute())
+            .thenReturn(
+                Response.success(mutableMapOf())
             )
-        )
-        val grdConnectSubscriberRequest = GRDConnectSubscriberRequest()
-        grdConnectSubscriberRequest.epGrdSubscriberEmail = "example@gmail.com"
-        grdConnectSubscriberRequest.epGrdSubscriberSecret = "test-secret"
-        grdConnectSubscriberRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
-        grdConnectSubscriberRequest.epGrdSubscriberIdentifier = "200"
-        grdConnectSubscriberRequest.acceptedTos = false
+        val grdConnectSubscriberRequest = mutableMapOf<String, Any>()
+        grdConnectSubscriberRequest["epGrdSubscriberEmail"] = "example@gmail.com"
+        grdConnectSubscriberRequest["epGrdSubscriberSecret"] = "test-secret"
+        grdConnectSubscriberRequest["connectPublishableKey"] = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        grdConnectSubscriberRequest["epGrdSubscriberIdentifier"] = "200"
+        grdConnectSubscriberRequest["acceptedTos"] = false
         val response = apiService.createNewGRDConnectSubscriber(
             grdConnectSubscriberRequest
         ).execute()
@@ -122,12 +121,12 @@ class ApiTest {
     fun testValidateGRDConnectSubscriber() {
         val apiService = retrofitGRD.create(IApiCalls::class.java)
         Mockito.`when`(callGRDConnectSubscriberValidate.execute())
-            .thenReturn(Response.success(ConnectSubscriberValidateResponse()))
-        val connectSubscriberValidateRequest = ConnectSubscriberValidateRequest()
-        connectSubscriberValidateRequest.epGrdSubscriberIdentifier = "200"
-        connectSubscriberValidateRequest.epGrdSubscriberSecret = "test-secret"
-        connectSubscriberValidateRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
-        connectSubscriberValidateRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
+            .thenReturn(Response.success(mutableMapOf()))
+        val connectSubscriberValidateRequest: MutableMap<String, Any> = mutableMapOf()
+        connectSubscriberValidateRequest["epGrdSubscriberIdentifier"] = "200"
+        connectSubscriberValidateRequest["epGrdSubscriberSecret"] = "test-secret"
+        connectSubscriberValidateRequest["connectPublishableKey"] = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        connectSubscriberValidateRequest["peToken"] = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
         val response = apiService.validateGRDConnectSubscriber(
             connectSubscriberValidateRequest
         ).execute()
@@ -138,14 +137,15 @@ class ApiTest {
     fun testUpdateGRDConnectSubscriber() {
         val apiService = retrofitGRD.create(IApiCalls::class.java)
         Mockito.`when`(callGRDConnectSubscriberUpdate.execute())
-            .thenReturn(Response.success(ConnectSubscriberUpdateResponse()))
-        val connectDeviceUpdateRequest = ConnectSubscriberUpdateRequest()
-        connectDeviceUpdateRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
-        connectDeviceUpdateRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
-        connectDeviceUpdateRequest.epGrdSubscriberSecret = "test-secret"
-        connectDeviceUpdateRequest.epGrdSubscriberIdentifier = "200"
+            .thenReturn(Response.success(mutableMapOf()))
+        val connectDeviceUpdateRequest: MutableMap<String, Any> = mutableMapOf()
+        connectDeviceUpdateRequest["connectPublishableKey"] = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        connectDeviceUpdateRequest["peToken"] = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
+        connectDeviceUpdateRequest["epGrdSubscriberSecret"] = "test-secret"
+        connectDeviceUpdateRequest["epGrdSubscriberIdentifier"] = "test-200"
+
         // TODO: change email before every run (won't update with same data)
-        connectDeviceUpdateRequest.epGrdSubscriberEmail = "test@example.com"
+        connectDeviceUpdateRequest["epGrdSubscriberEmail"] = "test@example.com"
         val response = apiService.updateGRDConnectSubscriber(
             connectDeviceUpdateRequest
         ).execute()
@@ -246,7 +246,7 @@ class ApiTest {
         val apiService = retrofitGRD.create(IApiCalls::class.java)
         Mockito.`when`(callListAllConnectDevices.execute()).thenReturn(
             Response.success(
-                listOf(ConnectDeviceResponse())
+                listOf(mutableMapOf())
             )
         )
         val connectDevicesAllDevicesRequest = ConnectDevicesAllDevicesRequest()
@@ -697,9 +697,9 @@ class ApiTest {
                 "Test".toResponseBody()
             )
         )
-        val logoutConnectSubscriberRequest = LogoutConnectSubscriberRequest()
-        logoutConnectSubscriberRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
-        logoutConnectSubscriberRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
+        val logoutConnectSubscriberRequest: MutableMap<String, Any> = mutableMapOf()
+        logoutConnectSubscriberRequest["connectPublishableKey"] = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        logoutConnectSubscriberRequest["peToken"] = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
         val response = apiService.logoutConnectSubscriber(
             logoutConnectSubscriberRequest
         ).execute()
