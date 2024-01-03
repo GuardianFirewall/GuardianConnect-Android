@@ -646,8 +646,7 @@ class Repository {
         requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
-        requestBody["connect-publishable-key"] =
-            Repository.instance.connectPublishableKey.toString()
+        requestBody["connect-publishable-key"] = instance.connectPublishableKey.toString()
         val call: Call<ResponseBody>? =
             apiCallsGRDConnect?.createNewGRDConnectSubscriber(requestBody)
         call?.enqueue(object : Callback<ResponseBody> {
@@ -699,6 +698,7 @@ class Repository {
         requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
+        requestBody["connect-publishable-key"] = instance.connectPublishableKey.toString()
         val call: Call<ResponseBody>? =
             apiCallsGRDConnect?.updateGRDConnectSubscriber(requestBody)
         call?.enqueue(object : Callback<ResponseBody> {
@@ -749,6 +749,7 @@ class Repository {
         requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
+        requestBody["connect-publishable-key"] = instance.connectPublishableKey.toString()
         val call: Call<ResponseBody>? =
             apiCallsGRDConnect?.validateGRDConnectSubscriber(requestBody)
         call?.enqueue(object : Callback<ResponseBody> {
@@ -885,11 +886,11 @@ class Repository {
     }
 
     fun allConnectDevices(
-        connectDevicesAllDevicesRequest: ConnectDevicesAllDevicesRequest,
+        requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
         val call: Call<ResponseBody>? =
-            apiCallsGRDConnect?.allConnectDevices(connectDevicesAllDevicesRequest)
+            apiCallsGRDConnect?.allConnectDevices(requestBody)
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
@@ -977,6 +978,7 @@ class Repository {
         requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
+        requestBody["connect-publishable-key"] = instance.connectPublishableKey.toString()
         val call: Call<ResponseBody>? =
             apiCallsGRDConnect?.getConnectDeviceReference(requestBody)
         call?.enqueue(object : Callback<ResponseBody> {
@@ -1018,11 +1020,12 @@ class Repository {
     }
 
     fun getAccountCreationState(
-        request: MutableMap<String, Any>,
+        requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
+        requestBody["connect-publishable-key"] = instance.connectPublishableKey.toString()
         val call: Call<ResponseBody>? =
-            apiCallsGRDConnect?.getAccountSignUpState(request)
+            apiCallsGRDConnect?.getAccountSignUpState(requestBody)
 
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
@@ -1118,11 +1121,12 @@ class Repository {
     }
 
     fun logoutConnectSubscriber(
-        logoutConnectSubscriberRequest: MutableMap<String, Any>,
+        requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
+        requestBody["connect-publishable-key"] = instance.connectPublishableKey.toString()
         val call: Call<ResponseBody>? =
-            apiCallsGRDConnect?.logoutConnectSubscriber(logoutConnectSubscriberRequest)
+            apiCallsGRDConnect?.logoutConnectSubscriber(requestBody)
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {

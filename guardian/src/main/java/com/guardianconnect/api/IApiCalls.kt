@@ -105,17 +105,17 @@ interface IApiCalls {
 
     @POST("/api/v1.2/partners/subscriber/devices/list")
     fun allConnectDevices(
-        @Body request: ConnectDevicesAllDevicesRequest
+        @Body request: @JvmSuppressWildcards MutableMap<String, Any>
     ): Call<ResponseBody>
 
     @POST("/api/v1.2/partners/subscriber/device-reference")
     fun getConnectDeviceReference(
-        @Body request: MutableMap<String, Any>
+        @Body request: @JvmSuppressWildcards MutableMap<String, Any>
     ): Call<ResponseBody>
 
     @POST("/api/v1.2/partners/subscriber/account-creation-state")
     fun getAccountSignUpState(
-        @Body request: MutableMap<String, Any>
+        @Body request: @JvmSuppressWildcards MutableMap<String, Any>
     ): Call<ResponseBody>
 
     @POST("/api/v1.3/device/{deviceid}/config/filters")

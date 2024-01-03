@@ -55,7 +55,8 @@ class GRDConnectDevice {
         }
 
         fun currentDevice(): GRDConnectDevice? {
-            val grdConnectDeviceString = GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_DEVICE)
+            val grdConnectDeviceString =
+                GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_DEVICE)
             if (grdConnectDeviceString.isNullOrEmpty()) {
                 return null
             }
@@ -150,12 +151,22 @@ class GRDConnectDevice {
     //This one is most likely going to be removed. We have GRDConnectSubscriber.allDevices().
     //For now we’ll leave it unused.
     fun allDevices(
-        connectDevicesAllDevicesRequest: ConnectDevicesAllDevicesRequest,
         iOnApiResponse: IOnApiResponse
     ) {
+        val pet = GRDPEToken.instance.retrievePEToken()
+        val publishableKey = GRDVPNHelper.connectPublishableKey
+
+        val requestBody: MutableMap<String, Any> = mutableMapOf()
+        requestBody["epGrdSubscriberIdentifier"] =
+            GRDConnectSubscriber.currentSubscriber()?.identifier as String
+        requestBody["epGrdSubscriberSecret"] =
+            GRDConnectSubscriber.currentSubscriber()?.secret as String
+        requestBody["connectPublishableKey"] = publishableKey
+        requestBody["peToken"] = pet as String
+
         val list = ArrayList<ConnectDeviceResponse>()
         Repository.instance.allConnectDevices(
-            connectDevicesAllDevicesRequest,
+            requestBody,
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
                     if (any != null) {
