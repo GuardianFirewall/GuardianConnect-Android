@@ -90,17 +90,17 @@ interface IApiCalls {
 
     @POST("/api/v1.2/partners/subscriber/devices/add")
     fun addConnectDevice(
-        @Body connectDeviceRequest: ConnectDeviceRequest
-    ): Call<ConnectDeviceResponse>
+        @Body request: @JvmSuppressWildcards MutableMap<String, Any>
+    ): Call<ResponseBody>
 
     @PUT("/api/v1.2/partners/subscriber/device/update")
     fun updateConnectDevice(
-        @Body connectDeviceUpdateRequest: ConnectDeviceUpdateRequest
-    ): Call<ConnectDeviceResponse>
+        @Body request: @JvmSuppressWildcards MutableMap<String, Any>
+    ): Call<ResponseBody>
 
     @POST("/api/v1.2/partners/subscriber/device/delete")
     fun deleteConnectDevice(
-        @Body connectDeleteDeviceRequest: ConnectDeleteDeviceRequest
+        @Body request: @JvmSuppressWildcards MutableMap<String, Any>
     ): Call<ResponseBody>
 
     @POST("/api/v1.2/partners/subscriber/devices/list")

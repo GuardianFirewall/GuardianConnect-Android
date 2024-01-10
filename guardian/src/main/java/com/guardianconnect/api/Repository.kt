@@ -798,15 +798,15 @@ class Repository {
     }
 
     fun addNewConnectDevice(
-        connectDeviceRequest: ConnectDeviceRequest,
+        requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
-        val call: Call<ConnectDeviceResponse>? =
-            apiCallsGRDConnect?.addConnectDevice(connectDeviceRequest)
-        call?.enqueue(object : Callback<ConnectDeviceResponse> {
+        val call: Call<ResponseBody>? =
+            apiCallsGRDConnect?.addConnectDevice(requestBody)
+        call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
-                call: Call<ConnectDeviceResponse>,
-                response: Response<ConnectDeviceResponse>
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
             ) {
                 if (response.isSuccessful) {
                     val connectDeviceResponse = response.body()
@@ -831,7 +831,7 @@ class Repository {
                 }
             }
 
-            override fun onFailure(call: Call<ConnectDeviceResponse>, t: Throwable) {
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,
@@ -842,15 +842,15 @@ class Repository {
     }
 
     fun updateConnectDevice(
-        connectDeviceUpdateRequest: ConnectDeviceUpdateRequest,
+        requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
-        val call: Call<ConnectDeviceResponse>? =
-            apiCallsGRDConnect?.updateConnectDevice(connectDeviceUpdateRequest)
-        call?.enqueue(object : Callback<ConnectDeviceResponse> {
+        val call: Call<ResponseBody>? =
+            apiCallsGRDConnect?.updateConnectDevice(requestBody)
+        call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
-                call: Call<ConnectDeviceResponse>,
-                response: Response<ConnectDeviceResponse>
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
             ) {
                 if (response.isSuccessful) {
                     val connectDeviceResponse = response.body()
@@ -875,7 +875,7 @@ class Repository {
                 }
             }
 
-            override fun onFailure(call: Call<ConnectDeviceResponse>, t: Throwable) {
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,
@@ -934,11 +934,11 @@ class Repository {
     }
 
     fun deleteConnectDevice(
-        connectDeleteDeviceRequest: ConnectDeleteDeviceRequest,
+        requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
         val call: Call<ResponseBody>? =
-            apiCallsGRDConnect?.deleteConnectDevice(connectDeleteDeviceRequest)
+            apiCallsGRDConnect?.deleteConnectDevice(requestBody)
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {

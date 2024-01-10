@@ -29,6 +29,7 @@ class GRDConnectDevice {
         const val kGRDConnectDeviceNicknameKey = "ep-grd-device-nickname"
         const val kGRDConnectDeviceUUIDKey = "ep-grd-device-uuid"
         const val kGRDConnectDeviceCreatedAtKey = "ep-grd-device-created-at"
+        const val kGrdDeviceAcceptedTos = "ep-grd-device-accepted-tos"
 
         fun initFromMap(map: Map<String, Any>): GRDConnectDevice? {
             val device = map[kGRDConnectDeviceKey] as? Map<String, Any>
@@ -86,42 +87,57 @@ class GRDConnectDevice {
     }
 
     fun addNewConnectDevice(
-        connectDeviceRequest: ConnectDeviceRequest,
+        pet: String,
+        nickname: String,
+        acceptedTOS: Boolean,
         iOnApiResponse: IOnApiResponse
     ) {
-        Repository.instance.addNewConnectDevice(connectDeviceRequest, object : IOnApiResponse {
-            override fun onSuccess(any: Any?) {
-                val connectDeviceResponse = any as ConnectDeviceResponse
-                val grdConnectDevice = GRDConnectDevice()
-                connectDeviceResponse.epGrdDeviceCreatedAt?.let {
-                    grdConnectDevice.createdAt = Date(it * 1000L)
-                }
-                grdConnectDevice.nickname = connectDeviceResponse.epGrdDeviceNickname
-                grdConnectDevice.peToken = connectDeviceResponse.epGrdDevicePeToken
-                connectDeviceResponse.epGrdDevicePetExpires?.let {
-                    grdConnectDevice.petExpires = Date(it * 1000L)
-                }
-                grdConnectDevice.uuid = connectDeviceResponse.epGrdDeviceUuid
+        val requestBody: MutableMap<String, Any> = mutableMapOf()
+        requestBody["peToken"] = pet
+        requestBody[kGRDConnectDeviceNicknameKey] = nickname
+        requestBody[kGrdDeviceAcceptedTos] = acceptedTOS
+        requestBody["connect-publishable-key"] = Repository.instance.connectPublishableKey.toString()
+        requestBody["epGrdSubscriberIdentifier"] =
+            GRDConnectSubscriber.currentSubscriber()?.identifier as String
+        requestBody["epGrdSubscriberSecret"] =
+            GRDConnectSubscriber.currentSubscriber()?.secret as String
 
-                store(grdConnectDevice)
-                iOnApiResponse.onSuccess(grdConnectDevice)
-            }
+        Repository.instance.addNewConnectDevice(
+            requestBody,
+            object : IOnApiResponse {
+                override fun onSuccess(any: Any?) {
+                    val connectDeviceResponse = any as MutableMap<String, Any>
+                    val grdConnectDevice = initFromMap(connectDeviceResponse)
+                    if (grdConnectDevice != null) {
+                        store(grdConnectDevice)
+                        iOnApiResponse.onSuccess(grdConnectDevice)
+                    } else {
+                        iOnApiResponse.onError("grdConnectDevice is null")
+                    }
+                }
 
-            override fun onError(error: String?) {
-                iOnApiResponse.onError(error)
-            }
-        })
+                override fun onError(error: String?) {
+                    iOnApiResponse.onError(error)
+                }
+            })
     }
 
     fun updateConnectDevice(
-        connectDeviceUpdateRequest: ConnectDeviceUpdateRequest,
+        pet: String,
+        nickname: String,
         iOnApiResponse: IOnApiResponse
     ) {
+        val requestBody: MutableMap<String, Any> = mutableMapOf()
+        requestBody["connect-publishable-key"] = Repository.instance.connectPublishableKey.toString()
+        requestBody["peToken"] = pet
+        requestBody[kGRDConnectDeviceNicknameKey] = nickname
+        requestBody[kGRDConnectDeviceUUIDKey] = currentDevice()?.uuid as String
+
         Repository.instance.updateConnectDevice(
-            connectDeviceUpdateRequest,
+            requestBody,
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
-                    val connectDeviceResponse = any as ConnectDeviceResponse
+                    val connectDeviceResponse = any as MutableMap<String, Any>
                     iOnApiResponse.onSuccess(connectDeviceResponse)
                 }
 
@@ -132,14 +148,23 @@ class GRDConnectDevice {
     }
 
     fun deleteConnectDevice(
-        connectDeviceDeleteRequest: ConnectDeleteDeviceRequest,
         iOnApiResponse: IOnApiResponse
     ) {
+        val requestBody: MutableMap<String, Any> = mutableMapOf()
+        requestBody["connect-publishable-key"] = Repository.instance.connectPublishableKey.toString()
+        requestBody["peToken"] = currentDevice()?.peToken as String
+        requestBody[kGRDConnectDeviceUUIDKey] = currentDevice()?.uuid as String
+        requestBody["epGrdSubscriberIdentifier"] =
+            GRDConnectSubscriber.currentSubscriber()?.identifier as String
+        requestBody["epGrdSubscriberSecret"] =
+            GRDConnectSubscriber.currentSubscriber()?.secret as String
+
         Repository.instance.deleteConnectDevice(
-            connectDeviceDeleteRequest,
+            requestBody,
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
-                    iOnApiResponse.onSuccess(any)
+                    val deleteResponse = any as MutableMap<String, Any>
+                    iOnApiResponse.onSuccess(deleteResponse)
                 }
 
                 override fun onError(error: String?) {
