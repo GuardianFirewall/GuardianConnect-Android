@@ -809,9 +809,15 @@ class Repository {
                 response: Response<ResponseBody>
             ) {
                 if (response.isSuccessful) {
-                    val connectDeviceResponse = response.body()
+                    var connectDeviceResponse = mapOf<String, Any>()
+                    val body = response.body()?.string()
+                    if (body != null) {
+                        val type = object : TypeToken<Map<String, Any>>() {}.type
+                        connectDeviceResponse = Gson().fromJson(body, type)
+                    }
                     iOnApiResponse.onSuccess(connectDeviceResponse)
                     Log.d(TAG, "GRDConnect Device added.")
+
                 } else {
                     val errorBody = response.errorBody()?.string()
                     if (errorBody != null) {
@@ -853,9 +859,15 @@ class Repository {
                 response: Response<ResponseBody>
             ) {
                 if (response.isSuccessful) {
-                    val connectDeviceResponse = response.body()
+                    var connectDeviceResponse = mapOf<String, Any>()
+                    val body = response.body()?.string()
+                    if (body != null) {
+                        val type = object : TypeToken<Map<String, Any>>() {}.type
+                        connectDeviceResponse = Gson().fromJson(body, type)
+                    }
                     iOnApiResponse.onSuccess(connectDeviceResponse)
                     Log.d(TAG, "GRDConnect Device updated.")
+
                 } else {
                     val errorBody = response.errorBody()?.string()
                     if (errorBody != null) {
@@ -894,16 +906,20 @@ class Repository {
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
-                    response.body()?.string().let {
-                        val objectList = ArrayList(
-                            Gson().fromJson(
-                                it,
-                                Array<ConnectDeviceResponse>::class.java
-                            ).asList()
-                        )
+                    data class ObjectList(val items: List<Map<String, Any>>)
+
+                    val body = response.body()?.string()
+                    if (body != null) {
+                        val objectList: ObjectList =
+                            Gson().fromJson(body, object : TypeToken<ObjectList>() {}.type)
+
                         iOnApiResponse.onSuccess(objectList)
                         Log.d(TAG, "All Connect subscriber devices returned successfully!")
+                    } else {
+                        Log.e(TAG, "Error response body is null")
+                        iOnApiResponse.onError("Error response body is null")
                     }
+
                 } else {
                     val errorBody = response.errorBody()?.string()
                     if (errorBody != null) {
@@ -942,7 +958,15 @@ class Repository {
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
-                    iOnApiResponse.onSuccess("GRDConnectDevice successfully deleted.")
+                    var connectDeviceResponse = mapOf<String, Any>()
+                    val body = response.body()?.string()
+                    if (body != null) {
+                        val type = object : TypeToken<Map<String, Any>>() {}.type
+                        connectDeviceResponse = Gson().fromJson(body, type)
+                    }
+                    iOnApiResponse.onSuccess(connectDeviceResponse)
+                    Log.d(TAG, "GRDConnect Device successfully deleted.")
+
                 } else {
                     val errorBody = response.errorBody()?.string()
                     if (errorBody != null) {
@@ -987,7 +1011,12 @@ class Repository {
                 response: Response<ResponseBody>
             ) {
                 if (response.isSuccessful) {
-                    val connectDeviceReferenceResponse = response.body()
+                    var connectDeviceReferenceResponse = mapOf<String, Any>()
+                    val body = response.body()?.string()
+                    if (body != null) {
+                        val type = object : TypeToken<Map<String, Any>>() {}.type
+                        connectDeviceReferenceResponse = Gson().fromJson(body, type)
+                    }
                     iOnApiResponse.onSuccess(connectDeviceReferenceResponse)
                     Log.d(TAG, "Connect subscriber device reference returned successfully!")
                 } else {
@@ -1033,7 +1062,12 @@ class Repository {
                 response: Response<ResponseBody>
             ) {
                 if (response.isSuccessful) {
-                    val accountCreationStateResponse = response.body()
+                    var accountCreationStateResponse = mapOf<String, Any>()
+                    val body = response.body()?.string()
+                    if (body != null) {
+                        val type = object : TypeToken<Map<String, Any>>() {}.type
+                        accountCreationStateResponse = Gson().fromJson(body, type)
+                    }
                     iOnApiResponse.onSuccess(accountCreationStateResponse)
                     Log.d(TAG, "Account creation state retrieved successfully!")
                 } else {
@@ -1161,5 +1195,4 @@ class Repository {
             }
         })
     }
-
 }
