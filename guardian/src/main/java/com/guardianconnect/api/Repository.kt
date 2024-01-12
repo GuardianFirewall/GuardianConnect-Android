@@ -764,10 +764,9 @@ class Repository {
                         val type = object : TypeToken<Map<String, Any>>() {}.type
                         connectSubscriberValidateResponse = Gson().fromJson(body, type)
                     }
-
-                    //val connectSubscriberValidateResponse = response.body()
                     iOnApiResponse.onSuccess(connectSubscriberValidateResponse)
                     Log.d(TAG, "GRDConnect Subscriber validated.")
+
                 } else {
                     val errorBody = response.errorBody()?.string()
                     if (errorBody != null) {
