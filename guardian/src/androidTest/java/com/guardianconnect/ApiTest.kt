@@ -41,26 +41,48 @@ class ApiTest {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
-    @Mock
-    private lateinit var callGRDConnectSubscriber: Call<MutableMap<String, Any>>
+    companion object {
+        const val kGRDConnectSubscriberIdentifierKey = "ep-grd-subscriber-identifier"
+        const val kGRDConnectSubscriberSecretKey = "ep-grd-subscriber-secret"
+        const val kGRDConnectSubscriberEmailKey = "ep-grd-subscriber-email"
+        const val kGuardianConnectSubscriberPETNickname = "ep-grd-subscriber-pet-nickname"
+        const val kGRDConnectSubscriberSubscriptionSKUKey = "ep-grd-subscription-sku"
+        const val kGRDConnectSubscriberSubscriptionNameFormattedKey =
+            "ep-grd-subscription-name-formatted"
+        const val kGRDConnectSubscriberSubscriptionExpirationDateKey =
+            "ep-grd-subscription-expiration-date"
+        const val kGRDConnectSubscriberCreatedAtKey = "ep-grd-subscriber-created-at"
+        const val kGRDConnectSubscriberAcceptedTOSKey = "ep-grd-subscriber-accepted-tos"
+        const val peTokenKey = "pe-token"
+        const val connectPublishableKey = "connect-publishable-key"
+
+        const val kGRDConnectDeviceKey = "ep-grd-device"
+        const val kGRDConnectDeviceNicknameKey = "ep-grd-device-nickname"
+        const val kGRDConnectDeviceUUIDKey = "ep-grd-device-uuid"
+        const val kGRDConnectDeviceCreatedAtKey = "ep-grd-device-created-at"
+        const val kGrdDeviceAcceptedTos = "ep-grd-device-accepted-tos"
+    }
 
     @Mock
-    private lateinit var callGRDConnectSubscriberValidate: Call<MutableMap<String, Any>>
+    private lateinit var callGRDConnectSubscriber: Call<ResponseBody>
 
     @Mock
-    private lateinit var callGRDConnectSubscriberUpdate: Call<MutableMap<String, Any>>
+    private lateinit var callGRDConnectSubscriberValidate: Call<ResponseBody>
 
     @Mock
-    private lateinit var callConnectDevice: Call<ConnectDeviceResponse>
+    private lateinit var callGRDConnectSubscriberUpdate: Call<ResponseBody>
 
     @Mock
-    private lateinit var callUpdateConnectDevice: Call<ConnectDeviceResponse>
+    private lateinit var callConnectDevice: Call<ResponseBody>
+
+    @Mock
+    private lateinit var callUpdateConnectDevice: Call<ResponseBody>
 
     @Mock
     private lateinit var callDeleteConnectDevice: Call<ResponseBody>
 
     @Mock
-    private lateinit var callListAllConnectDevices: Call<List<MutableMap<String, Any>>>
+    private lateinit var callListAllConnectDevices: Call<List<ResponseBody>>
 
     @Mock
     private lateinit var callGRDRegions: Call<List<GRDRegion>>
@@ -103,14 +125,14 @@ class ApiTest {
         val apiService = retrofitGRD.create(IApiCalls::class.java)
         Mockito.`when`(callGRDConnectSubscriber.execute())
             .thenReturn(
-                Response.success(mutableMapOf())
+                Response.success("Test".toResponseBody())
             )
         val grdConnectSubscriberRequest = mutableMapOf<String, Any>()
-        grdConnectSubscriberRequest["epGrdSubscriberEmail"] = "example@gmail.com"
-        grdConnectSubscriberRequest["epGrdSubscriberSecret"] = "test-secret"
-        grdConnectSubscriberRequest["connectPublishableKey"] = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
-        grdConnectSubscriberRequest["epGrdSubscriberIdentifier"] = "200"
-        grdConnectSubscriberRequest["acceptedTos"] = false
+        grdConnectSubscriberRequest[kGRDConnectSubscriberEmailKey] = "example@gmail.com"
+        grdConnectSubscriberRequest[kGRDConnectSubscriberSecretKey] = "test-secret"
+        grdConnectSubscriberRequest[connectPublishableKey] = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        grdConnectSubscriberRequest[kGRDConnectSubscriberIdentifierKey] = "200"
+        grdConnectSubscriberRequest[kGRDConnectSubscriberAcceptedTOSKey] = false
         val response = apiService.createNewGRDConnectSubscriber(
             grdConnectSubscriberRequest
         ).execute()
@@ -121,12 +143,12 @@ class ApiTest {
     fun testValidateGRDConnectSubscriber() {
         val apiService = retrofitGRD.create(IApiCalls::class.java)
         Mockito.`when`(callGRDConnectSubscriberValidate.execute())
-            .thenReturn(Response.success(mutableMapOf()))
+            .thenReturn(Response.success("Test".toResponseBody()))
         val connectSubscriberValidateRequest: MutableMap<String, Any> = mutableMapOf()
-        connectSubscriberValidateRequest["epGrdSubscriberIdentifier"] = "200"
-        connectSubscriberValidateRequest["epGrdSubscriberSecret"] = "test-secret"
-        connectSubscriberValidateRequest["connectPublishableKey"] = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
-        connectSubscriberValidateRequest["peToken"] = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
+        connectSubscriberValidateRequest[kGRDConnectSubscriberIdentifierKey] = "200"
+        connectSubscriberValidateRequest[kGRDConnectSubscriberSecretKey] = "test-secret"
+        connectSubscriberValidateRequest[connectPublishableKey] = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        connectSubscriberValidateRequest[peTokenKey] = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
         val response = apiService.validateGRDConnectSubscriber(
             connectSubscriberValidateRequest
         ).execute()
@@ -137,12 +159,14 @@ class ApiTest {
     fun testUpdateGRDConnectSubscriber() {
         val apiService = retrofitGRD.create(IApiCalls::class.java)
         Mockito.`when`(callGRDConnectSubscriberUpdate.execute())
-            .thenReturn(Response.success(mutableMapOf()))
+            .thenReturn(
+                Response.success("Test".toResponseBody())
+            )
         val connectDeviceUpdateRequest: MutableMap<String, Any> = mutableMapOf()
-        connectDeviceUpdateRequest["connectPublishableKey"] = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
-        connectDeviceUpdateRequest["peToken"] = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
-        connectDeviceUpdateRequest["epGrdSubscriberSecret"] = "test-secret"
-        connectDeviceUpdateRequest["epGrdSubscriberIdentifier"] = "test-200"
+        connectDeviceUpdateRequest[connectPublishableKey] = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        connectDeviceUpdateRequest[peTokenKey] = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
+        connectDeviceUpdateRequest[kGRDConnectSubscriberSecretKey] = "test-secret"
+        connectDeviceUpdateRequest[kGRDConnectSubscriberIdentifierKey] = "test-200"
 
         // TODO: change email before every run (won't update with same data)
         connectDeviceUpdateRequest["epGrdSubscriberEmail"] = "test@example.com"
@@ -156,15 +180,13 @@ class ApiTest {
     fun testAddConnectDevice() {
         val apiService = retrofitGRD.create(IApiCalls::class.java)
         Mockito.`when`(callConnectDevice.execute()).thenReturn(
-            Response.success(
-                ConnectDeviceResponse()
-            )
+            Response.success("Test".toResponseBody())
         )
-        val connectDeviceRequest = ConnectDeviceRequest()
-        connectDeviceRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
-        connectDeviceRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
-        connectDeviceRequest.epGrdDeviceNickname = "test_nickname"
-        connectDeviceRequest.epGrdDeviceAcceptedTos = true
+        val connectDeviceRequest = mutableMapOf<String, Any>()
+        connectDeviceRequest[connectPublishableKey] = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        connectDeviceRequest[peTokenKey] = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
+        connectDeviceRequest[kGRDConnectDeviceNicknameKey] = "test_nickname"
+        connectDeviceRequest[kGrdDeviceAcceptedTos] = true
         val response = apiService.addConnectDevice(
             connectDeviceRequest
         ).execute()
@@ -175,35 +197,35 @@ class ApiTest {
     fun testUpdateConnectDevice() {
         val apiService = retrofitGRD.create(IApiCalls::class.java)
         Mockito.`when`(callConnectDevice.execute()).thenReturn(
-            Response.success(
-                ConnectDeviceResponse()
-            )
+            Response.success("Test".toResponseBody())
         )
-        val connectDeviceRequest = ConnectDeviceRequest()
-        connectDeviceRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
-        connectDeviceRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
-        connectDeviceRequest.epGrdDeviceNickname = "test_nickname"
-        connectDeviceRequest.epGrdDeviceAcceptedTos = true
+        val connectDeviceRequest = mutableMapOf<String, Any>()
+        connectDeviceRequest[connectPublishableKey] = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        connectDeviceRequest[peTokenKey] = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
+        connectDeviceRequest[kGRDConnectDeviceNicknameKey] = "test_nickname"
+        connectDeviceRequest[kGrdDeviceAcceptedTos] = true
         val response = apiService.addConnectDevice(
             connectDeviceRequest
         ).execute()
         response.body()?.let {
+            it as MutableMap<*, *>
 
-            val apiService = retrofitGRD.create(IApiCalls::class.java)
+            val apiService2 = retrofitGRD.create(IApiCalls::class.java)
             Mockito.`when`(callUpdateConnectDevice.execute()).thenReturn(
                 Response.success(
-                    ConnectDeviceResponse()
+                    "Test".toResponseBody()
                 )
             )
-            val connectDeviceUpdateRequest = ConnectDeviceUpdateRequest()
-            connectDeviceUpdateRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
-            connectDeviceUpdateRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
-            connectDeviceUpdateRequest.deviceNickname = "test_nickname"
-            connectDeviceUpdateRequest.deviceUuid = it.epGrdDeviceUuid
-            val response = apiService.updateConnectDevice(
+            val connectDeviceUpdateRequest = mutableMapOf<String, Any>()
+            connectDeviceRequest[connectPublishableKey] = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+            connectDeviceRequest[peTokenKey] = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
+            connectDeviceRequest[kGRDConnectDeviceNicknameKey] = "test_nickname"
+            connectDeviceUpdateRequest[kGRDConnectDeviceUUIDKey] =
+                it[kGRDConnectDeviceUUIDKey] as MutableMap<*, *>
+            val response2 = apiService2.updateConnectDevice(
                 connectDeviceUpdateRequest
             ).execute()
-            assertTrue(response.body() != null)
+            assertTrue(response2.body() != null)
         }
     }
 
@@ -212,32 +234,35 @@ class ApiTest {
         val apiService = retrofitGRD.create(IApiCalls::class.java)
         Mockito.`when`(callConnectDevice.execute()).thenReturn(
             Response.success(
-                ConnectDeviceResponse()
+                "Test".toResponseBody()
             )
         )
-        val connectDeviceRequest = ConnectDeviceRequest()
-        connectDeviceRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
-        connectDeviceRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
-        connectDeviceRequest.epGrdDeviceNickname = "test_nickname"
-        connectDeviceRequest.epGrdDeviceAcceptedTos = true
+        val connectDeviceRequest = mutableMapOf<String, Any>()
+        connectDeviceRequest[connectPublishableKey] = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        connectDeviceRequest[peTokenKey] = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
+        connectDeviceRequest[kGRDConnectDeviceNicknameKey] = "test_nickname"
+        connectDeviceRequest[kGrdDeviceAcceptedTos] = true
         val response = apiService.addConnectDevice(
             connectDeviceRequest
         ).execute()
         response.body()?.let {
-            val apiService = retrofitGRD.create(IApiCalls::class.java)
+            it as MutableMap<*, *>
+
+            val apiService2 = retrofitGRD.create(IApiCalls::class.java)
             Mockito.`when`(callDeleteConnectDevice.execute()).thenReturn(
                 Response.success(
                     "Test".toResponseBody()
                 )
             )
-            val connectDeviceDeleteRequest = ConnectDeleteDeviceRequest()
-            connectDeviceDeleteRequest.connectPublishableKey = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
-            connectDeviceDeleteRequest.peToken = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
-            connectDeviceDeleteRequest.deviceUuid = it.epGrdDeviceUuid
-            val response = apiService.deleteConnectDevice(
+            val connectDeviceDeleteRequest = mutableMapOf<String, Any>()
+            connectDeviceRequest[connectPublishableKey] = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+            connectDeviceRequest[peTokenKey] = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
+            connectDeviceRequest[kGRDConnectDeviceUUIDKey] =
+                it[kGRDConnectDeviceUUIDKey] as MutableMap<*, *>
+            val response2 = apiService2.deleteConnectDevice(
                 connectDeviceDeleteRequest
             ).execute()
-            assertTrue(response.code() == 200)
+            assertTrue(response2.code() == 200)
         }
     }
 
@@ -246,12 +271,12 @@ class ApiTest {
         val apiService = retrofitGRD.create(IApiCalls::class.java)
         Mockito.`when`(callListAllConnectDevices.execute()).thenReturn(
             Response.success(
-                listOf(mutableMapOf())
+                listOf("Test".toResponseBody())
             )
         )
         val connectDevicesAllDevicesRequest = mutableMapOf<String, Any>()
-        connectDevicesAllDevicesRequest["connectPublishableKey"] = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
-        connectDevicesAllDevicesRequest["peToken"] = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
+        connectDevicesAllDevicesRequest[connectPublishableKey] = "pk_bvntksq4xX5MGY4KedBa6Ck6R"
+        connectDevicesAllDevicesRequest[peTokenKey] = "HpmO5f6Ty3U4WdCb5kfJ5Jgj6RB9wuc3"
         val response = apiService.allConnectDevices(
             connectDevicesAllDevicesRequest
         ).execute()
@@ -343,7 +368,7 @@ class ApiTest {
                     SubscriberCredentialResponse::class.java
                 )
             subscriberCredentialResponse.subscriberCredential?.let { scs ->
-                val apiService = retrofitRegion.create(IApiCalls::class.java)
+                val apiService2 = retrofitRegion.create(IApiCalls::class.java)
                 Mockito.`when`(callNewVPNDevice.execute()).thenReturn(
                     Response.success(
                         NewVPNDeviceResponse()
@@ -356,10 +381,10 @@ class ApiTest {
                 val keyPairGenerated = KeyPair(keyPair.privateKey)
                 val publicKey = keyPairGenerated.publicKey.toBase64()
                 newVPNDevice.publicKey = publicKey
-                val response = apiService.createNewVPNDevice(
+                val response2 = apiService2.createNewVPNDevice(
                     newVPNDevice
                 ).execute()
-                assertTrue(response.body() != null)
+                assertTrue(response2.body() != null)
             }
         }
     }

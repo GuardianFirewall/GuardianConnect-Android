@@ -40,6 +40,8 @@ class GRDConnectSubscriber {
             "ep-grd-subscription-expiration-date"
         const val kGRDConnectSubscriberCreatedAtKey = "ep-grd-subscriber-created-at"
         const val kGRDConnectSubscriberAcceptedTOSKey = "ep-grd-subscriber-accepted-tos"
+        const val peTokenKey = "pe-token"
+        const val connectPublishableKey = "connect-publishable-key"
 
         fun initFromMap(map: Map<String, Any>): GRDConnectSubscriber {
             val newSubscriber = GRDConnectSubscriber()
@@ -187,16 +189,14 @@ class GRDConnectSubscriber {
         iOnApiResponse: IOnApiResponse
     ) {
         val pet = GRDPEToken.instance.retrievePEToken()
-        val publishableKey = GRDVPNHelper.connectPublishableKey
 
         val requestBody: MutableMap<String, Any> = mutableMapOf()
-        requestBody["epGrdSubscriberIdentifier"] =
+        requestBody[kGRDConnectSubscriberIdentifierKey] =
             currentSubscriber()?.identifier as String
-        requestBody["epGrdSubscriberSecret"] =
+        requestBody[kGRDConnectSubscriberSecretKey] =
             currentSubscriber()?.secret as String
-        requestBody["connectPublishableKey"] = publishableKey
-        requestBody["peToken"] = pet as String
-        requestBody["epGrdSubscriberEmail"] = currentSubscriber()?.email as String
+        requestBody[peTokenKey] = pet as String
+        requestBody[kGRDConnectSubscriberEmailKey] = currentSubscriber()?.email as String
 
         Repository.instance.updateGRDConnectSubscriber(
             requestBody,
@@ -217,15 +217,13 @@ class GRDConnectSubscriber {
         iOnApiResponse: IOnApiResponse
     ) {
         val pet = GRDPEToken.instance.retrievePEToken()
-        val publishableKey = GRDVPNHelper.connectPublishableKey
 
         val requestBody: MutableMap<String, Any> = mutableMapOf()
-        requestBody["epGrdSubscriberIdentifier"] =
+        requestBody[kGRDConnectSubscriberIdentifierKey] =
             currentSubscriber()?.identifier as String
-        requestBody["epGrdSubscriberSecret"] =
+        requestBody[kGRDConnectSubscriberSecretKey] =
             currentSubscriber()?.secret as String
-        requestBody["connectPublishableKey"] = publishableKey
-        requestBody["peToken"] = pet as String
+        requestBody[peTokenKey] = pet as String
 
         Repository.instance.validateGRDConnectSubscriber(
             requestBody,
@@ -249,8 +247,8 @@ class GRDConnectSubscriber {
         val publishableKey = GRDVPNHelper.connectPublishableKey
         if (pet != null && publishableKey.isNotEmpty()) {
             val logoutConnectSubscriberRequest: MutableMap<String, Any> = mutableMapOf()
-            logoutConnectSubscriberRequest["peToken"] = pet
-            logoutConnectSubscriberRequest["connectPublishableKey"] = publishableKey
+            logoutConnectSubscriberRequest[peTokenKey] = pet
+            logoutConnectSubscriberRequest[connectPublishableKey] = publishableKey
             Repository.instance.logoutConnectSubscriber(
                 logoutConnectSubscriberRequest,
                 object : IOnApiResponse {
@@ -271,15 +269,13 @@ class GRDConnectSubscriber {
         iOnApiResponse: IOnApiResponse
     ) {
         val pet = GRDPEToken.instance.retrievePEToken()
-        val publishableKey = GRDVPNHelper.connectPublishableKey
 
         val requestBody: MutableMap<String, Any> = mutableMapOf()
-        requestBody["epGrdSubscriberIdentifier"] =
+        requestBody[kGRDConnectSubscriberIdentifierKey] =
             currentSubscriber()?.identifier as String
-        requestBody["epGrdSubscriberSecret"] =
+        requestBody[kGRDConnectSubscriberSecretKey] =
             currentSubscriber()?.secret as String
-        requestBody["connectPublishableKey"] = publishableKey
-        requestBody["peToken"] = pet as String
+        requestBody[peTokenKey] = pet as String
 
         Repository.instance.getConnectDeviceReference(
             requestBody,
@@ -311,15 +307,13 @@ class GRDConnectSubscriber {
         iOnApiResponse: IOnApiResponse
     ) {
         val pet = GRDPEToken.instance.retrievePEToken()
-        val publishableKey = GRDVPNHelper.connectPublishableKey
 
         val requestBody: MutableMap<String, Any> = mutableMapOf()
-        requestBody["epGrdSubscriberIdentifier"] =
+        requestBody[kGRDConnectSubscriberIdentifierKey] =
             currentSubscriber()?.identifier as String
-        requestBody["epGrdSubscriberSecret"] =
+        requestBody[kGRDConnectSubscriberSecretKey] =
             currentSubscriber()?.secret as String
-        requestBody["connectPublishableKey"] = publishableKey
-        requestBody["peToken"] = pet as String
+        requestBody[peTokenKey] = pet as String
 
         val list = ArrayList<ConnectDeviceResponse>()
         Repository.instance.allConnectDevices(
@@ -356,9 +350,9 @@ class GRDConnectSubscriber {
         iOnApiResponse: IOnApiResponse
     ) {
         val accountSignUpStateRequest: MutableMap<String, Any> = mutableMapOf()
-        accountSignUpStateRequest["epGrdSubscriberIdentifier"] =
+        accountSignUpStateRequest[kGRDConnectSubscriberIdentifierKey] =
             currentSubscriber()?.identifier as String
-        accountSignUpStateRequest["epGrdSubscriberSecret"] =
+        accountSignUpStateRequest[kGRDConnectSubscriberSecretKey] =
             currentSubscriber()?.secret as String
 
         Repository.instance.getAccountCreationState(

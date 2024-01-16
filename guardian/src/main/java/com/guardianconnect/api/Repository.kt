@@ -800,6 +800,7 @@ class Repository {
         requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
+        requestBody["connect-publishable-key"] = instance.connectPublishableKey.toString()
         val call: Call<ResponseBody>? =
             apiCallsGRDConnect?.addConnectDevice(requestBody)
         call?.enqueue(object : Callback<ResponseBody> {
@@ -850,6 +851,7 @@ class Repository {
         requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
+        requestBody["connect-publishable-key"] = instance.connectPublishableKey.toString()
         val call: Call<ResponseBody>? =
             apiCallsGRDConnect?.updateConnectDevice(requestBody)
         call?.enqueue(object : Callback<ResponseBody> {
@@ -900,6 +902,7 @@ class Repository {
         requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
+        requestBody["connect-publishable-key"] = instance.connectPublishableKey.toString()
         val call: Call<ResponseBody>? =
             apiCallsGRDConnect?.allConnectDevices(requestBody)
         call?.enqueue(object : Callback<ResponseBody> {
@@ -952,6 +955,7 @@ class Repository {
         requestBody: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
+        requestBody["connect-publishable-key"] = instance.connectPublishableKey.toString()
         val call: Call<ResponseBody>? =
             apiCallsGRDConnect?.deleteConnectDevice(requestBody)
         call?.enqueue(object : Callback<ResponseBody> {
