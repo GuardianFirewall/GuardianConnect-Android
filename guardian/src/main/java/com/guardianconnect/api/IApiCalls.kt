@@ -50,6 +50,11 @@ interface IApiCalls {
     @GET("/api/v1/servers/all-server-regions")
     fun requestAllGuardianRegions(): Call<ResponseBody>
 
+    @GET("/api/v1.3/servers/all-server-regions/{precision}")
+    fun requestAllRegionsWithPrecision(
+        @Path("precision") precision: String
+    ): Call<ResponseBody>
+
     @POST("/api/v1.2/servers/hostnames-for-region")
     fun requestListOfServersForRegion(
         @Body RequestServersForRegion: RequestServersForRegion

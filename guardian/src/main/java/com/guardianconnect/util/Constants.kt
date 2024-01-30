@@ -37,5 +37,9 @@ class Constants {
         const val GRD_CONNECT_USER_PREFERRED_DNS_SERVERS = "GRD_CONNECT_USER_PREFERRED_DNS_SERVERS"
         const val kGRDErrGuardianAccountNotSetup = "Guardian account setup not yet completed!"
         const val kGRDConnectAPIHostname = "connect-api.guardianapp.com"
+        const val kGRDPreferredRegionPrecision = "kGRDPreferredRegionPrecision"
+        const val kGRDRegionPrecisionDefault = "default"
+        const val kGRDRegionPrecisionCity = "city"
+        const val kGRDRegionPrecisionCountry = "country"
     }
 }

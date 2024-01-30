@@ -44,6 +44,7 @@ object GRDVPNHelper {
     var validForDays: Long = 60
     private var preferBetaCapableServers: Boolean? = null
     private var vpnServerFeatureEnvironment: GRDServerFeatureEnvironment? = null
+    private var regionPrecision: String? = null
 
     fun initHelper(context: Context) {
         this.context = context
@@ -51,7 +52,36 @@ object GRDVPNHelper {
         grdCredentialManager = GRDCredentialManager()
         preferBetaCapableServers = false
         vpnServerFeatureEnvironment = GRDServerFeatureEnvironment.ServerFeatureEnvironmentProduction
+
+        val savedPrecision = GRDConnectManager.getSharedPrefs()
+            ?.getString(Constants.kGRDPreferredRegionPrecision, null)
+
+        if (!savedPrecision.isNullOrEmpty()) {
+            regionPrecision = savedPrecision
+            when (regionPrecision) {
+                Constants.kGRDRegionPrecisionDefault -> {}
+                Constants.kGRDRegionPrecisionCity -> {}
+                Constants.kGRDRegionPrecisionCountry -> {}
+                else -> {
+                    Log.d(
+                        TAG,
+                        "Preferred region precision '$regionPrecision' does not match any of the known constants!"
+                    )
+                }
+            }
+        }
         observeStatus()
+    }
+
+    fun setRegionPrecision(precision: String) {
+        GRDConnectManager.getSharedPrefsEditor()
+            ?.putString(Constants.kGRDPreferredRegionPrecision, precision)?.apply()
+        regionPrecision = precision
+
+        if (precision == Constants.kGRDRegionPrecisionDefault) {
+            GRDConnectManager.getSharedPrefsEditor()?.remove(Constants.kGRDPreferredRegionPrecision)
+                ?.apply()
+        }
     }
 
     fun createAndStartTunnel() {
