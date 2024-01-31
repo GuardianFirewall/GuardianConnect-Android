@@ -383,6 +383,7 @@ object GRDVPNHelper {
         val grdServerManager = GRDServerManager()
         grdServerManager.preferBetaCapableServers = preferBetaCapableServers
         grdServerManager.vpnServerFeatureEnvironment = vpnServerFeatureEnvironment
+        grdServerManager.regionPrecision = regionPrecision
 
         grdServerManager.selectServerFromRegion(
             object : IOnApiResponse {

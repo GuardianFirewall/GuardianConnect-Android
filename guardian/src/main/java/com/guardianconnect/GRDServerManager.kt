@@ -10,7 +10,6 @@ import com.google.gson.reflect.TypeToken
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
 import com.guardianconnect.enumeration.GRDServerFeatureEnvironment
-import com.guardianconnect.model.api.RequestServersForRegion
 import com.guardianconnect.model.api.Server
 import com.guardianconnect.model.api.TimeZonesResponse
 import com.guardianconnect.util.Constants.Companion.GRD_AUTOMATIC_REGION
@@ -28,6 +27,14 @@ class GRDServerManager {
 
     var preferBetaCapableServers: Boolean? = null
     var vpnServerFeatureEnvironment: GRDServerFeatureEnvironment? = null
+    var regionPrecision: String? = null
+
+    companion object {
+        const val kGRDServerManagerRegionKey = "region"
+        const val kGRDServerManagerPaidKey = "paid"
+        const val kGRDServerManagerFeatureEnvironmentKey = "feature-environment"
+        const val kGRDServerManagerBetaCapableKey = "beta-capable"
+    }
 
     /*  Function that calls the GRDHousekeeping APIs to get the list of available time zones
         compares the device's current time zone to the available ones and selects a region
@@ -38,16 +45,20 @@ class GRDServerManager {
         iOnApiResponse: IOnApiResponse
     ) {
         val grdRegion = GRDRegion()
-        val serversForRegion = RequestServersForRegion()
+        var requestBody: MutableMap<String, Any> = mutableMapOf()
         var selectedRegion = String()
         if (!grdRegion.getPreferredRegion().isNullOrEmpty()) {
             Log.d(TAG, "Using user preferred region: " + grdRegion.getPreferredRegion().toString())
-            serversForRegion.region = grdRegion.getPreferredRegion()
-            serversForRegion.featureEnvironment = vpnServerFeatureEnvironment
-            serversForRegion.betaCapable = preferBetaCapableServers
-            Log.d(TAG, "serversForRegion: $serversForRegion")
+
+            requestBody = mutableMapOf<String, Any>(
+                kGRDServerManagerRegionKey to grdRegion.getPreferredRegion().toString(),
+                kGRDServerManagerFeatureEnvironmentKey to vpnServerFeatureEnvironment as GRDServerFeatureEnvironment,
+                kGRDServerManagerBetaCapableKey to preferBetaCapableServers as Boolean
+            )
+            Log.d(TAG, "serversForRegion requestBody: $requestBody")
+
             requestListOfServersForRegion(
-                serversForRegion,
+                requestBody,
                 iOnApiResponse
             )
         } else {
@@ -63,9 +74,11 @@ class GRDServerManager {
                                     if (timeZone == currentTimeZoneId) {
                                         item.name?.let { name ->
                                             selectedRegion = name
-                                            serversForRegion.region = selectedRegion
+                                            requestBody[kGRDServerManagerRegionKey] = selectedRegion
+
                                             Log.d(
-                                                TAG, "Selected region: " + serversForRegion.region
+                                                TAG,
+                                                "Selected region: " + requestBody[kGRDServerManagerRegionKey]
                                             )
                                         }
                                         break
@@ -79,7 +92,7 @@ class GRDServerManager {
                         }
 
                         requestListOfServersForRegion(
-                            serversForRegion,
+                            requestBody,
                             iOnApiResponse
                         )
                     }
@@ -94,7 +107,7 @@ class GRDServerManager {
     }
 
     fun requestListOfServersForRegion(
-        serversForRegion: RequestServersForRegion,
+        serversForRegion: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
         Repository.instance.requestListOfServersForRegion(
@@ -186,26 +199,30 @@ class GRDServerManager {
                 val arrayList: List<GRDRegion> = Gson().fromJson(listFromSharedPreferences, type)
                 onRegionListener.onRegionsAvailable(arrayList)
             } else {
-                Repository.instance.requestAllGuardianRegions(object : IOnApiResponse {
-                    override fun onSuccess(any: Any?) {
-                        val anyList = any as List<*>
-                        val regionsList = anyList.filterIsInstance<GRDRegion>()
-                        list.addAll(regionsList)
-                        list.sortWith(compareBy<GRDRegion> { item ->
-                            if (item.namePretty == GRD_AUTOMATIC_REGION) 0 else 1
-                        }.thenBy { it.namePretty.toString() })
-                        onRegionListener.onRegionsAvailable(list)
-                        GRDConnectManager.getSharedPrefsEditor()?.putString(
-                            GRD_REGIONS_LIST_FROM_SHARED_PREFS, Gson().toJson(list)
-                        )?.apply()
-                        Log.d(TAG, "returnAllAvailableRegions success")
-                    }
+                regionPrecision?.let { regionPrecision ->
+                    Repository.instance.requestAllRegionsWithPrecision(
+                        regionPrecision,
+                        object : IOnApiResponse {
+                            override fun onSuccess(any: Any?) {
+                                val anyList = any as List<*>
+                                val regionsList = anyList.filterIsInstance<GRDRegion>()
+                                list.addAll(regionsList)
+                                list.sortWith(compareBy<GRDRegion> { item ->
+                                    if (item.namePretty == GRD_AUTOMATIC_REGION) 0 else 1
+                                }.thenBy { it.namePretty.toString() })
+                                onRegionListener.onRegionsAvailable(list)
+                                GRDConnectManager.getSharedPrefsEditor()?.putString(
+                                    GRD_REGIONS_LIST_FROM_SHARED_PREFS, Gson().toJson(list)
+                                )?.apply()
+                                Log.d(TAG, "returnAllAvailableRegions success")
+                            }
 
-                    override fun onError(error: String?) {
-                        error?.let { Log.d(TAG, it) }
-                        onRegionListener.onRegionsAvailable(ArrayList())
-                    }
-                })
+                            override fun onError(error: String?) {
+                                error?.let { Log.d(TAG, it) }
+                                onRegionListener.onRegionsAvailable(ArrayList())
+                            }
+                        })
+                }
             }
         }
     }

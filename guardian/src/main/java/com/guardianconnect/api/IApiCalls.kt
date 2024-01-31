@@ -60,6 +60,11 @@ interface IApiCalls {
         @Body RequestServersForRegion: RequestServersForRegion
     ): Call<ResponseBody>
 
+    @POST("/api/v1.3/servers/hostnames-for-region")
+    fun requestListOfServersForRegionWithRegionPrecision(
+        @Body request: @JvmSuppressWildcards MutableMap<String, Any>
+    ): Call<ResponseBody>
+
     @GET("/api/v1.1/servers/timezones-for-regions")
     fun getListOfSupportedTimeZones(): Call<ResponseBody>
 

@@ -20,6 +20,7 @@ import com.guardianconnect.GRDPEToken
 import com.guardianconnect.GRDRegion
 import com.guardianconnect.GRDServerManager
 import com.guardianconnect.GRDVPNHelper
+import com.guardianconnect.util.Constants
 import com.guardianconnect.util.Constants.Companion.GRD_CONFIG_STRING
 import com.guardianconnect.util.GRDKeystore
 import com.guardianconnect.util.applicationScope
@@ -173,8 +174,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun setGRDRegionPrecisionDefault(grdServerManager: GRDServerManager) {
+        grdServerManager.regionPrecision = Constants.kGRDRegionPrecisionDefault
+    }
+
     private fun loadRegionsList() {
-        GRDServerManager().returnAllAvailableRegions(object :
+        val grdServerManager = GRDServerManager()
+        setGRDRegionPrecisionDefault(grdServerManager)
+        grdServerManager.returnAllAvailableRegions(object :
             GRDServerManager.OnRegionListener {
             override fun onRegionsAvailable(listOfGRDRegions: List<GRDRegion>) {
                 regionsAdapterList.addAll(listOfGRDRegions)
@@ -227,7 +234,7 @@ class MainActivity : AppCompatActivity() {
 
     class MyBroadcastReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            Log.d("MainActivity","Intent action name: ${intent.action}" )
+            Log.d("MainActivity", "Intent action name: ${intent.action}")
 
             applicationScope.launch {
                 val manager = GRDConnectManager.getTunnelManager()
