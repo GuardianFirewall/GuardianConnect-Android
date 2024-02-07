@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
 import com.guardianconnect.enumeration.GRDServerFeatureEnvironment
@@ -45,6 +47,8 @@ object GRDVPNHelper {
     private var preferBetaCapableServers: Boolean? = null
     private var vpnServerFeatureEnvironment: GRDServerFeatureEnvironment? = null
     private var regionPrecision: String? = null
+    var appExceptions: ArrayList<String> = arrayListOf()
+    var excludeLANTraffic: Boolean? = true
 
     fun initHelper(context: Context) {
         this.context = context
@@ -52,6 +56,12 @@ object GRDVPNHelper {
         grdCredentialManager = GRDCredentialManager()
         preferBetaCapableServers = false
         vpnServerFeatureEnvironment = GRDServerFeatureEnvironment.ServerFeatureEnvironmentProduction
+        appExceptions = getArrayListOfAppExceptions()
+
+        excludeLANTraffic =
+            GRDConnectManager.getSharedPrefs()?.getBoolean(
+                Constants.kGRDExcludeLANTraffic, true
+            )
 
         val savedPrecision = GRDConnectManager.getSharedPrefs()
             ?.getString(Constants.kGRDPreferredRegionPrecision, null)
@@ -82,6 +92,40 @@ object GRDVPNHelper {
             GRDConnectManager.getSharedPrefsEditor()?.remove(Constants.kGRDPreferredRegionPrecision)
                 ?.apply()
         }
+    }
+
+    fun setAppExceptionPackages(apps: ArrayList<String>?) {
+        appExceptions = if (apps == null) {
+            GRDConnectManager.getSharedPrefsEditor()
+                ?.remove(Constants.kGRDAppExceptionsPackageNames)?.apply()
+            ArrayList()
+        } else {
+            setArrayListOfAppExceptions(apps)
+            apps
+        }
+    }
+
+    private fun setArrayListOfAppExceptions(stringList: ArrayList<String>) {
+        val gson = Gson()
+        val jsonString = gson.toJson(stringList)
+        GRDConnectManager.getSharedPrefsEditor()
+            ?.putString(Constants.kGRDAppExceptionsPackageNames, jsonString)?.apply()
+    }
+
+    private fun getArrayListOfAppExceptions(): ArrayList<String> {
+        val jsonString = GRDConnectManager.getSharedPrefs()
+            ?.getString(Constants.kGRDAppExceptionsPackageNames, null)
+        val type = object : TypeToken<ArrayList<String>>() {}.type
+        val gson = Gson()
+        return gson.fromJson(jsonString, type) ?: ArrayList()
+    }
+
+    fun excludeLANTraffic(shouldExclude: Boolean) {
+        excludeLANTraffic = shouldExclude
+        val localExcludeLANTraffic = excludeLANTraffic as Boolean
+        GRDConnectManager.getSharedPrefsEditor()
+            ?.putBoolean(Constants.kGRDExcludeLANTraffic, localExcludeLANTraffic)
+            ?.apply();
     }
 
     fun createAndStartTunnel() {
