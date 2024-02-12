@@ -40,9 +40,8 @@ class Constants {
         const val kGRDPreferredRegionPrecision = "kGRDPreferredRegionPrecision"
         const val kGRDRegionPrecisionDefault = "default"
         const val kGRDRegionPrecisionCity = "city"
-        const val kGRDRegionPrecisionCountry = "country"
+        const val kGRDRegionPrecisionCountry = "city-by-country"
         const val kGRDAppExceptionsPackageNames = "kGRDAppExceptionsPackageNames"
         const val kGRDExcludeLANTraffic = "kGRDExcludeLANTraffic"
-
     }
 }

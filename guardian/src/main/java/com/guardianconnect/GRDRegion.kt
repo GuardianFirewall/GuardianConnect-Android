@@ -22,6 +22,12 @@ class GRDRegion {
     @SerializedName("name-pretty")
     var namePretty: String? = null
 
+    @SerializedName("cities")
+    var cities: List<GRDRegion>? = null
+
+    @SerializedName("region-precision")
+    var regionPrecision: String? = null
+
     companion object {
         fun automaticRegion(): GRDRegion {
             val auto = GRDRegion()
@@ -48,10 +54,10 @@ class GRDRegion {
 
         val grdRegionName = grdRegion.name
         val grdRegionNamePretty = grdRegion.namePretty
-        GRDConnectManager.getSharedPrefs()?.edit()
-            ?.putString(GRD_Preferred_Region, grdRegionName)?.apply()
-        GRDConnectManager.getSharedPrefs()?.edit()
-            ?.putString(GRD_PREFERRED_REGION_NAME_PRETTY, grdRegionNamePretty)?.apply()
+        val editor = GRDConnectManager.getSharedPrefsEditor()
+        editor?.putString(GRD_Preferred_Region, grdRegionName)
+        editor?.putString(GRD_PREFERRED_REGION_NAME_PRETTY, grdRegionNamePretty)
+        editor?.apply()
     }
 
     /*  Function that retrieves the currently stored object region name in the SharedPreferences */
