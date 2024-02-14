@@ -125,7 +125,7 @@ object GRDVPNHelper {
         val localExcludeLANTraffic = excludeLANTraffic as Boolean
         GRDConnectManager.getSharedPrefsEditor()
             ?.putBoolean(Constants.kGRDExcludeLANTraffic, localExcludeLANTraffic)
-            ?.apply();
+            ?.apply()
     }
 
     fun createAndStartTunnel() {
@@ -490,7 +490,9 @@ object GRDVPNHelper {
                         grdWireGuardConfiguration.getWireGuardConfigString(
                             grdCredential,
                             GRDConnectManager.getSharedPrefs()
-                                ?.getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null)
+                                ?.getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null),
+                            appExceptions,
+                            excludeLANTraffic ?: true
                         )
                     GRDKeystore.instance.saveToKeyStore(GRD_CONFIG_STRING, configString)
                     iOnApiResponse.onSuccess(configString)
