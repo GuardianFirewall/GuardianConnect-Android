@@ -72,6 +72,7 @@ object GRDVPNHelper {
                 Constants.kGRDRegionPrecisionDefault -> {}
                 Constants.kGRDRegionPrecisionCity -> {}
                 Constants.kGRDRegionPrecisionCountry -> {}
+                Constants.kGRDRegionPrecisionCityByCountry -> {}
                 else -> {
                     Log.d(
                         TAG,

@@ -28,6 +28,12 @@ class GRDRegion {
     @SerializedName("region-precision")
     var regionPrecision: String? = null
 
+    @SerializedName("longitude")
+    var longitude: Double? = null
+
+    @SerializedName("latitude")
+    var latitude: Double? = null
+
     companion object {
         fun automaticRegion(): GRDRegion {
             val auto = GRDRegion()
