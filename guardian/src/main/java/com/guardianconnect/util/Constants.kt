@@ -44,5 +44,7 @@ class Constants {
         const val kGRDRegionPrecisionCityByCountry = "city-by-country"
         const val kGRDAppExceptionsPackageNames = "kGRDAppExceptionsPackageNames"
         const val kGRDExcludeLANTraffic = "kGRDExcludeLANTraffic"
+        const val VPN_CREDENTIALS_INVALIDATION_ERROR = "VPN_CREDENTIALS_INVALIDATION_ERROR"
+        const val SUBSCRIBER_CREDENTIAL_FAIL_PET = "SUBSCRIBER_CREDENTIAL_FAIL_PET"
     }
 }

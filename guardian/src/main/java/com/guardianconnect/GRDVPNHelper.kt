@@ -367,7 +367,7 @@ object GRDVPNHelper {
         subscriberCredential?.let {
             initRegionAndConnectDevice(it, validForDays, mainCredentials, iOnApiResponse)
         } ?: run {
-            createSubscriber(peToken, object : IOnApiResponse {
+            createSubscriberCredential(peToken, object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
                     val subscriberCredentialString = any as String
                     initRegionAndConnectDevice(
@@ -385,7 +385,7 @@ object GRDVPNHelper {
         }
     }
 
-    fun createSubscriber(
+    fun createSubscriberCredential(
         peToken: String,
         iOnApiResponse: IOnApiResponse
     ) {
@@ -409,10 +409,16 @@ object GRDVPNHelper {
                 }
 
                 override fun onError(error: String?) {
-                    iOnApiResponse.onError(error)
-                    error?.let {
+                    error?.let { e ->
+                        val errorMessage =
+                            if (e.contains("Failed to query password equivalent token data or password equivalent token does not exist")) {
+                                Constants.SUBSCRIBER_CREDENTIAL_FAIL_PET
+                            } else {
+                                e
+                            }
+                        iOnApiResponse.onError(errorMessage)
                         GRDConnectManager.getCoroutineScope().launch {
-                            grdErrorFlow.emit(it)
+                            grdErrorFlow.emit(errorMessage)
                         }
                     }
                 }
@@ -559,10 +565,8 @@ object GRDVPNHelper {
                     }
 
                     override fun onError(error: String?) {
-                        error?.let {
-                            GRDConnectManager.getCoroutineScope().launch {
-                                grdErrorFlow.emit("Credentials NOT invalidated, something went wrong! $it")
-                            }
+                        GRDConnectManager.getCoroutineScope().launch {
+                            grdErrorFlow.emit(Constants.VPN_CREDENTIALS_INVALIDATION_ERROR)
                         }
                     }
                 })
