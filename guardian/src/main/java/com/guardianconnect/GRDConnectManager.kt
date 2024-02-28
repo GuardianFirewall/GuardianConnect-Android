@@ -22,6 +22,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.concurrent.CountDownLatch
 
 class GRDConnectManager {
 
@@ -30,19 +32,28 @@ class GRDConnectManager {
     private var backend: Backend? = null
     private lateinit var preferencesDataStore: DataStore<Preferences>
     private lateinit var tunnelManager: TunnelManager
-    private var sharedPreference: SharedPreferences? = null
-    private var editor: SharedPreferences.Editor? = null
+    private lateinit var sharedPreference: SharedPreferences
+    private lateinit var editor: SharedPreferences.Editor
     private lateinit var guardianContext: Context
     private lateinit var connectivityManager: ConnectivityManager
     private var tunnelState: Tunnel.State? = null
     private var tunnelStateLabel: String? = null
+    private val sharedPrefsInitializationLatch = CountDownLatch(1)
 
     fun init(context: Context) {
         instance = this
         guardianContext = context
-        sharedPreference =
-            androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
-        editor = sharedPreference?.edit()
+        if (!::sharedPreference.isInitialized) {
+            coroutineScope.launch(Dispatchers.IO) {
+                sharedPreference = withContext(Dispatchers.Default) {
+                    androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
+                }
+                editor = withContext(Dispatchers.Default) {
+                    sharedPreference.edit()
+                }
+                sharedPrefsInitializationLatch.countDown()
+            }
+        }
         preferencesDataStore =
             PreferenceDataStoreFactory.create { context.preferencesDataStoreFile("settings") }
         tunnelManager = TunnelManager(FileConfigStore(context))
@@ -148,9 +159,15 @@ class GRDConnectManager {
         fun getCoroutineScope() = get().coroutineScope
 
         @JvmStatic
-        fun getSharedPrefs() = get().sharedPreference
+        fun getSharedPrefs(): SharedPreferences {
+            get().sharedPrefsInitializationLatch.await()
+            return get().sharedPreference
+        }
 
         @JvmStatic
-        fun getSharedPrefsEditor() = get().editor
+        fun getSharedPrefsEditor(): SharedPreferences.Editor {
+            get().sharedPrefsInitializationLatch.await()
+            return get().editor
+        }
     }
 }
