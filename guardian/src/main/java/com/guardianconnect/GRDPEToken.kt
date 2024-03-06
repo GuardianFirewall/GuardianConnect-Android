@@ -66,9 +66,13 @@ class GRDPEToken {
     }
 
     fun destroy() {
-        GRDKeystore.instance.removePEToken()
-        GRDConnectManager.getSharedPrefsEditor()?.remove(GRD_PE_TOKEN_CONNECT_API_ENV)?.apply()
-        GRDConnectManager.getSharedPrefsEditor()?.remove(GRD_PE_TOKEN_EXPIRATION_DATE)?.apply()
+        removePEToken()
+        GRDConnectManager.getSharedPrefsEditor().remove(GRD_PE_TOKEN_CONNECT_API_ENV)?.apply()
+        GRDConnectManager.getSharedPrefsEditor().remove(GRD_PE_TOKEN_EXPIRATION_DATE)?.apply()
+    }
+
+    fun removePEToken() {
+        GRDConnectManager.getSharedPrefsEditor().remove(GRD_PE_TOKEN)?.apply()
     }
 
     fun invalidate() {

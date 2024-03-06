@@ -5,8 +5,11 @@ import android.security.keystore.KeyProperties
 import android.util.Base64
 import android.util.Log
 import com.guardianconnect.GRDConnectManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.nio.charset.Charset
 import java.security.KeyStore
+import java.util.concurrent.CountDownLatch
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -69,47 +72,45 @@ class GRDKeystore {
     }
 
     fun saveToKeyStore(key: String, value: String) {
-        val encryptedValueToSave = Base64.encodeToString(
-            encryptor.encryptText(
-                key,
-                value
-            ), Base64.DEFAULT
-        )
-        GRDConnectManager.getSharedPrefsEditor()?.putString(
-            key, encryptedValueToSave
-        )
-            ?.apply()
+        GRDConnectManager.getCoroutineScope().launch(Dispatchers.IO) {
+            val encryptedValueToSave = Base64.encodeToString(
+                encryptor.encryptText(
+                    key,
+                    value
+                ), Base64.DEFAULT
+            )
+
+            GRDConnectManager.getSharedPrefsEditor().putString(
+                key, encryptedValueToSave
+            )?.apply()
+        }
     }
 
     fun retrieveFromKeyStore(key: String): String? {
-        val encryptedValue =
-            GRDConnectManager.getSharedPrefs()?.getString(key, "")
         var returnString: String? = null
+        val latch = CountDownLatch(1)
 
-        try {
-            returnString = if (!encryptedValue.isNullOrEmpty()) {
-                decryptor.initKeyStore()
-                val decryptedValue =
-                    decryptor.decryptData(
-                        key,
-                        Base64.decode(
-                            encryptedValue,
-                            Base64.DEFAULT
-                        )
-                    )
-                decryptedValue
-            } else {
-                null
+        GRDConnectManager.getCoroutineScope().launch(Dispatchers.IO) {
+            val encryptedValue = GRDConnectManager.getSharedPrefs().getString(key, "")
+
+            try {
+                returnString = if (!encryptedValue.isNullOrEmpty()) {
+                    decryptor.initKeyStore()
+                    val decryptedValue =
+                        decryptor.decryptData(key, Base64.decode(encryptedValue, Base64.DEFAULT))
+                    decryptedValue
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                e.message?.let { Log.e("GRDKeystore", it) }
+                GRDConnectManager.getSharedPrefsEditor().remove(key)
+            } finally {
+                latch.countDown()
             }
-        } catch (e: Exception) {
-            e.message?.let { Log.e("GRDKeystore", it) }
-            GRDConnectManager.getSharedPrefsEditor()?.remove(key)
         }
+        latch.await()
         return returnString
-    }
-
-    fun removePEToken() {
-        GRDConnectManager.getSharedPrefsEditor()?.remove(Constants.GRD_PE_TOKEN)?.apply()
     }
 
     companion object {
