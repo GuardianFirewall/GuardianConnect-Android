@@ -34,6 +34,9 @@ class GRDRegion {
     @SerializedName("latitude")
     var latitude: Double? = null
 
+    @SerializedName("country")
+    var country: String? = null
+
     companion object {
         fun automaticRegion(): GRDRegion {
             val auto = GRDRegion()
