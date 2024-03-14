@@ -6,36 +6,35 @@ import com.guardianconnect.util.Constants.Companion.GRD_PERSISTENT_LOG_ENABLED
 
 object GRDLogger {
 
-    fun allLogs(): ArrayList<String> {
+    fun allLogs(): List<String>? {
         val logs = GRDConnectManager
-            .getSharedPrefs()?.getString(Constants.GRD_PERSISTENT_LOG, "")
-        return logs?.split(",") as ArrayList<String>
+            .getSharedPrefs().getString(Constants.GRD_PERSISTENT_LOG, "")
+        return logs?.split(",")
     }
 
-    fun allLogsFormatted(): String {
+    fun allLogsFormatted(): String? {
         val logsArray = allLogs()
-        return logsArray.joinToString("\n") { it }
+        return logsArray?.joinToString("\n") { it }
     }
 
     fun togglePersistentLogging(logEnabled: Boolean) {
-        GRDConnectManager.getSharedPrefsEditor()?.putBoolean(GRD_PERSISTENT_LOG_ENABLED, logEnabled)
+        GRDConnectManager.getSharedPrefsEditor().putBoolean(GRD_PERSISTENT_LOG_ENABLED, logEnabled)
             ?.apply()
     }
 
     private fun iskGRDPersistentLogEnabled(): Boolean {
-        return GRDConnectManager.getSharedPrefs()?.getBoolean(GRD_PERSISTENT_LOG_ENABLED, false)
-            ?: false
+        return GRDConnectManager.getSharedPrefs().getBoolean(GRD_PERSISTENT_LOG_ENABLED, false)
     }
 
     fun zzz_log(logPriority: Int, tag: String, message: String, b: Boolean) {
-        val arrayOfStrings = allLogs()
+        val arrayOfStrings = allLogs() as ArrayList<String>
         if (arrayOfStrings.size > 199) {
             if (!b && iskGRDPersistentLogEnabled()) {
                 arrayOfStrings.removeAt(0)
                 arrayOfStrings += message
                 val messagesAsString = arrayOfStrings.joinToString("\n") { it }
                 GRDConnectManager.getSharedPrefsEditor()
-                    ?.putString(GRD_PERSISTENT_LOG_ENABLED, messagesAsString)
+                    .putString(GRD_PERSISTENT_LOG_ENABLED, messagesAsString)
                     ?.apply()
             }
         }
@@ -55,6 +54,6 @@ object GRDLogger {
     }
 
     fun deleteAllLogs() {
-        GRDConnectManager.getSharedPrefsEditor()?.remove(Constants.GRD_PERSISTENT_LOG)?.apply()
+        GRDConnectManager.getSharedPrefsEditor().remove(Constants.GRD_PERSISTENT_LOG)?.apply()
     }
 }
