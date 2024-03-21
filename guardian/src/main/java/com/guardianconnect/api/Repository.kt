@@ -392,7 +392,7 @@ class Repository {
     ) {
         val call: Call<ResponseBody>? =
             apiCallsConnect?.requestListOfServersForRegion(requestServersForRegion)
-        var objectList: ArrayList<Server>?
+        var objectList: ArrayList<GRDSGWServer>?
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
@@ -400,7 +400,7 @@ class Repository {
                     objectList = ArrayList(
                         Gson().fromJson(
                             string,
-                            Array<Server>::class.java
+                            Array<GRDSGWServer>::class.java
                         ).asList()
                     )
                     iOnApiResponse.onSuccess(objectList)
@@ -443,7 +443,7 @@ class Repository {
     ) {
         val call: Call<ResponseBody>? =
             apiCallsConnect?.requestListOfServersForRegionWithRegionPrecision(requestServersForRegion)
-        var objectList: ArrayList<Server>?
+        var objectList: ArrayList<GRDSGWServer>?
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
@@ -451,7 +451,7 @@ class Repository {
                     objectList = ArrayList(
                         Gson().fromJson(
                             string,
-                            Array<Server>::class.java
+                            Array<GRDSGWServer>::class.java
                         ).asList()
                     )
                     iOnApiResponse.onSuccess(objectList)

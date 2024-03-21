@@ -10,7 +10,7 @@ import com.google.gson.reflect.TypeToken
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
 import com.guardianconnect.enumeration.GRDServerFeatureEnvironment
-import com.guardianconnect.model.api.Server
+import com.guardianconnect.model.api.GRDSGWServer
 import com.guardianconnect.model.api.TimeZonesResponse
 import com.guardianconnect.util.Constants.Companion.GRD_AUTOMATIC_REGION
 import com.guardianconnect.util.Constants.Companion.GRD_REGIONS_LIST_FROM_SHARED_PREFS
@@ -115,7 +115,7 @@ class GRDServerManager {
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
                     val anyList = any as List<*>
-                    val listOfServersToReturn = anyList.filterIsInstance<Server>()
+                    val listOfServersToReturn = anyList.filterIsInstance<GRDSGWServer>()
                     iOnApiResponse.onSuccess(listOfServersToReturn)
                     Log.d(
                         TAG,
@@ -143,19 +143,19 @@ class GRDServerManager {
         getGuardianHosts(object : IOnApiResponse {
             override fun onSuccess(any: Any?) {
                 val anyList = any as List<*>
-                val listOfServers = anyList.filterIsInstance<Server>()
-                listOfServers.let {
-                    val filteredServers: List<Server> =
-                        listOfServers.filter { it.capacityScore in setOf(0, 1) }
-                    var selectedServer: Server? = null
-                    if (filteredServers.isNotEmpty()) {
-                        selectedServer = filteredServers.random()
-                    } else if (listOfServers.size == 1) {
-                        selectedServer = listOfServers[0]
+                val listOfGRDSGWServers = anyList.filterIsInstance<GRDSGWServer>()
+                listOfGRDSGWServers.let {
+                    val filteredGRDSGWServers: List<GRDSGWServer> =
+                        listOfGRDSGWServers.filter { it.capacityScore in setOf(0, 1) }
+                    var selectedGRDSGWServer: GRDSGWServer? = null
+                    if (filteredGRDSGWServers.isNotEmpty()) {
+                        selectedGRDSGWServer = filteredGRDSGWServers.random()
+                    } else if (listOfGRDSGWServers.size == 1) {
+                        selectedGRDSGWServer = listOfGRDSGWServers[0]
                     }
-                    Log.d(TAG, "Selected Server is: " + selectedServer?.displayName)
-                    Log.d(TAG, "Selected server hostname is: " + selectedServer?.hostname)
-                    iOnApiResponse.onSuccess(selectedServer)
+                    Log.d(TAG, "Selected Server is: " + selectedGRDSGWServer?.displayName)
+                    Log.d(TAG, "Selected server hostname is: " + selectedGRDSGWServer?.hostname)
+                    iOnApiResponse.onSuccess(selectedGRDSGWServer)
                 }
             }
 

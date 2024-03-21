@@ -1,7 +1,7 @@
 package com.guardianconnect
 
 import com.guardianconnect.model.api.NewVPNDeviceResponse
-import com.guardianconnect.model.api.Server
+import com.guardianconnect.model.api.GRDSGWServer
 import com.guardianconnect.util.Constants.Companion.GRD_API_AUTH_TOKEN
 import com.guardianconnect.util.Constants.Companion.GRD_DEVICE_ID
 import com.guardianconnect.util.Constants.Companion.GRD_MAIN
@@ -50,6 +50,7 @@ class GRDCredential {
 
     var IPv6Address: String? = null
 
+    var region: GRDRegion? = null
 
     /*  An init function to create a instance variable of the GRDCredential class given some data
         from the Android Keystore or the API
@@ -61,20 +62,21 @@ class GRDCredential {
         validForDays: Long,
         mainCreds: Boolean,
         vpnDeviceResponse: NewVPNDeviceResponse,
-        server: Server,
+        grdSgwServer: GRDSGWServer,
         keyPair: KeyPair
     ) {
         identifier = UUID.randomUUID().toString()
-        name = GRD_WIREGUARD_PRETTY + " " + truncatedHost(server)
+        name = GRD_WIREGUARD_PRETTY + " " + truncatedHost(grdSgwServer)
         mainCredential = mainCreds
         if (mainCreds) {
             identifier = GRD_MAIN
         }
         apiAuthToken = vpnDeviceResponse.apiAuthToken
-        hostname = server.hostname
+        hostname = grdSgwServer.hostname
+        region = grdSgwServer.region
         expirationDate =
             System.currentTimeMillis() + validForDays * 86400000
-        hostnameDisplayValue = server.displayName
+        hostnameDisplayValue = grdSgwServer.displayName
         checkedExpiration = false
         expired = false
         transportProtocol = grdTransportProtocolType
@@ -105,7 +107,7 @@ class GRDCredential {
     }
 
     /* A function to return a truncated version of the complete hostname to show in the user interface */
-    fun truncatedHost(server: Server): String? {
-        return server.hostname?.split(".")?.get(0)
+    fun truncatedHost(grdSgwServer: GRDSGWServer): String? {
+        return grdSgwServer.hostname?.split(".")?.get(0)
     }
 }

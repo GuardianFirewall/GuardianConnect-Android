@@ -27,17 +27,18 @@ object GRDLogger {
     }
 
     fun zzz_log(logPriority: Int, tag: String, message: String, b: Boolean) {
-        val arrayOfStrings = allLogs() as ArrayList<String>
-        if (arrayOfStrings.size > 199) {
-            if (!b && iskGRDPersistentLogEnabled()) {
-                arrayOfStrings.removeAt(0)
-                arrayOfStrings += message
-                val messagesAsString = arrayOfStrings.joinToString("\n") { it }
-                GRDConnectManager.getSharedPrefsEditor()
-                    .putString(GRD_PERSISTENT_LOG_ENABLED, messagesAsString)
-                    ?.apply()
+        val arrayOfStrings = allLogs()?.let { ArrayList<String>(it) }
+        if(arrayOfStrings != null)
+            if (arrayOfStrings.size > 199) {
+                if (!b && iskGRDPersistentLogEnabled()) {
+                    arrayOfStrings.removeAt(0)
+                    arrayOfStrings += message
+                    val messagesAsString = arrayOfStrings.joinToString("\n") { it }
+                    GRDConnectManager.getSharedPrefsEditor()
+                        .putString(GRD_PERSISTENT_LOG_ENABLED, messagesAsString)
+                        .apply()
+                }
             }
-        }
         Log.println(logPriority, tag, message)
     }
 

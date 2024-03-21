@@ -439,12 +439,12 @@ object GRDVPNHelper {
         grdServerManager.selectServerFromRegion(
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
-                    val server = any as Server
-                    server.hostname?.let {
+                    val grdSgwServer = any as GRDSGWServer
+                    grdSgwServer.hostname?.let {
                         Repository.instance.initRegionServer(it)
                         connectVpnDevice(
                             subscriberCredentialString,
-                            server,
+                            grdSgwServer,
                             iOnApiResponse,
                             validForDays,
                             mainCredentials
@@ -466,7 +466,7 @@ object GRDVPNHelper {
 
     fun connectVpnDevice(
         subscriberCredentialString: String,
-        server: Server,
+        grdSgwServer: GRDSGWServer,
         iOnApiResponse: IOnApiResponse,
         validForDays: Long,
         mainCredentials: Boolean
@@ -488,7 +488,7 @@ object GRDVPNHelper {
                         validForDays,
                         mainCredentials,
                         newVPNDeviceResponse,
-                        server,
+                        grdSgwServer,
                         keyPairGenerated
                     )
                     grdCredentialManager?.addOrUpdateCredential(grdCredential)

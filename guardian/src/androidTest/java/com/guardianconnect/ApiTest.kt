@@ -91,7 +91,7 @@ class ApiTest {
     private lateinit var callTimeZonesResponse: Call<List<TimeZonesResponse>>
 
     @Mock
-    private lateinit var callListOfServersForRegion: Call<List<Server>>
+    private lateinit var callListOfServersForRegion: Call<List<GRDSGWServer>>
 
     @Mock
     private lateinit var callSubscriberCredential: Call<SubscriberCredentialResponse>
@@ -305,7 +305,7 @@ class ApiTest {
         val apiService = retrofit.create(IApiCalls::class.java)
         Mockito.`when`(callListOfServersForRegion.execute()).thenReturn(
             Response.success(
-                listOf(Server())
+                listOf(GRDSGWServer())
             )
         )
         val requestServersForRegion = RequestServersForRegion()
