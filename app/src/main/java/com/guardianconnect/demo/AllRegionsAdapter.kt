@@ -8,6 +8,7 @@ import android.widget.RadioButton
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.guardianconnect.GRDRegion
+import com.guardianconnect.GRDServerManager
 import com.guardianconnect.util.Constants.Companion.GRD_AUTOMATIC_REGION
 
 class AllRegionsAdapter(
@@ -55,7 +56,7 @@ class AllRegionsAdapter(
 
         fun bind(grdRegion: GRDRegion, onClickListener: IOnClickListener?) {
             radioButton.text = grdRegion.namePretty
-            if (grdRegion.getPreferredRegion() == null) {
+            if (grdRegion.getPreferredRegionName() == null) {
                 selectedPosition = 0
             }
             itemView.setOnClickListener {
@@ -64,7 +65,7 @@ class AllRegionsAdapter(
                     grdRegion
                 )
                 if (grdRegion.namePretty == GRD_AUTOMATIC_REGION) {
-                    grdRegion.clearPreferredRegion()
+                    GRDServerManager.clearPreferredRegion()
                     Toast.makeText(
                         context,
                         "Preferred region cleared!",

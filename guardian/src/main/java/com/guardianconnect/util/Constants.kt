@@ -21,6 +21,7 @@ class Constants {
         const val GRD_Main_Credential_WG_Public_Key = "GRD-Main-Credential-WG-Public-Key"
         const val GRD_Main_Credential_WG_Private_Key = "GRD-Main-Credential-WG-Private-Key"
         const val GRD_Preferred_Region = "GRD_Preferred_Region"
+        const val GRD_PREFERRED_REGION = "GRD_PREFERRED_REGION"
         const val GRD_PREFERRED_REGION_NAME_PRETTY = "GRD_PREFERRED_REGION_NAME_PRETTY"
         const val GRD_REGIONS_LIST_FROM_SHARED_PREFS = "GRD_REGIONS_LIST_FROM_SHARED_PREFS"
         const val GRD_AUTOMATIC_REGION = "Automatic"

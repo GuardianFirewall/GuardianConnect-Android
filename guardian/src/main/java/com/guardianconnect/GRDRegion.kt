@@ -1,6 +1,5 @@
 package com.guardianconnect
 
-import android.util.Log
 import com.google.gson.annotations.SerializedName
 import com.guardianconnect.util.Constants.Companion.GRD_AUTOMATIC_REGION
 import com.guardianconnect.util.Constants.Companion.GRD_PREFERRED_REGION_NAME_PRETTY
@@ -50,29 +49,29 @@ class GRDRegion {
     /*  Permanently override the region that the device should connect to.
         The function should take the name property of the region object and store it into the
         SharedPreferences for the key GRD_Preferred_Region */
-    fun setPreferredRegion(grdRegion: GRDRegion) {
+    fun setPreferredRegionName(grdRegion: GRDRegion) {
         //
         // Note from CJ 2023-11-06
         // If we're passing the automatic region nothing should be stored
         // and the preferred region object in the shared preferences
         // should be removed entirely instead
         if (grdRegion.name == GRD_AUTOMATIC_REGION) {
-            grdRegion.clearPreferredRegion()
+            GRDServerManager.clearPreferredRegion()
             return
         }
 
         val grdRegionName = grdRegion.name
         val grdRegionNamePretty = grdRegion.namePretty
         val editor = GRDConnectManager.getSharedPrefsEditor()
-        editor?.putString(GRD_Preferred_Region, grdRegionName)
-        editor?.putString(GRD_PREFERRED_REGION_NAME_PRETTY, grdRegionNamePretty)
-        editor?.apply()
+        editor.putString(GRD_Preferred_Region, grdRegionName)
+        editor.putString(GRD_PREFERRED_REGION_NAME_PRETTY, grdRegionNamePretty)
+        editor.apply()
     }
 
     /*  Function that retrieves the currently stored object region name in the SharedPreferences */
-    fun getPreferredRegion(): String? {
+    fun getPreferredRegionName(): String? {
         val preferredRegionName =
-            GRDConnectManager.getSharedPrefs()?.getString(GRD_Preferred_Region, null)
+            GRDConnectManager.getSharedPrefs().getString(GRD_Preferred_Region, null)
         return if (!preferredRegionName.isNullOrEmpty()) {
             preferredRegionName
         } else {
@@ -83,18 +82,11 @@ class GRDRegion {
     /*  Function that retrieves the currently stored object region name in the SharedPreferences */
     fun getPreferredRegionNamePretty(): String? {
         val preferredRegionName =
-            GRDConnectManager.getSharedPrefs()?.getString(GRD_PREFERRED_REGION_NAME_PRETTY, null)
+            GRDConnectManager.getSharedPrefs().getString(GRD_PREFERRED_REGION_NAME_PRETTY, null)
         return if (!preferredRegionName.isNullOrEmpty()) {
             preferredRegionName
         } else {
             null
         }
-    }
-
-    /*  Function to reset the user preferred region. */
-    fun clearPreferredRegion() {
-        GRDConnectManager.getSharedPrefsEditor()?.remove(GRD_Preferred_Region)?.apply()
-        GRDConnectManager.getSharedPrefsEditor()?.remove(GRD_PREFERRED_REGION_NAME_PRETTY)?.apply()
-        Log.d(TAG, "Preferred Region cleared!")
     }
 }

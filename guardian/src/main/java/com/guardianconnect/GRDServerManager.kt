@@ -12,6 +12,7 @@ import com.guardianconnect.api.Repository
 import com.guardianconnect.enumeration.GRDServerFeatureEnvironment
 import com.guardianconnect.model.api.GRDSGWServer
 import com.guardianconnect.model.api.TimeZonesResponse
+import com.guardianconnect.util.Constants
 import com.guardianconnect.util.Constants.Companion.GRD_AUTOMATIC_REGION
 import com.guardianconnect.util.Constants.Companion.GRD_REGIONS_LIST_FROM_SHARED_PREFS
 import java.util.*
@@ -23,17 +24,26 @@ import kotlin.collections.ArrayList
 
 class GRDServerManager {
 
-    private val TAG = GRDServerManager::class.java.simpleName
 
     var preferBetaCapableServers: Boolean? = null
     var vpnServerFeatureEnvironment: GRDServerFeatureEnvironment? = null
     var regionPrecision: String? = null
 
     companion object {
+        private val TAG = GRDServerManager::class.java.simpleName
+
         const val kGRDServerManagerRegionKey = "region"
         const val kGRDServerManagerPaidKey = "paid"
         const val kGRDServerManagerFeatureEnvironmentKey = "feature-environment"
         const val kGRDServerManagerBetaCapableKey = "beta-capable"
+
+        /*  Function to reset the user preferred region. */
+        fun clearPreferredRegion() {
+            GRDConnectManager.getSharedPrefsEditor().remove(Constants.GRD_Preferred_Region)?.apply()
+            GRDConnectManager.getSharedPrefsEditor().remove(Constants.GRD_PREFERRED_REGION_NAME_PRETTY)?.apply()
+            GRDConnectManager.getSharedPrefsEditor().remove(Constants.GRD_PREFERRED_REGION)?.apply()
+            Log.d(TAG, "Preferred Region cleared!")
+        }
     }
 
     /*  Function that calls the GRDHousekeeping APIs to get the list of available time zones
@@ -47,11 +57,11 @@ class GRDServerManager {
         val grdRegion = GRDRegion()
         var requestBody: MutableMap<String, Any> = mutableMapOf()
         var selectedRegion = String()
-        if (!grdRegion.getPreferredRegion().isNullOrEmpty()) {
-            Log.d(TAG, "Using user preferred region: " + grdRegion.getPreferredRegion().toString())
+        if (!grdRegion.getPreferredRegionName().isNullOrEmpty()) {
+            Log.d(TAG, "Using user preferred region: " + grdRegion.getPreferredRegionName().toString())
 
             requestBody = mutableMapOf<String, Any>(
-                kGRDServerManagerRegionKey to grdRegion.getPreferredRegion().toString(),
+                kGRDServerManagerRegionKey to grdRegion.getPreferredRegionName().toString(),
                 kGRDServerManagerFeatureEnvironmentKey to vpnServerFeatureEnvironment as GRDServerFeatureEnvironment,
                 kGRDServerManagerBetaCapableKey to preferBetaCapableServers as Boolean
             )
