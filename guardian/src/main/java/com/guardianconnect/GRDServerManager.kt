@@ -39,10 +39,34 @@ class GRDServerManager {
 
         /*  Function to reset the user preferred region. */
         fun clearPreferredRegion() {
-            GRDConnectManager.getSharedPrefsEditor().remove(Constants.GRD_Preferred_Region)?.apply()
-            GRDConnectManager.getSharedPrefsEditor().remove(Constants.GRD_PREFERRED_REGION_NAME_PRETTY)?.apply()
             GRDConnectManager.getSharedPrefsEditor().remove(Constants.GRD_PREFERRED_REGION)?.apply()
             Log.d(TAG, "Preferred Region cleared!")
+        }
+
+        /*  Permanently override the region that the device should connect to.
+            The function should take the name property of the region object and store it into the
+            SharedPreferences for the key GRD_Preferred_Region */
+        fun setPreferredRegion(region: GRDRegion?) {
+            val editor = GRDConnectManager.getSharedPrefsEditor()
+            if (region == null || region.name == GRD_AUTOMATIC_REGION) {
+                clearPreferredRegion()
+            } else {
+                val gson = Gson()
+                val json = gson.toJson(region)
+                editor.putString(Constants.GRD_PREFERRED_REGION, json)
+            }
+            editor.apply()
+        }
+
+        /*  Function that retrieves the currently stored object region in the SharedPreferences */
+        fun getPreferredRegion(): GRDRegion? {
+            val sharedPreferences = GRDConnectManager.getSharedPrefs()
+            val json = sharedPreferences.getString(Constants.GRD_PREFERRED_REGION, null)
+            if (json != null) {
+                val gson = Gson()
+                return gson.fromJson(json, GRDRegion::class.java)
+            }
+            return null
         }
     }
 
@@ -57,11 +81,11 @@ class GRDServerManager {
         val grdRegion = GRDRegion()
         var requestBody: MutableMap<String, Any> = mutableMapOf()
         var selectedRegion = String()
-        if (!grdRegion.getPreferredRegionName().isNullOrEmpty()) {
-            Log.d(TAG, "Using user preferred region: " + grdRegion.getPreferredRegionName().toString())
+        if (!getPreferredRegion()?.name.isNullOrEmpty()) {
+            Log.d(TAG, "Using user preferred region: " + getPreferredRegion()?.name.toString())
 
             requestBody = mutableMapOf<String, Any>(
-                kGRDServerManagerRegionKey to grdRegion.getPreferredRegionName().toString(),
+                kGRDServerManagerRegionKey to getPreferredRegion()?.name.toString(),
                 kGRDServerManagerFeatureEnvironmentKey to vpnServerFeatureEnvironment as GRDServerFeatureEnvironment,
                 kGRDServerManagerBetaCapableKey to preferBetaCapableServers as Boolean
             )

@@ -18,7 +18,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.guardianconnect.GRDConnectManager
 import com.guardianconnect.GRDPEToken
 import com.guardianconnect.GRDRegion
-import com.guardianconnect.GRDRegionManager
 import com.guardianconnect.GRDServerManager
 import com.guardianconnect.GRDVPNHelper
 import com.guardianconnect.util.Constants
@@ -169,8 +168,7 @@ class MainActivity : AppCompatActivity() {
     private fun onClickListener(): IOnClickListener {
         return object : IOnClickListener {
             override fun onClick(grdRegion: GRDRegion?) {
-                grdRegion?.let { grdRegion.setPreferredRegionName(it) }
-                GRDRegionManager.setPreferredRegion(grdRegion)
+                GRDServerManager.setPreferredRegion(grdRegion)
                 GRDVPNHelper.updateTunnelRegion()
             }
         }

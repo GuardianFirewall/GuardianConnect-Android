@@ -38,7 +38,7 @@ class AllRegionsAdapter(
         grdRegions?.let {
             val grdRegion: GRDRegion = it[position]
             holder.bind(grdRegion, onClickListener)
-            val savedRegion = grdRegion.getPreferredRegionNamePretty()
+            val savedRegion = GRDServerManager.getPreferredRegion()?.namePretty
             if (savedRegion.isNullOrEmpty()) {
                 holder.radioButton.isChecked = position == selectedPosition
             } else {
@@ -56,7 +56,7 @@ class AllRegionsAdapter(
 
         fun bind(grdRegion: GRDRegion, onClickListener: IOnClickListener?) {
             radioButton.text = grdRegion.namePretty
-            if (grdRegion.getPreferredRegionName() == null) {
+            if (GRDServerManager.getPreferredRegion()?.name == null) {
                 selectedPosition = 0
             }
             itemView.setOnClickListener {
