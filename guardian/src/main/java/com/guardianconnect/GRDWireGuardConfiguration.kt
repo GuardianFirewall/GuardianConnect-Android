@@ -26,7 +26,7 @@ class GRDWireGuardConfiguration {
             dnsServers = "1.1.1.1, 1.0.0.1"
         }
 
-        val appExceptions: String = if (appExceptionList != null) {
+        val appExceptions: String = if (grdCredential.mainCredential == true && appExceptionList != null) {
             if (appExceptionList.size > 1) {
                 appExceptionList.joinToString(", ")
             } else {
