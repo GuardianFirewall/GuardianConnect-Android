@@ -16,13 +16,13 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.guardianconnect.GRDConnectManager
+import com.guardianconnect.GRDCredentialManager
 import com.guardianconnect.GRDPEToken
 import com.guardianconnect.GRDRegion
 import com.guardianconnect.GRDServerManager
 import com.guardianconnect.GRDVPNHelper
+import com.guardianconnect.GRDWireGuardConfiguration
 import com.guardianconnect.util.Constants
-import com.guardianconnect.util.Constants.Companion.GRD_CONFIG_STRING
-import com.guardianconnect.util.GRDKeystore
 import com.guardianconnect.util.applicationScope
 import com.wireguard.android.backend.Tunnel
 import kotlinx.coroutines.launch
@@ -148,8 +148,19 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPostResume() {
         super.onPostResume()
-        val stringFromSharedPrefs = GRDKeystore.instance.retrieveFromKeyStore(GRD_CONFIG_STRING)
-        if (!stringFromSharedPrefs.isNullOrEmpty()) etConfig.setText(stringFromSharedPrefs)
+        val configString =
+            GRDCredentialManager().getMainCredentials().let {
+                it?.let { it1 ->
+                    GRDWireGuardConfiguration().getWireGuardConfigString(
+                        it1,
+                        GRDConnectManager.getSharedPrefs()
+                            .getString(Constants.GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null),
+                        GRDVPNHelper.appExceptions,
+                        GRDVPNHelper.excludeLANTraffic ?: true
+                    )
+                }
+            }
+        if (!configString.isNullOrEmpty()) etConfig.setText(configString)
     }
 
     private fun initRecyclerView() {

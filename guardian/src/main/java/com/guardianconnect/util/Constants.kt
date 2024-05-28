@@ -3,7 +3,6 @@ package com.guardianconnect.util
 class Constants {
 
     companion object {
-        const val GRD_CONFIG_STRING = "GRD_CONFIG_STRING"
         const val GRD_TRANSPORT_PROTOCOL = "TRANSPORT_PROTOCOL"
         const val GRD_WIREGUARD = "wireguard"
         const val GRD_UNKNOWN = "unknown"
@@ -24,8 +23,6 @@ class Constants {
         const val GRD_REGIONS_LIST_FROM_SHARED_PREFS = "GRD_REGIONS_LIST_FROM_SHARED_PREFS"
         const val GRD_AUTOMATIC_REGION = "Automatic"
         const val GRD_PE_TOKEN = "GRD_PE_TOKEN"
-        const val GRD_DEVICE_ID = "GRD_DEVICE_ID"
-        const val GRD_API_AUTH_TOKEN = "GRD_API_AUTH_TOKEN"
         const val GRD_BLOCKLIST_BITMASK_STATE = "BITMASK_STATE"
         const val GRD_BLOCKLIST_BLOCK_NONE = "block-none"
         const val GRD_BLOCKLIST_BLOCK_ADS = "block-ads"

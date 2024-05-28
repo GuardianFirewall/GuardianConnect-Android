@@ -13,12 +13,10 @@ import com.guardianconnect.model.EValidationMethod
 import com.guardianconnect.model.TunnelModel
 import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants
-import com.guardianconnect.util.Constants.Companion.GRD_CONFIG_STRING
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_USER_PREFERRED_DNS_SERVERS
 import com.guardianconnect.util.Constants.Companion.GRD_SUBSCRIBER_CREDENTIAL
 import com.guardianconnect.util.Constants.Companion.GRD_WIREGUARD
 import com.guardianconnect.util.ErrorMessages
-import com.guardianconnect.util.GRDKeystore
 import com.wireguard.android.backend.GoBackend
 import com.wireguard.android.backend.Tunnel
 import com.wireguard.config.Config
@@ -142,7 +140,7 @@ object GRDVPNHelper {
                 tunnelName.isEmpty() -> grdErrorFlow.emit("Tunnel name should not be empty!")
 
                 // Check if VPN credentials are already present in the GRDCredentialManager
-                else -> grdCredentialManager?.retrieveCredential().let {
+                else -> grdCredentialManager?.getMainCredentials().let {
                     if (it?.let { it1 -> activeConnectionPossible(it1) } == true) {
                         // If VPN credentials already exist try to start the VPN tunnel again
                         createTunnelWithExistingCredentials()
@@ -167,11 +165,19 @@ object GRDVPNHelper {
     }
 
     private suspend fun createTunnelWithExistingCredentials() {
-        val grdCredentialManager = GRDCredentialManager()
-        val hostname = grdCredentialManager.getMainCredentials()?.hostname
+        val hostname = GRDCredentialManager().getMainCredentials()?.hostname
         if (!hostname.isNullOrEmpty()) {
             Repository.instance.initRegionServer(hostname)
-            val configString = GRDKeystore.instance.retrieveFromKeyStore(GRD_CONFIG_STRING)
+            val mainCredentials = GRDCredentialManager().getMainCredentials()
+            val configString = mainCredentials?.let {
+                GRDWireGuardConfiguration().getWireGuardConfigString(
+                    it,
+                    GRDConnectManager.getSharedPrefs()
+                        .getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null),
+                    appExceptions,
+                    excludeLANTraffic ?: true
+                )
+            }
             if (configString?.isNotEmpty() == true) {
                 configStringFlow.emit(configString)
                 createTunnel(configString)
@@ -441,7 +447,9 @@ object GRDVPNHelper {
                 override fun onSuccess(any: Any?) {
                     val grdSgwServer = any as GRDSGWServer
                     grdSgwServer.hostname?.let {
-                        Repository.instance.initRegionServer(it)
+                        if (mainCredentials) {
+                            Repository.instance.initRegionServer(it)
+                        }
                         connectVpnDevice(
                             subscriberCredentialString,
                             grdSgwServer,
@@ -501,7 +509,6 @@ object GRDVPNHelper {
                             appExceptions,
                             excludeLANTraffic ?: true
                         )
-                    GRDKeystore.instance.saveToKeyStore(GRD_CONFIG_STRING, configString)
                     iOnApiResponse.onSuccess(configString)
                 }
 
@@ -532,7 +539,6 @@ object GRDVPNHelper {
     fun clearLocalCache() {
         grdCredentialManager?.getMainCredentials()
             ?.let { grdCredentialManager?.removeCredential(it) }
-        GRDConnectManager.getSharedPrefsEditor()?.remove(GRD_CONFIG_STRING)?.apply()
         GRDConnectManager.getSharedPrefsEditor()?.remove(GRD_SUBSCRIBER_CREDENTIAL)?.apply()
     }
 

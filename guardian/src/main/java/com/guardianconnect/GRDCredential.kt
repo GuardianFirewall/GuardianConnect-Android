@@ -2,8 +2,6 @@ package com.guardianconnect
 
 import com.guardianconnect.model.api.NewVPNDeviceResponse
 import com.guardianconnect.model.api.GRDSGWServer
-import com.guardianconnect.util.Constants.Companion.GRD_API_AUTH_TOKEN
-import com.guardianconnect.util.Constants.Companion.GRD_DEVICE_ID
 import com.guardianconnect.util.Constants.Companion.GRD_MAIN
 import com.guardianconnect.util.Constants.Companion.GRD_Main_Credential_WG_Private_Key
 import com.guardianconnect.util.Constants.Companion.GRD_Main_Credential_WG_Public_Key
@@ -94,14 +92,6 @@ class GRDCredential {
             }
             devicePrivateKey?.let {
                 GRDKeystore.instance.saveToKeyStore(GRD_Main_Credential_WG_Private_Key, it)
-            }
-
-            clientId?.let {
-                GRDKeystore.instance.saveToKeyStore(GRD_DEVICE_ID, it)
-            }
-
-            apiAuthToken?.let {
-                GRDKeystore.instance.saveToKeyStore(GRD_API_AUTH_TOKEN, it)
             }
         }
     }
