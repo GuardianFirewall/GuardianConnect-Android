@@ -539,12 +539,12 @@ object GRDVPNHelper {
     fun clearLocalCache() {
         grdCredentialManager?.getMainCredentials()
             ?.let { grdCredentialManager?.removeCredential(it) }
-        GRDConnectManager.getSharedPrefsEditor()?.remove(GRD_SUBSCRIBER_CREDENTIAL)?.apply()
+        GRDConnectManager.getSharedPrefsEditor().remove(GRD_SUBSCRIBER_CREDENTIAL)?.apply()
     }
 
     /* Handles VPN credential invalidation on the server and removal locally on the device. */
     fun clearVPNConfiguration() {
-        val grdCredentialObject = grdCredentialManager?.retrieveCredential()
+        val grdCredentialObject = grdCredentialManager?.getMainCredentials()
         val subscriberCredentialsJSON =
             grdSubscriberCredential?.retrieveSubscriberCredentialJWTFormat()
         val deviceId = grdCredentialObject?.clientId
