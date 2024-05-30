@@ -1,6 +1,7 @@
 package com.guardianconnect
 
 import android.util.Log
+import com.guardianconnect.managers.GRDConnectManager
 import com.guardianconnect.util.Constants.Companion.GRD_TRANSPORT_PROTOCOL
 import com.guardianconnect.util.Constants.Companion.GRD_UNKNOWN
 import com.guardianconnect.util.Constants.Companion.GRD_UNKNOWN_PRETTY
@@ -20,12 +21,12 @@ class GRDTransportProtocol {
     fun setUserPreferredTransportProtocol(transportProtocol: GRDTransportProtocolType) {
         if (transportProtocol == GRDTransportProtocolType.GRD_TP_UNKNOWN) {
             GRDConnectManager.getSharedPrefsEditor()
-                ?.putString(GRD_TRANSPORT_PROTOCOL, GRD_UNKNOWN)
+                .putString(GRD_TRANSPORT_PROTOCOL, GRD_UNKNOWN)
         } else {
             GRDConnectManager.getSharedPrefsEditor()
-                ?.putString(GRD_TRANSPORT_PROTOCOL, GRD_WIREGUARD)
+                .putString(GRD_TRANSPORT_PROTOCOL, GRD_WIREGUARD)
         }
-        GRDConnectManager.getSharedPrefsEditor()?.apply()
+        GRDConnectManager.getSharedPrefsEditor().apply()
         Log.d(TAG, "Setting user preferred transport protocol to: $transportProtocol")
     }
 

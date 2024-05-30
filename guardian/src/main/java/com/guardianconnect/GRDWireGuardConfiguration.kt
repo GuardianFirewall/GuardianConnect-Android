@@ -1,6 +1,8 @@
 package com.guardianconnect
 
 import android.util.Log
+import com.guardianconnect.helpers.GRDVPNHelper
+import com.guardianconnect.managers.GRDConnectManager
 import com.wireguard.config.Config
 import kotlinx.coroutines.launch
 import java.io.BufferedReader

@@ -12,15 +12,16 @@ import android.widget.EditText
 import android.widget.ProgressBar
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.guardianconnect.GRDConnectManager
-import com.guardianconnect.GRDCredentialManager
+import com.guardianconnect.managers.GRDConnectManager
+import com.guardianconnect.managers.GRDCredentialManager
 import com.guardianconnect.GRDPEToken
 import com.guardianconnect.GRDRegion
-import com.guardianconnect.GRDServerManager
-import com.guardianconnect.GRDVPNHelper
+import com.guardianconnect.managers.GRDServerManager
+import com.guardianconnect.helpers.GRDVPNHelper
 import com.guardianconnect.GRDWireGuardConfiguration
 import com.guardianconnect.util.Constants
 import com.guardianconnect.util.applicationScope
@@ -61,12 +62,16 @@ class MainActivity : AppCompatActivity() {
 
         btnStartTunnel.setOnClickListener {
             progressBar.visibility = View.VISIBLE
-            GRDVPNHelper.createAndStartTunnel()
+            lifecycleScope.launch {
+                GRDVPNHelper.createAndStartTunnel()
+            }
             btnResetConfiguration.isClickable = true
         }
 
         btnStopTunnel.setOnClickListener {
-            GRDVPNHelper.stopTunnel()
+            lifecycleScope.launch {
+                GRDVPNHelper.stopTunnel()
+            }
             btnStartTunnel.visibility = View.VISIBLE
             btnStopTunnel.visibility = View.GONE
             if (!etConfig.text.isNullOrEmpty()) {
@@ -78,7 +83,9 @@ class MainActivity : AppCompatActivity() {
             if (!etConfig.text.isNullOrEmpty()) {
                 btnResetConfiguration.isClickable = true
             }
-            GRDVPNHelper.stopClearTunnel()
+            lifecycleScope.launch {
+                GRDVPNHelper.stopClearTunnel()
+            }
             btnResetConfiguration.isClickable = false
             btnStartTunnel.visibility = View.VISIBLE
             btnStopTunnel.visibility = View.GONE
@@ -180,7 +187,9 @@ class MainActivity : AppCompatActivity() {
         return object : IOnClickListener {
             override fun onClick(grdRegion: GRDRegion?) {
                 GRDServerManager.setPreferredRegion(grdRegion)
-                GRDVPNHelper.updateTunnelRegion()
+                lifecycleScope.launch {
+                    GRDVPNHelper.updateTunnelRegion()
+                }
             }
         }
     }
@@ -234,7 +243,9 @@ class MainActivity : AppCompatActivity() {
             // from createAndStartTunnel() & the grdVPNPermissionFlow
             // To ensure that the user is actually going to be connected createAndStartTunnel
             // needs to be called again
-            GRDVPNHelper.createAndStartTunnel()
+            lifecycleScope.launch {
+                GRDVPNHelper.createAndStartTunnel()
+            }
             progressBar.visibility = View.GONE
         }
 

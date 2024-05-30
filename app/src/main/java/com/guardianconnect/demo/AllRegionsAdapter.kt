@@ -8,7 +8,7 @@ import android.widget.RadioButton
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.guardianconnect.GRDRegion
-import com.guardianconnect.GRDServerManager
+import com.guardianconnect.managers.GRDServerManager
 import com.guardianconnect.util.Constants.Companion.GRD_AUTOMATIC_REGION
 
 class AllRegionsAdapter(

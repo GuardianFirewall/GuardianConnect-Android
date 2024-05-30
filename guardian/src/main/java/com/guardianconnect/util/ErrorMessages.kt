@@ -8,7 +8,7 @@ import android.content.res.Resources
 import android.os.RemoteException
 import com.google.zxing.ChecksumException
 import com.google.zxing.NotFoundException
-import com.guardianconnect.GRDConnectManager
+import com.guardianconnect.managers.GRDConnectManager
 import com.guardianconnect.R
 import com.wireguard.android.backend.BackendException
 import com.wireguard.android.util.RootShell.RootShellException

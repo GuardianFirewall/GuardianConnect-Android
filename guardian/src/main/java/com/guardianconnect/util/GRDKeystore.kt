@@ -4,9 +4,7 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
 import android.util.Log
-import com.guardianconnect.GRDConnectManager
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.guardianconnect.managers.GRDConnectManager
 import java.nio.charset.Charset
 import java.security.KeyStore
 import java.util.concurrent.CountDownLatch
@@ -22,7 +20,7 @@ class GRDKeystore {
             val cipher = Cipher.getInstance(TRANSFORMATION)
             cipher.init(Cipher.ENCRYPT_MODE, getSecretKey(alias))
             val ivEncoded = Base64.encodeToString(cipher.iv, Base64.DEFAULT)
-            GRDConnectManager.getSharedPrefs()?.edit()?.putString("IV" + alias, ivEncoded)?.apply()
+            GRDConnectManager.getSharedPrefs().edit()?.putString("IV$alias", ivEncoded)?.apply()
 
             val dataByteArray = textToEncrypt.toByteArray(Charset.defaultCharset())
             return cipher.doFinal(dataByteArray)
@@ -63,7 +61,7 @@ class GRDKeystore {
 
         fun getIv(alias: String): ByteArray? {
             var iv: ByteArray? = null
-            val ivString = GRDConnectManager.getSharedPrefs()?.getString("IV$alias", "")
+            val ivString = GRDConnectManager.getSharedPrefs().getString("IV$alias", "")
             if (!ivString.isNullOrEmpty()) {
                 iv = Base64.decode(ivString, Base64.DEFAULT)
             }
@@ -72,42 +70,38 @@ class GRDKeystore {
     }
 
     fun saveToKeyStore(key: String, value: String) {
-        GRDConnectManager.getCoroutineScope().launch(Dispatchers.IO) {
-            val encryptedValueToSave = Base64.encodeToString(
-                encryptor.encryptText(
-                    key,
-                    value
-                ), Base64.DEFAULT
-            )
+        val encryptedValueToSave = Base64.encodeToString(
+            encryptor.encryptText(
+                key,
+                value
+            ), Base64.DEFAULT
+        )
 
-            GRDConnectManager.getSharedPrefsEditor().putString(
-                key, encryptedValueToSave
-            )?.apply()
-        }
+        GRDConnectManager.getSharedPrefsEditor().putString(
+            key, encryptedValueToSave
+        )?.apply()
     }
 
     fun retrieveFromKeyStore(key: String): String? {
         var returnString: String? = null
         val latch = CountDownLatch(1)
 
-        GRDConnectManager.getCoroutineScope().launch(Dispatchers.IO) {
-            val encryptedValue = GRDConnectManager.getSharedPrefs().getString(key, "")
+        val encryptedValue = GRDConnectManager.getSharedPrefs().getString(key, "")
 
-            try {
-                returnString = if (!encryptedValue.isNullOrEmpty()) {
-                    decryptor.initKeyStore()
-                    val decryptedValue =
-                        decryptor.decryptData(key, Base64.decode(encryptedValue, Base64.DEFAULT))
-                    decryptedValue
-                } else {
-                    null
-                }
-            } catch (e: Exception) {
-                e.message?.let { Log.e("GRDKeystore", it) }
-                GRDConnectManager.getSharedPrefsEditor().remove(key)
-            } finally {
-                latch.countDown()
+        try {
+            returnString = if (!encryptedValue.isNullOrEmpty()) {
+                decryptor.initKeyStore()
+                val decryptedValue =
+                    decryptor.decryptData(key, Base64.decode(encryptedValue, Base64.DEFAULT))
+                decryptedValue
+            } else {
+                null
             }
+        } catch (e: Exception) {
+            e.message?.let { Log.e("GRDKeystore", it) }
+            GRDConnectManager.getSharedPrefsEditor().remove(key)
+        } finally {
+            latch.countDown()
         }
         latch.await()
         return returnString

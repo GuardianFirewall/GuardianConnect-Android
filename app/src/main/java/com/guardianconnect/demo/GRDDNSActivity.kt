@@ -5,9 +5,10 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
-import com.guardianconnect.GRDConnectManager
-import com.guardianconnect.GRDDNSHelper
-import com.guardianconnect.GRDVPNHelper
+import androidx.lifecycle.lifecycleScope
+import com.guardianconnect.managers.GRDConnectManager
+import com.guardianconnect.helpers.GRDDNSHelper
+import com.guardianconnect.helpers.GRDVPNHelper
 import kotlinx.coroutines.launch
 
 class GRDDNSActivity : AppCompatActivity() {
@@ -31,7 +32,9 @@ class GRDDNSActivity : AppCompatActivity() {
         btnStartVpn.visibility = View.VISIBLE
         btnStopVpn.visibility = View.GONE
         btnStartVpn.setOnClickListener {
-            GRDDNSHelper.prepareGRDDNSProxyPermissions()
+            lifecycleScope.launch {
+                GRDDNSHelper.prepareGRDDNSProxyPermissions()
+            }
             btnStartVpn.visibility = View.GONE
             btnStopVpn.visibility = View.VISIBLE
         }
@@ -59,6 +62,8 @@ class GRDDNSActivity : AppCompatActivity() {
 
     private val permissionActivityResultLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            GRDDNSHelper.prepareGRDDNSProxyPermissions()
+            lifecycleScope.launch {
+                GRDDNSHelper.prepareGRDDNSProxyPermissions()
+            }
         }
 }

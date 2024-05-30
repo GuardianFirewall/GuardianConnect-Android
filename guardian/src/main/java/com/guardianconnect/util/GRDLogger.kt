@@ -1,7 +1,7 @@
 package com.guardianconnect.util
 
 import android.util.Log
-import com.guardianconnect.GRDConnectManager
+import com.guardianconnect.managers.GRDConnectManager
 import com.guardianconnect.util.Constants.Companion.GRD_PERSISTENT_LOG_ENABLED
 
 object GRDLogger {

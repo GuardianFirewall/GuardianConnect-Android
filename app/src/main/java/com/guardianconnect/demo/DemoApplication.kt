@@ -1,7 +1,7 @@
 package com.guardianconnect.demo
 
 import android.os.StrictMode
-import com.guardianconnect.GRDConnectManager
+import com.guardianconnect.managers.GRDConnectManager
 
 class DemoApplication : android.app.Application() {
 

@@ -3,6 +3,8 @@ package com.guardianconnect
 import com.google.gson.Gson
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
+import com.guardianconnect.helpers.GRDVPNHelper
+import com.guardianconnect.managers.GRDConnectManager
 import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_DEVICE
 import com.guardianconnect.util.GRDKeystore

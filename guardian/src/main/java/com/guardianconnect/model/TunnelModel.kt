@@ -5,7 +5,7 @@
 package com.guardianconnect.model
 
 import android.util.Log
-import com.guardianconnect.TunnelManager
+import com.guardianconnect.managers.TunnelManager
 import com.guardianconnect.util.applicationScope
 import com.wireguard.android.backend.Tunnel
 import com.wireguard.config.Config

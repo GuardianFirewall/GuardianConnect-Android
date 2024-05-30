@@ -2,6 +2,8 @@ package com.guardianconnect
 
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
+import com.guardianconnect.helpers.GRDVPNHelper
+import com.guardianconnect.managers.GRDConnectManager
 import com.guardianconnect.model.api.SignOutUserRequest
 import com.guardianconnect.util.Constants
 import com.guardianconnect.util.Constants.Companion.GRD_PE_TOKEN
@@ -22,14 +24,14 @@ class GRDPEToken {
 
         fun currentPEToken(): GRDPEToken? {
             val petFromKeystore = GRDKeystore.instance.retrieveFromKeyStore(GRD_PE_TOKEN) ?: return null
-            val petExpirationDate = GRDConnectManager.getSharedPrefs()?.getLong(GRD_PE_TOKEN_EXPIRATION_DATE, -1)
+            val petExpirationDate = GRDConnectManager.getSharedPrefs().getLong(GRD_PE_TOKEN_EXPIRATION_DATE, -1)
             if (petExpirationDate == -1L) {
                 return null
             }
 
             val pet = GRDPEToken()
             pet.token = petFromKeystore
-            pet.connectAPIEnv = GRDConnectManager.getSharedPrefs()?.getString(GRD_PE_TOKEN_CONNECT_API_ENV, null) ?: Constants.kGRDConnectAPIHostname
+            pet.connectAPIEnv = GRDConnectManager.getSharedPrefs().getString(GRD_PE_TOKEN_CONNECT_API_ENV, null) ?: Constants.kGRDConnectAPIHostname
             pet.expirationDateUnix = petExpirationDate
             pet.expirationDate = Date(petExpirationDate as Long * 1000)
 
@@ -109,9 +111,9 @@ class GRDPEToken {
     fun store() {
         this.token?.let { GRDKeystore.instance.saveToKeyStore(GRD_PE_TOKEN, it) }
         this.expirationDateUnix?.let {
-            GRDConnectManager.getSharedPrefs()?.edit()?.putLong(GRD_PE_TOKEN_EXPIRATION_DATE, it)?.apply()
+            GRDConnectManager.getSharedPrefs().edit()?.putLong(GRD_PE_TOKEN_EXPIRATION_DATE, it)?.apply()
         }
-        GRDConnectManager.getSharedPrefs()?.edit()?.putString(GRD_PE_TOKEN_CONNECT_API_ENV, this.connectAPIEnv)?.apply()
+        GRDConnectManager.getSharedPrefs().edit()?.putString(GRD_PE_TOKEN_CONNECT_API_ENV, this.connectAPIEnv)?.apply()
     }
 
 }
