@@ -8,6 +8,7 @@ import com.guardianconnect.util.Constants.Companion.GRD_CREDENTIAL_LIST
 import com.guardianconnect.util.Constants.Companion.GRD_Main_Credential_WG_Private_Key
 import com.guardianconnect.util.Constants.Companion.GRD_Main_Credential_WG_Public_Key
 import com.guardianconnect.util.GRDKeystore
+import com.guardianconnect.util.GRDLogger
 import kotlinx.coroutines.launch
 import org.json.JSONException
 import java.lang.reflect.Type
@@ -19,6 +20,7 @@ import java.lang.reflect.Type
 
 class GRDCredentialManager {
     val credentialsArrayList: ArrayList<GRDCredential> = ArrayList()
+    val tag = GRDCredentialManager::class.java.simpleName
 
     init {
         initListOfCredentials()
@@ -38,9 +40,16 @@ class GRDCredentialManager {
 
     // Remove a credential
     fun removeCredential(grdCredential: GRDCredential) {
+        GRDLogger.d(tag, "List before removal: ${Gson().toJson(credentialsArrayList)}")
         credentialsArrayList.isNotEmpty().let {
-            credentialsArrayList.remove(grdCredential)
-            saveListOfCredentials(credentialsArrayList)
+            val grdCredentialToRemove =
+                credentialsArrayList.find { it.hostname == grdCredential.hostname }
+            val removed = grdCredentialToRemove?.let { credentialsArrayList.remove(it) } ?: false
+            GRDLogger.d(tag, "Credential removed $removed")
+            GRDLogger.d(tag, "List after removal before save: ${Gson().toJson(credentialsArrayList)}")
+            if (removed) {
+                saveListOfCredentials(credentialsArrayList)
+            }
         }
     }
 
@@ -54,12 +63,14 @@ class GRDCredentialManager {
 
     // Add a new credential or update an existing credential
     fun addOrUpdateCredential(grdCredential: GRDCredential) {
-        if (!credentialsArrayList.contains(grdCredential)) {
+        GRDLogger.d(tag, "List addOrUpdateCredential before add: ${Gson().toJson(credentialsArrayList)}")
+        val existingCredentialIndex = credentialsArrayList.indexOfFirst { it.hostname == grdCredential.hostname }
+        if (existingCredentialIndex == -1) {
             credentialsArrayList.add(grdCredential)
         } else {
-            credentialsArrayList.remove(grdCredential)
-            credentialsArrayList.add(grdCredential)
+            credentialsArrayList[existingCredentialIndex] = grdCredential
         }
+        GRDLogger.d(tag, "List addOrUpdateCredential after add: ${Gson().toJson(credentialsArrayList)}")
         saveListOfCredentials(credentialsArrayList)
     }
 
@@ -80,6 +91,7 @@ class GRDCredentialManager {
 
     // Retrieve all credentials
     fun getAllCredentials(): java.util.ArrayList<GRDCredential> {
+        initListOfCredentials()
         return ArrayList(credentialsArrayList)
     }
 
@@ -92,6 +104,7 @@ class GRDCredentialManager {
                 val newArrayList: ArrayList<GRDCredential> = Gson().fromJson(jsonString, type)
                 credentialsArrayList.clear()
                 credentialsArrayList.addAll(newArrayList)
+                GRDLogger.d(tag, "List initListOfCredentials: ${Gson().toJson(credentialsArrayList)}")
             }
         } catch (e: JSONException) {
             GRDConnectManager.getCoroutineScope().launch {
@@ -101,11 +114,16 @@ class GRDCredentialManager {
     }
 
     fun saveListOfCredentials(inputArrayList: ArrayList<GRDCredential>) {
+        GRDLogger.d(tag, "List before saving: ${Gson().toJson(credentialsArrayList)}")
         if (inputArrayList.isNotEmpty()) {
             val stringToSave = Gson().toJson(inputArrayList)
+            GRDLogger.d(tag, "List after saving: ${Gson().toJson(credentialsArrayList)}")
             GRDKeystore.instance.saveToKeyStore(GRD_CREDENTIAL_LIST, stringToSave)
+            GRDLogger.d(tag, "List from keystore after saving: ${GRDKeystore.instance.retrieveFromKeyStore(
+                GRD_CREDENTIAL_LIST)}")
+            initListOfCredentials()
         } else {
-            GRDConnectManager.getSharedPrefsEditor()?.remove(GRD_CREDENTIAL_LIST)?.apply()
+            GRDConnectManager.getSharedPrefsEditor().remove(GRD_CREDENTIAL_LIST)?.apply()
         }
     }
 
