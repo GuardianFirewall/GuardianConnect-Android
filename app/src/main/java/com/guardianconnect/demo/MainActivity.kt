@@ -156,7 +156,7 @@ class MainActivity : AppCompatActivity() {
     override fun onPostResume() {
         super.onPostResume()
         val configString =
-            GRDCredentialManager().getMainCredentials().let {
+            GRDVPNHelper.grdCredentialManager?.getMainCredentials().let {
                 it?.let { it1 ->
                     GRDWireGuardConfiguration().getWireGuardConfigString(
                         it1,
