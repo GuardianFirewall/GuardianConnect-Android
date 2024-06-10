@@ -151,6 +151,7 @@ class MainActivity : AppCompatActivity() {
         GRDVPNHelper.connectAPIHostname = "connect-api.guardianapp.com"
         GRDVPNHelper.setVariables()
         GRDVPNHelper.initHelper(this)
+        GRDVPNHelper.initRegion()
     }
 
     override fun onPostResume() {
@@ -199,9 +200,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadRegionsList() {
-        val grdServerManager = GRDServerManager()
-        setGRDRegionPrecisionDefault(grdServerManager)
-        grdServerManager.returnAllAvailableRegions(object :
+        GRDVPNHelper.grdServerManager?.let { setGRDRegionPrecisionDefault(it) }
+        GRDVPNHelper.grdServerManager?.returnAllAvailableRegions(object :
             GRDServerManager.OnRegionListener {
             override fun onRegionsAvailable(listOfGRDRegions: List<GRDRegion>) {
                 regionsAdapterList.addAll(listOfGRDRegions)

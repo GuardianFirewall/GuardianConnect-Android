@@ -28,27 +28,35 @@ class GRDCredentialManager {
 
     // Delete only the main credential
     fun deleteMainCredential() {
-        if (credentialsArrayList.isNotEmpty()) {
-            getMainCredentials()?.let {
-                credentialsArrayList.remove(it)
-                saveListOfCredentials(credentialsArrayList)
+        synchronized(credentialsArrayList) {
+            if (credentialsArrayList.isNotEmpty()) {
+                getMainCredentials()?.let {
+                    credentialsArrayList.remove(it)
+                    saveListOfCredentials(credentialsArrayList)
+                }
+            } else {
+                GRDConnectManager.getSharedPrefsEditor().remove(GRD_CREDENTIAL_LIST)?.apply()
             }
-        } else {
-            GRDConnectManager.getSharedPrefsEditor().remove(GRD_CREDENTIAL_LIST)?.apply()
         }
     }
 
     // Remove a credential
     fun removeCredential(grdCredential: GRDCredential) {
         GRDLogger.d(tag, "List before removal: ${Gson().toJson(credentialsArrayList)}")
-        credentialsArrayList.isNotEmpty().let {
-            val grdCredentialToRemove =
-                credentialsArrayList.find { it.hostname == grdCredential.hostname }
-            val removed = grdCredentialToRemove?.let { credentialsArrayList.remove(it) } ?: false
-            GRDLogger.d(tag, "Credential removed $removed")
-            GRDLogger.d(tag, "List after removal before save: ${Gson().toJson(credentialsArrayList)}")
-            if (removed) {
-                saveListOfCredentials(credentialsArrayList)
+        synchronized(credentialsArrayList) {
+            credentialsArrayList.isNotEmpty().let {
+                val grdCredentialToRemove =
+                    credentialsArrayList.find { it.hostname == grdCredential.hostname }
+                val removed =
+                    grdCredentialToRemove?.let { credentialsArrayList.remove(it) } ?: false
+                GRDLogger.d(tag, "Credential removed $removed")
+                GRDLogger.d(
+                    tag,
+                    "List after removal before save: ${Gson().toJson(credentialsArrayList)}"
+                )
+                if (removed) {
+                    saveListOfCredentials(credentialsArrayList)
+                }
             }
         }
     }
@@ -63,15 +71,24 @@ class GRDCredentialManager {
 
     // Add a new credential or update an existing credential
     fun addOrUpdateCredential(grdCredential: GRDCredential) {
-        GRDLogger.d(tag, "List addOrUpdateCredential before add: ${Gson().toJson(credentialsArrayList)}")
-        val existingCredentialIndex = credentialsArrayList.indexOfFirst { it.hostname == grdCredential.hostname }
-        if (existingCredentialIndex == -1) {
-            credentialsArrayList.add(grdCredential)
-        } else {
-            credentialsArrayList[existingCredentialIndex] = grdCredential
+        synchronized(credentialsArrayList) {
+            GRDLogger.d(
+                tag,
+                "List addOrUpdateCredential before add: ${Gson().toJson(credentialsArrayList)}"
+            )
+            val existingCredentialIndex =
+                credentialsArrayList.indexOfFirst { it.hostname == grdCredential.hostname }
+            if (existingCredentialIndex == -1) {
+                credentialsArrayList.add(grdCredential)
+            } else {
+                credentialsArrayList[existingCredentialIndex] = grdCredential
+            }
+            GRDLogger.d(
+                tag,
+                "List addOrUpdateCredential after add: ${Gson().toJson(credentialsArrayList)}"
+            )
+            saveListOfCredentials(credentialsArrayList)
         }
-        GRDLogger.d(tag, "List addOrUpdateCredential after add: ${Gson().toJson(credentialsArrayList)}")
-        saveListOfCredentials(credentialsArrayList)
     }
 
     // Get main credentials
@@ -96,19 +113,29 @@ class GRDCredentialManager {
     }
 
     fun initListOfCredentials() {
-        credentialsArrayList.clear()
-        try {
-            val jsonString = GRDKeystore.instance.retrieveFromKeyStore(GRD_CREDENTIAL_LIST)
-            if (!jsonString.isNullOrEmpty()) {
-                val type: Type = object : TypeToken<ArrayList<GRDCredential>>() {}.type
-                val newArrayList: ArrayList<GRDCredential> = Gson().fromJson(jsonString, type)
-                credentialsArrayList.clear()
-                credentialsArrayList.addAll(newArrayList)
-                GRDLogger.d(tag, "List initListOfCredentials: ${Gson().toJson(credentialsArrayList)}")
-            }
-        } catch (e: JSONException) {
-            GRDConnectManager.getCoroutineScope().launch {
-                GRDVPNHelper.grdErrorFlow.emit(e.stackTraceToString())
+        synchronized(credentialsArrayList) {
+            credentialsArrayList.clear()
+            try {
+                val jsonString = GRDKeystore.instance.retrieveFromKeyStore(GRD_CREDENTIAL_LIST)
+                if (!jsonString.isNullOrEmpty()) {
+                    val type: Type = object : TypeToken<ArrayList<GRDCredential>>() {}.type
+                    val newArrayList: ArrayList<GRDCredential> = Gson().fromJson(jsonString, type)
+                    credentialsArrayList.clear()
+                    credentialsArrayList.addAll(newArrayList)
+                    GRDLogger.d(
+                        tag,
+                        "List initListOfCredentials: ${Gson().toJson(credentialsArrayList)}"
+                    )
+                } else {
+                    GRDLogger.d(
+                        tag,
+                        "List Of Credentials is empty"
+                    )
+                }
+            } catch (e: JSONException) {
+                GRDConnectManager.getCoroutineScope().launch {
+                    GRDVPNHelper.grdErrorFlow.emit(e.stackTraceToString())
+                }
             }
         }
     }

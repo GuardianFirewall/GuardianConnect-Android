@@ -26,6 +26,7 @@ import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_USER_PREFERRED_D
 import com.guardianconnect.util.Constants.Companion.GRD_SUBSCRIBER_CREDENTIAL
 import com.guardianconnect.util.Constants.Companion.GRD_WIREGUARD
 import com.guardianconnect.util.ErrorMessages
+import com.guardianconnect.util.GRDLogger
 import com.wireguard.android.backend.GoBackend
 import com.wireguard.android.backend.Tunnel
 import com.wireguard.config.Config
@@ -46,6 +47,7 @@ object GRDVPNHelper {
     private val TAG = GRDVPNHelper::class.java.simpleName
     var grdSubscriberCredential: GRDSubscriberCredential? = null
     var grdCredentialManager: GRDCredentialManager? = null
+    var grdServerManager: GRDServerManager? = null
     private var context: Context? = null
     var connectAPIHostname: String = ""
     var connectPublishableKey: String = ""
@@ -57,10 +59,14 @@ object GRDVPNHelper {
     var appExceptions: ArrayList<String> = arrayListOf()
     var excludeLANTraffic: Boolean? = true
 
-    fun initHelper(context: Context) {
-        GRDVPNHelper.context = context
+    init {
         grdSubscriberCredential = GRDSubscriberCredential()
         grdCredentialManager = GRDCredentialManager()
+        grdServerManager = GRDServerManager()
+    }
+
+    fun initHelper(context: Context) {
+        GRDVPNHelper.context = context
         preferBetaCapableServers = false
         vpnServerFeatureEnvironment = GRDServerFeatureEnvironment.ServerFeatureEnvironmentProduction
         appExceptions = getArrayListOfAppExceptions()
@@ -172,10 +178,10 @@ object GRDVPNHelper {
     }
 
     private suspend fun createTunnelWithExistingCredentials() {
-        val hostname = GRDCredentialManager().getMainCredentials()?.hostname
+        val hostname = grdCredentialManager?.getMainCredentials()?.hostname
         if (!hostname.isNullOrEmpty()) {
             Repository.instance.initRegionServer(hostname)
-            val mainCredentials = GRDCredentialManager().getMainCredentials()
+            val mainCredentials = grdCredentialManager?.getMainCredentials()
             val configString = mainCredentials?.let {
                 GRDWireGuardConfiguration().getWireGuardConfigString(
                     it,
@@ -421,12 +427,11 @@ object GRDVPNHelper {
         mainCredentials: Boolean,
         iOnApiResponse: IOnApiResponse
     ) {
-        val grdServerManager = GRDServerManager()
-        grdServerManager.preferBetaCapableServers = preferBetaCapableServers
-        grdServerManager.vpnServerFeatureEnvironment = vpnServerFeatureEnvironment
-        grdServerManager.regionPrecision = regionPrecision
+        grdServerManager?.preferBetaCapableServers = preferBetaCapableServers
+        grdServerManager?.vpnServerFeatureEnvironment = vpnServerFeatureEnvironment
+        grdServerManager?.regionPrecision = regionPrecision
 
-        grdServerManager.selectServerFromRegion(
+        grdServerManager?.selectServerFromRegion(
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
                     val grdSgwServer = any as GRDSGWServer
@@ -451,6 +456,35 @@ object GRDVPNHelper {
 
                 override fun onError(error: String?) {
                     iOnApiResponse.onError(error)
+                    error?.let { Log.d(TAG, it) }
+                }
+            })
+    }
+
+    fun initRegion() {
+        grdServerManager?.preferBetaCapableServers = preferBetaCapableServers
+        grdServerManager?.vpnServerFeatureEnvironment = vpnServerFeatureEnvironment
+        grdServerManager?.regionPrecision = regionPrecision
+        GRDLogger.d(TAG, "initRegion()")
+
+        grdServerManager?.selectServerFromRegion(
+            object : IOnApiResponse {
+                override fun onSuccess(any: Any?) {
+                    val grdSgwServer = any as GRDSGWServer
+                    GRDLogger.d(TAG, "initRegion() $grdSgwServer")
+
+                    grdSgwServer.hostname?.let {
+                        GRDLogger.d(TAG, "initRegion() hostname: $it")
+                            Repository.instance.initRegionServer(it)
+                    } ?: run {
+                        GRDConnectManager.getCoroutineScope().launch {
+                            grdErrorFlow.emit(GRDVPNHelperStatus.SERVER_ERROR.status)
+                        }
+                    }
+                }
+
+                override fun onError(error: String?) {
+                    GRDLogger.d(TAG, "initRegion()")
                     error?.let { Log.d(TAG, it) }
                 }
             })
@@ -655,7 +689,7 @@ object GRDVPNHelper {
             Repository.instance.initConnectAPIServer()
             Repository.instance.initConnectSubscriberServer(connectAPIHostname)
 
-            val hostname = GRDCredentialManager().getMainCredentials()?.hostname
+            val hostname = grdCredentialManager?.getMainCredentials()?.hostname
             if (!hostname.isNullOrEmpty()) {
                 Repository.instance.initRegionServer(hostname)
             }
@@ -664,7 +698,7 @@ object GRDVPNHelper {
         Log.d(
             TAG, "httpClient: ${Repository.instance.httpClient}, " +
                     "Default httpClient: ${Repository.instance.defaultHTTPClient()}, " +
-                    "Host name: ${GRDCredentialManager().getMainCredentials()?.hostname}"
+                    "Host name: ${grdCredentialManager?.getMainCredentials()?.hostname}"
         )
     }
 

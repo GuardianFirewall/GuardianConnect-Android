@@ -11,6 +11,7 @@ import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants
 import com.guardianconnect.util.Constants.Companion.API_ERROR
 import com.guardianconnect.util.Constants.Companion.kGRDErrGuardianAccountNotSetup
+import com.guardianconnect.util.GRDLogger
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
@@ -26,7 +27,6 @@ import java.util.concurrent.TimeUnit
 
 class Repository {
 
-    val grdSubscriberCredential = GRDSubscriberCredential()
     var httpClient: OkHttpClient? = null
     var apiCalls: IApiCalls? = null
     var apiCallsConnect: IApiCalls? = null
@@ -51,6 +51,7 @@ class Repository {
     }
 
     fun initRegionServer(hostname: String) {
+        GRDLogger.d(TAG, "initRegionServer() hostname: $hostname")
         if (hostname.isNotEmpty()) {
             val baseUrl = "https://$hostname"
             val gson = GsonBuilder()
@@ -613,7 +614,7 @@ class Repository {
                         Log.d(
                             TAG, "Subscriber credentials PE Token returned successfully!" +
                                     subscriberCredentialResponse.subscriberCredential?.let { it1 ->
-                                        grdSubscriberCredential.parseAndDecodeJWTFormat(
+                                        GRDVPNHelper.grdSubscriberCredential?.parseAndDecodeJWTFormat(
                                             it1
                                         )
                                     }

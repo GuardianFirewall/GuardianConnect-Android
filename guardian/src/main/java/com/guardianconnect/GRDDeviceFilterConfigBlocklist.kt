@@ -119,8 +119,7 @@ class GRDDeviceFilterConfigBlocklist {
     }
 
     fun syncBlocklist() {
-        val grdCredentialManager = GRDCredentialManager()
-        val mainCredentials = grdCredentialManager.getMainCredentials()
+        val mainCredentials = GRDVPNHelper.grdCredentialManager?.getMainCredentials()
         mainCredentials?.clientId?.let { clientId ->
             mainCredentials.apiAuthToken?.let { authToken ->
                 Repository.instance.setDeviceFilterConfig(
