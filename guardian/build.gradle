@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace 'com.guardianconnect'
-    compileSdk 33
+    compileSdk 34
 
     buildFeatures {
         buildConfig = true
@@ -22,7 +22,7 @@ android {
 
     defaultConfig {
         minSdkVersion 24
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode 3
         versionName '0.4.1'
         buildConfigField 'int', 'MIN_SDK_VERSION', "$minSdkVersion.apiLevel"

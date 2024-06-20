@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -12,6 +13,7 @@ import android.widget.EditText
 import android.widget.ProgressBar
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -52,7 +54,7 @@ class MainActivity : AppCompatActivity() {
         intentFilter.addAction("com.guardianconnect.action.GRD_SET_TUNNEL_UP")
         intentFilter.addAction("com.guardianconnect.action.GRD_SET_TUNNEL_DOWN")
         myReceiver = MyBroadcastReceiver()
-        registerReceiver(myReceiver, intentFilter)
+        ContextCompat.registerReceiver(applicationContext, myReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
 
         initGRDVPNHelper()
         initUI()
