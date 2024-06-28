@@ -69,18 +69,8 @@ interface IApiCalls {
     fun getListOfSupportedTimeZones(): Call<ResponseBody>
 
     @POST("/api/v1.2/subscriber-credential/create")
-    fun getSubscriberCredentialsPEToken(
-        @Body validationMethodPEToken: ValidationMethodPEToken
-    ): Call<ResponseBody>
-
-    @POST("/api/v1.2/subscriber-credential/create")
-    fun getSubscriberCredentialsIAPAndroid(
-        @Body validationMethodIAPAndroid: ValidationMethodIAPAndroid
-    ): Call<ResponseBody>
-
-    @POST("/api/v1.2/subscriber-credential/create")
-    fun getSubscriberCredentialsElse(
-        @Body validationMethodElse: ValidationMethodElse
+    fun getSubscriberCredential(
+        @Body request: @JvmSuppressWildcards MutableMap<String, Any>
     ): Call<ResponseBody>
 
     @POST("/api/v1.3/partners/subscribers/new")

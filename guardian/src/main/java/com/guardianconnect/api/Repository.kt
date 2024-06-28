@@ -538,65 +538,26 @@ class Repository {
         })
     }
 
-    fun getSubscriberCredentialsIAP(
-        validationMethodIAPAndroid: ValidationMethodIAPAndroid,
+    fun getSubscriberCredential(
+        request: Any,
         iOnApiResponse: IOnApiResponse
     ) {
-        val call: Call<ResponseBody>? =
-            apiCallsGRDConnect?.getSubscriberCredentialsIAPAndroid(validationMethodIAPAndroid)
-        call?.enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(
-                call: Call<ResponseBody>,
-                response: Response<ResponseBody>
-            ) {
-                if (response.isSuccessful) {
-                    response.body()?.string().let {
-                        val subscriberCredentialResponse =
-                            Gson().fromJson(
-                                it,
-                                SubscriberCredentialResponse::class.java
-                            )
-                        iOnApiResponse.onSuccess(subscriberCredentialResponse)
-                        Log.d(
-                            TAG,
-                            "Subscriber credentials IAP Android returned successfully!"
-                        )
-                    }
-                } else {
-                    val errorBody = response.errorBody()?.string()
-                    if (errorBody != null) {
-                        try {
-                            val jObjError = JSONObject(errorBody)
-                            Log.d(TAG, jObjError.toString())
-                            iOnApiResponse.onError(jObjError.toString())
-                        } catch (e: JSONException) {
-                            // Handle the case when the error response is not in JSON format
-                            Log.e(TAG, "Error response is not in JSON format")
-                            iOnApiResponse.onError("Error response is not in JSON format")
-                        }
-                    } else {
-                        Log.e(TAG, "Error response body is null")
-                        iOnApiResponse.onError("Error response body is null")
-                    }
-                }
+        val gson = Gson()
+        val requestMap: MutableMap<String, Any> = when (request) {
+            is ValidationMethodPEToken -> {
+                gson.fromJson(gson.toJson(request), object : TypeToken<MutableMap<String, Any>>() {}.type)
             }
-
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                iOnApiResponse.onError(t.message)
-                Log.d(
-                    TAG,
-                    API_ERROR + " getSubscriberCredentials() " + t.message
-                )
+            is ValidationMethodIAPAndroid -> {
+                gson.fromJson(gson.toJson(request), object : TypeToken<MutableMap<String, Any>>() {}.type)
             }
-        })
-    }
+            else -> {
+                gson.fromJson(gson.toJson(request), object : TypeToken<MutableMap<String, Any>>() {}.type)
 
-    fun getSubscriberCredentialsPET(
-        validationMethodPEToken: ValidationMethodPEToken,
-        iOnApiResponse: IOnApiResponse
-    ) {
+            }
+        }
+
         val call: Call<ResponseBody>? =
-            apiCallsGRDConnect?.getSubscriberCredentialsPEToken(validationMethodPEToken)
+            apiCallsGRDConnect?.getSubscriberCredential(requestMap)
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
                 call: Call<ResponseBody>,
@@ -690,55 +651,7 @@ class Repository {
         })
     }
 
-    fun getSubscriberCredentialsElse(
-        validationMethodElse: ValidationMethodElse,
-        iOnApiResponse: IOnApiResponse
-    ) {
-        val call: Call<ResponseBody>? =
-            apiCallsGRDConnect?.getSubscriberCredentialsElse(validationMethodElse)
-        call?.enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(
-                call: Call<ResponseBody>,
-                response: Response<ResponseBody>
-            ) {
-                if (response.isSuccessful) {
-                    response.body()?.string().let {
-                        val subscriberCredentialResponse =
-                            Gson().fromJson(
-                                it,
-                                SubscriberCredentialResponse::class.java
-                            )
-                        iOnApiResponse.onSuccess(subscriberCredentialResponse)
-                        Log.d(TAG, "Subscriber credentials returned successfully!")
-                    }
-                } else {
-                    val errorBody = response.errorBody()?.string()
-                    if (errorBody != null) {
-                        try {
-                            val jObjError = JSONObject(errorBody)
-                            Log.d(TAG, jObjError.toString())
-                            iOnApiResponse.onError(jObjError.toString())
-                        } catch (e: JSONException) {
-                            // Handle the case when the error response is not in JSON format
-                            Log.e(TAG, "Error response is not in JSON format")
-                            iOnApiResponse.onError("Error response is not in JSON format")
-                        }
-                    } else {
-                        Log.e(TAG, "Error response body is null")
-                        iOnApiResponse.onError("Error response body is null")
-                    }
-                }
-            }
 
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                iOnApiResponse.onError(t.message)
-                Log.d(
-                    TAG,
-                    API_ERROR + " getSubscriberCredentials() " + t.message
-                )
-            }
-        })
-    }
 
     fun createNewGRDConnectSubscriber(
         requestBody: MutableMap<String, Any>,

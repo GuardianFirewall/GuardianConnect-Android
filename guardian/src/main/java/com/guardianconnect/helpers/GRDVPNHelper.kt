@@ -14,6 +14,7 @@ import com.guardianconnect.GRDWireGuardConfiguration
 import com.guardianconnect.R
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
+import com.guardianconnect.billing.BillingManager
 import com.guardianconnect.enumeration.GRDServerFeatureEnvironment
 import com.guardianconnect.managers.GRDConnectManager
 import com.guardianconnect.managers.GRDCredentialManager
@@ -363,7 +364,7 @@ object GRDVPNHelper {
         subscriberCredential?.let {
             initRegionAndConnectDevice(it, validForDays, mainCredentials, iOnApiResponse)
         } ?: run {
-            createSubscriberCredential(peToken, object : IOnApiResponse {
+            createSubscriberCredential(object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
                     val subscriberCredentialString = any as String
                     initRegionAndConnectDevice(
@@ -382,14 +383,29 @@ object GRDVPNHelper {
     }
 
     suspend fun createSubscriberCredential(
-        peToken: String,
         iOnApiResponse: IOnApiResponse
     ) {
-        val validationMethodPEToken = ValidationMethodPEToken()
-        validationMethodPEToken.validationMethod = EValidationMethod.PE_TOKEN.method
-        validationMethodPEToken.peToken = peToken
-        Repository.instance.getSubscriberCredentialsPET(
-            validationMethodPEToken,
+        val requestBody = mutableMapOf<String, Any>()
+        val currentPEToken = GRDPEToken.currentPEToken()
+
+        if (currentPEToken != null) {
+            requestBody["validation-method"] = "pe-token"
+            currentPEToken.token?.let { requestBody["pe-token"] = it }
+        } else {
+            requestBody["validation-method"] = "iap-android"
+            val currentPurchase = BillingManager.getCurrentPurchase()
+            if (currentPurchase != null) {
+                currentPurchase.products.firstOrNull()?.let { requestBody["product-id"] = it }
+                requestBody["purchase-token"] = currentPurchase.purchaseToken
+                requestBody["product-type"] = if (BillingManager.isSubscription(currentPurchase)) "subscription" else "consumable"
+            } else {
+                iOnApiResponse.onError("No valid purchase found")
+                return
+            }
+        }
+
+        Repository.instance.getSubscriberCredential(
+            requestBody,
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
                     val subCredentialResponse = any as SubscriberCredentialResponse
