@@ -19,7 +19,6 @@ import com.guardianconnect.enumeration.GRDServerFeatureEnvironment
 import com.guardianconnect.managers.GRDConnectManager
 import com.guardianconnect.managers.GRDCredentialManager
 import com.guardianconnect.managers.GRDServerManager
-import com.guardianconnect.model.EValidationMethod
 import com.guardianconnect.model.TunnelModel
 import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants
@@ -59,6 +58,7 @@ object GRDVPNHelper {
     private var regionPrecision: String? = null
     var appExceptions: ArrayList<String> = arrayListOf()
     var excludeLANTraffic: Boolean? = true
+    var iapApplicationId: String? = null
 
     init {
         grdSubscriberCredential = GRDSubscriberCredential()
@@ -161,18 +161,7 @@ object GRDVPNHelper {
                     createTunnelWithExistingCredentials()
                 } else {
                     // No VPN credentials exist yet
-                    // Check if a PE-Token is present on the device
-                    val decryptedPEToken =
-                        GRDPEToken.instance.retrievePEToken()
-                    if (!decryptedPEToken.isNullOrEmpty()) {
-                        // Start the process to pick a VPN server & obtain new VPN credentials
-                        createTunnelFirstTime(
-                            decryptedPEToken,
-                            validForDays
-                        )
-                    } else {
-                        grdErrorFlow.emit(GRDVPNHelperStatus.MISSING_PET.status)
-                    }
+                    createTunnelFirstTime(validForDays)
                 }
             }
         }
@@ -202,10 +191,9 @@ object GRDVPNHelper {
         }
     }
 
-    private suspend fun createTunnelFirstTime(peToken: String, validForDays: Long) {
+    private suspend fun createTunnelFirstTime(validForDays: Long) {
         val mainCredentials = true
         configureAndConnect(
-            peToken,
             validForDays,
             mainCredentials,
             object : IOnApiResponse {
@@ -351,7 +339,6 @@ object GRDVPNHelper {
     Create a new WireGuard configuration with the VPN credentials from the VPN node
     Connect WireGuard to the VPN node */
     suspend fun configureAndConnect(
-        peToken: String,
         validForDays: Long,
         mainCredentials: Boolean,
         iOnApiResponse: IOnApiResponse
@@ -397,7 +384,11 @@ object GRDVPNHelper {
             if (currentPurchase != null) {
                 currentPurchase.products.firstOrNull()?.let { requestBody["product-id"] = it }
                 requestBody["purchase-token"] = currentPurchase.purchaseToken
-                requestBody["product-type"] = if (BillingManager.isSubscription(currentPurchase)) "subscription" else "consumable"
+                requestBody["bundle-id"] =
+                    iapApplicationId ?: context?.packageName
+                            ?: ""
+                requestBody["product-type"] =
+                    if (BillingManager.isSubscription(currentPurchase)) "subscription" else "consumable"
             } else {
                 iOnApiResponse.onError("No valid purchase found")
                 return
@@ -491,7 +482,7 @@ object GRDVPNHelper {
 
                     grdSgwServer.hostname?.let {
                         GRDLogger.d(TAG, "initRegion() hostname: $it")
-                            Repository.instance.initRegionServer(it)
+                        Repository.instance.initRegionServer(it)
                     } ?: run {
                         GRDConnectManager.getCoroutineScope().launch {
                             grdErrorFlow.emit(GRDVPNHelperStatus.SERVER_ERROR.status)
