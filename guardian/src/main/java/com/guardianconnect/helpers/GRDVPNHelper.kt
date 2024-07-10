@@ -439,7 +439,7 @@ object GRDVPNHelper {
         grdServerManager?.vpnServerFeatureEnvironment = vpnServerFeatureEnvironment
         grdServerManager?.regionPrecision = regionPrecision
 
-        grdServerManager?.selectServerFromRegion(
+        grdServerManager?.selectServerFromRegion(null,
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
                     val grdSgwServer = any as GRDSGWServer
@@ -475,7 +475,7 @@ object GRDVPNHelper {
         grdServerManager?.regionPrecision = regionPrecision
         GRDLogger.d(TAG, "initRegion()")
 
-        grdServerManager?.selectServerFromRegion(
+        grdServerManager?.selectServerFromRegion(null,
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
                     val grdSgwServer = any as GRDSGWServer
