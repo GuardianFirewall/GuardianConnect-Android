@@ -3,16 +3,15 @@ package com.guardianconnect.billing
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.android.billingclient.api.*
+import com.guardianconnect.helpers.GRDVPNHelper
 import com.guardianconnect.managers.GRDConnectManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-object BillingManager {
+object GRDBillingManager {
 
     private lateinit var purchase: Purchase
-    private val productIds =
-        listOf("grd_monthly_android", "grd_yearly_android", "grd_pro_yearly_android")
     private val mProductDetailsList = ArrayList<ProductDetails>()
     private val fragmentTag = "com.guardian.billing.BillingManager"
 
@@ -57,8 +56,10 @@ object BillingManager {
                         fragmentTag,
                         "startConnection responseCode: " + billingResult.responseCode
                     )
-                    for (productId in productIds) {
-                        queryProduct(productId)
+                    GRDVPNHelper.allowedProductIds?.let {
+                        for (productId in it) {
+                            queryProduct(productId)
+                        }
                     }
                 }
             }
@@ -157,10 +158,6 @@ object BillingManager {
     }
 
     fun isSubscription(purchase: Purchase): Boolean {
-        // Add logic to determine if the purchase is a subscription
-        // This will depend on how you distinguish between subscriptions and consumables
-        return purchase.products.contains("grd_monthly_android") || purchase.products.contains("grd_yearly_android") || purchase.products.contains(
-            "grd_pro_yearly_android"
-        )
+        return GRDVPNHelper.allowedProductIds?.any { purchase.products.contains(it) } == true
     }
 }

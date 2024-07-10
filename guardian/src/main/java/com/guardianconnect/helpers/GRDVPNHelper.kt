@@ -14,7 +14,7 @@ import com.guardianconnect.GRDWireGuardConfiguration
 import com.guardianconnect.R
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
-import com.guardianconnect.billing.BillingManager
+import com.guardianconnect.billing.GRDBillingManager
 import com.guardianconnect.enumeration.GRDServerFeatureEnvironment
 import com.guardianconnect.managers.GRDConnectManager
 import com.guardianconnect.managers.GRDCredentialManager
@@ -59,6 +59,7 @@ object GRDVPNHelper {
     var appExceptions: ArrayList<String> = arrayListOf()
     var excludeLANTraffic: Boolean? = true
     var iapApplicationId: String? = null
+    var allowedProductIds: List<String>? = mutableListOf()
 
     init {
         grdSubscriberCredential = GRDSubscriberCredential()
@@ -380,7 +381,7 @@ object GRDVPNHelper {
             currentPEToken.token?.let { requestBody["pe-token"] = it }
         } else {
             requestBody["validation-method"] = "iap-android"
-            val currentPurchase = BillingManager.getCurrentPurchase()
+            val currentPurchase = GRDBillingManager.getCurrentPurchase()
             if (currentPurchase != null) {
                 currentPurchase.products.firstOrNull()?.let { requestBody["product-id"] = it }
                 requestBody["purchase-token"] = currentPurchase.purchaseToken
@@ -388,7 +389,7 @@ object GRDVPNHelper {
                     iapApplicationId ?: context?.packageName
                             ?: ""
                 requestBody["product-type"] =
-                    if (BillingManager.isSubscription(currentPurchase)) "subscription" else "consumable"
+                    if (GRDBillingManager.isSubscription(currentPurchase)) "subscription" else "consumable"
             } else {
                 iOnApiResponse.onError("No valid purchase found")
                 return
