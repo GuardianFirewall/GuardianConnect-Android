@@ -549,6 +549,65 @@ object GRDVPNHelper {
             })
     }
 
+    fun createStandaloneSGWCredential(
+        subscriberCredentialString: String,
+        grdSgwServer: GRDSGWServer,
+        iOnApiResponse: IOnApiResponse,
+        validForDays: Long) {
+        val newVPNDevice = NewVPNDevice()
+        newVPNDevice.transportProtocol = GRD_WIREGUARD
+        newVPNDevice.subscriberCredential = subscriberCredentialString
+        val keyPair = KeyPair()
+        val keyPairGenerated = KeyPair(keyPair.privateKey)
+        val publicKey = keyPairGenerated.publicKey.toBase64()
+        newVPNDevice.publicKey = publicKey
+
+        val api = Repository()
+        grdSgwServer.hostname?.let {
+            api.initRegionServer(it)
+
+        }?: run {
+            GRDLogger.e(TAG, "Can't create standalone credential! SGW hostname missing")
+            return
+        }
+
+        api.createNewVPNDevice(newVPNDevice,
+            object : IOnApiResponse {
+                override fun onSuccess(any: Any?) {
+                    val newVPNDeviceResponse = any as NewVPNDeviceResponse
+                    val grdCredential = GRDCredential()
+                    grdCredential.createGRDCredential(
+                        GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD,
+                        validForDays,
+                        false,
+                        newVPNDeviceResponse,
+                        grdSgwServer,
+                        keyPairGenerated
+                    )
+                    grdCredentialManager?.addOrUpdateCredential(grdCredential)
+                    val grdWireGuardConfiguration = GRDWireGuardConfiguration()
+                    val configString =
+                        grdWireGuardConfiguration.getWireGuardConfigString(
+                            grdCredential,
+                            GRDConnectManager.getSharedPrefs()
+                                ?.getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null),
+                            appExceptions,
+                            excludeLANTraffic ?: true
+                        )
+                    iOnApiResponse.onSuccess(configString)
+                }
+
+                override fun onError(error: String?) {
+                    iOnApiResponse.onError(error)
+                    error?.let {
+                        GRDConnectManager.getCoroutineScope().launch {
+                            grdErrorFlow.emit(it)
+                        }
+                    }
+                }
+            })
+    }
+
     fun setPreferredDNSServer(dnsServerNumber: String) {
         GRDConnectManager.getSharedPrefsEditor()?.putString(
             GRD_CONNECT_USER_PREFERRED_DNS_SERVERS,
