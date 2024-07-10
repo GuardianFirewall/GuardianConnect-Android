@@ -41,8 +41,7 @@ class GRDPEToken {
         fun newPETFromMap(map: Map<String, Any>, connectAPIEnv: String?): GRDPEToken? {
             val newPET = GRDPEToken()
             newPET.token = map["pe-token"] as? String ?: return null
-            val unix = map["pet-expires"] as Double
-            newPET.expirationDateUnix = unix.toLong()
+            newPET.expirationDateUnix = map["pet-expires"] as? Long ?: return null
             newPET.expirationDate = Date(newPET.expirationDateUnix as Long * 1000)
             newPET.connectAPIEnv = connectAPIEnv?: Constants.kGRDConnectAPIHostname
 
