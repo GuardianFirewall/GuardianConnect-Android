@@ -10,6 +10,7 @@ import com.guardianconnect.util.Constants.Companion.GRD_PE_TOKEN
 import com.guardianconnect.util.Constants.Companion.GRD_PE_TOKEN_CONNECT_API_ENV
 import com.guardianconnect.util.Constants.Companion.GRD_PE_TOKEN_EXPIRATION_DATE
 import com.guardianconnect.util.GRDKeystore
+import com.guardianconnect.util.GRDLogger
 import kotlinx.coroutines.launch
 import java.util.Date
 
@@ -23,7 +24,10 @@ class GRDPEToken {
         val instance = GRDPEToken()
 
         fun currentPEToken(): GRDPEToken? {
-            val petFromKeystore = GRDKeystore.instance.retrieveFromKeyStore(GRD_PE_TOKEN) ?: return null
+            val petFromKeystore = GRDKeystore.instance.retrieveFromKeyStore(GRD_PE_TOKEN)
+            if (petFromKeystore == null) {
+                return null
+            }
             val petExpirationDate = GRDConnectManager.getSharedPrefs().getLong(GRD_PE_TOKEN_EXPIRATION_DATE, -1)
             if (petExpirationDate == -1L) {
                 return null
@@ -41,8 +45,7 @@ class GRDPEToken {
         fun newPETFromMap(map: Map<String, Any>, connectAPIEnv: String?): GRDPEToken? {
             val newPET = GRDPEToken()
             newPET.token = map["pe-token"] as? String ?: return null
-            val unix = map["pet-expires"] as Double
-            newPET.expirationDateUnix = unix.toLong()
+            newPET.expirationDateUnix = map["pet-expires"] as? Long ?: return null
             newPET.expirationDate = Date(newPET.expirationDateUnix as Long * 1000)
             newPET.connectAPIEnv = connectAPIEnv?: Constants.kGRDConnectAPIHostname
 

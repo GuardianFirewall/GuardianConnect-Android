@@ -24,8 +24,6 @@ import kotlin.collections.ArrayList
 */
 
 class GRDServerManager {
-
-
     var preferBetaCapableServers: Boolean? = null
     var vpnServerFeatureEnvironment: GRDServerFeatureEnvironment? = null
     var regionPrecision: String? = null
@@ -77,16 +75,19 @@ class GRDServerManager {
         return the array of VPN servers
     */
     fun getGuardianHosts(
+        region: GRDRegion?,
         iOnApiResponse: IOnApiResponse
     ) {
-        val grdRegion = GRDRegion()
+        var preferredRegion = region
+        if (region == null) {
+            preferredRegion = getPreferredRegion()
+        }
         var requestBody: MutableMap<String, Any> = mutableMapOf()
-        var selectedRegion = String()
-        if (!getPreferredRegion()?.name.isNullOrEmpty()) {
-            Log.d(TAG, "Using user preferred region: " + getPreferredRegion()?.name.toString())
+        if (!preferredRegion?.name.isNullOrEmpty()) {
+            Log.d(TAG, "Using user preferred region: " + preferredRegion?.name.toString())
 
             requestBody = mutableMapOf<String, Any>(
-                kGRDServerManagerRegionKey to getPreferredRegion()?.name.toString(),
+                kGRDServerManagerRegionKey to preferredRegion?.name.toString(),
                 kGRDServerManagerFeatureEnvironmentKey to vpnServerFeatureEnvironment as GRDServerFeatureEnvironment,
                 kGRDServerManagerBetaCapableKey to preferBetaCapableServers as Boolean
             )
@@ -96,7 +97,9 @@ class GRDServerManager {
                 requestBody,
                 iOnApiResponse
             )
+
         } else {
+            var selectedRegion = String()
             Repository.instance.getListOfSupportedTimeZones(object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
                     val anyList = any as List<*>
@@ -173,9 +176,10 @@ class GRDServerManager {
         then randomly select one from that array of servers.
     */
     fun selectServerFromRegion(
+        region: GRDRegion?,
         iOnApiResponse: IOnApiResponse
     ) {
-        getGuardianHosts(object : IOnApiResponse {
+        getGuardianHosts(region, object : IOnApiResponse {
             override fun onSuccess(any: Any?) {
                 val anyList = any as List<*>
                 val listOfGRDSGWServers = anyList.filterIsInstance<GRDSGWServer>()
