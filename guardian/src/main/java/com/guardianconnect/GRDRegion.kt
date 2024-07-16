@@ -34,12 +34,15 @@ class GRDRegion {
     @SerializedName("country")
     var country: String? = null
 
+    var isAutomatic: Boolean = false
+
     companion object {
         fun automaticRegion(): GRDRegion {
             val auto = GRDRegion()
             auto.continent = GRD_AUTOMATIC_REGION
             auto.name = GRD_AUTOMATIC_REGION
             auto.namePretty = GRD_AUTOMATIC_REGION
+            auto.isAutomatic = true
             return auto
         }
     }

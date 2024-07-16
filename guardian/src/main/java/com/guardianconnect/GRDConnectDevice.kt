@@ -71,7 +71,7 @@ class GRDConnectDevice {
         }
     }
 
-    fun initGRDConnectDevice(): Error? {
+    fun initGRDConnectDevice(): Exception? {
         return try {
             val grdConnectDeviceString =
                 GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_DEVICE)
@@ -86,7 +86,7 @@ class GRDConnectDevice {
                 this.uuid = grdConnectDevice.uuid
             }
             null
-        } catch (error: Error) {
+        } catch (error: Exception) {
             error
         }
     }
@@ -225,14 +225,14 @@ class GRDConnectDevice {
             })
     }
 
-    fun store(grdConnectDevice: GRDConnectDevice): Error? {
+    fun store(grdConnectDevice: GRDConnectDevice): Exception? {
         return try {
             GRDKeystore.instance.saveToKeyStore(
                 GRD_CONNECT_DEVICE,
                 Gson().toJson(grdConnectDevice)
             )
             null
-        } catch (error: Error) {
+        } catch (error: Exception) {
             error
         }
     }

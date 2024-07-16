@@ -86,31 +86,24 @@ class GRDConnectSubscriber {
         }
     }
 
-    @Throws(Exception::class)
     fun initGRDConnectSubscriber(): Exception? {
-        return try {
-            val secret =
-                GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER_SECRET)
-            val grdConnectSubscriberString =
-                GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER)
-            grdConnectSubscriberString.let { string ->
-                val grdConnectSubscriber =
-                    Gson().fromJson(string, GRDConnectSubscriber::class.java)
-                secret.let { secret -> grdConnectSubscriber.secret = secret }
-
-                this.identifier = grdConnectSubscriber.identifier
-                this.secret = secret
-                this.email = grdConnectSubscriber.email
-                this.subscriptionSKU = grdConnectSubscriber.subscriptionSKU
-                this.subscriptionNameFormatted = grdConnectSubscriber.subscriptionNameFormatted
-                this.subscriptionExpirationDate = grdConnectSubscriber.subscriptionExpirationDate
-                this.createdAt = grdConnectSubscriber.createdAt
-                this.device = grdConnectSubscriber.device
-            }
-            null
-        } catch (exception: Exception) {
-            return exception
+        val secret = GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER_SECRET)
+        val grdConnectSubscriberString = GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER)
+        val grdConnectSubscriber = Gson().fromJson(grdConnectSubscriberString, GRDConnectSubscriber::class.java)
+        if (secret.isNullOrEmpty() || grdConnectSubscriberString.isNullOrEmpty() || grdConnectSubscriber == null) {
+            return Exception("Connect Subscriber missing")
         }
+
+        this.identifier = grdConnectSubscriber.identifier
+        this.secret = secret
+        this.email = grdConnectSubscriber.email
+        this.subscriptionSKU = grdConnectSubscriber.subscriptionSKU
+        this.subscriptionNameFormatted = grdConnectSubscriber.subscriptionNameFormatted
+        this.subscriptionExpirationDate = grdConnectSubscriber.subscriptionExpirationDate
+        this.createdAt = grdConnectSubscriber.createdAt
+        this.device = grdConnectSubscriber.device
+
+        return null
     }
 
     /* Save the GRDConnectSubscriber that encodes the current subscriber object to then store it in
@@ -120,7 +113,7 @@ class GRDConnectSubscriber {
        operation */
     fun store(
         grdConnectSubscriber: GRDConnectSubscriber
-    ): Error? {
+    ): Exception? {
         return try {
             grdConnectSubscriber.secret?.let {
                 GRDKeystore.instance.saveToKeyStore(
@@ -134,21 +127,21 @@ class GRDConnectSubscriber {
                 Gson().toJson(grdConnectSubscriber)
             )
             null
-        } catch (error: Error) {
+        } catch (error: Exception) {
             error
         }
     }
 
     /*  Retrieves the GRDConnectSubscriber secret string from the Android Keystore and set the
         instance’s secret property */
-    fun loadFromKeystore(): Error? {
+    fun loadFromKeystore(): Exception? {
         return try {
             val secret =
                 GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER_SECRET)
             if (secret?.isNotEmpty() == true)
                 this.secret = secret
             null
-        } catch (error: Error) {
+        } catch (error: Exception) {
             error
         }
     }
