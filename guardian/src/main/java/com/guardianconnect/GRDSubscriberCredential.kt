@@ -13,17 +13,6 @@ class GRDSubscriberCredential {
         GRDKeystore.instance.saveToKeyStore(GRD_SUBSCRIBER_CREDENTIAL, subscriberCredential)
     }
 
-    // return the currently valid Subscriber Credential in it's encoded JWT format.
-    fun retrieveSubscriberCredentialJWTFormat(): String? {
-        val subscriberCredential =
-            GRDKeystore.instance.retrieveFromKeyStore(GRD_SUBSCRIBER_CREDENTIAL)
-        return if (!subscriberCredential.isNullOrEmpty()) {
-            return subscriberCredential
-        } else {
-            null
-        }
-    }
-
     // Parse and decode JWT format
     fun parseAndDecodeJWTFormat(jwtString: String): SubscriberCredentialsJSON {
         //split into 3 parts with . delimiter
@@ -47,5 +36,18 @@ class GRDSubscriberCredential {
             }
         }
         return false
+    }
+
+    companion object {
+        // return the currently valid Subscriber Credential in it's encoded JWT format.
+        fun retrieveSubscriberCredentialJWTFormat(): String? {
+            val subscriberCredential =
+                GRDKeystore.instance.retrieveFromKeyStore(GRD_SUBSCRIBER_CREDENTIAL)
+            return if (!subscriberCredential.isNullOrEmpty()) {
+                return subscriberCredential
+            } else {
+                null
+            }
+        }
     }
 }

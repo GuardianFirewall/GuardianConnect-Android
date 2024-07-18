@@ -575,7 +575,7 @@ class Repository {
                         Log.d(
                             TAG, "Subscriber credentials PE Token returned successfully!" +
                                     subscriberCredentialResponse.subscriberCredential?.let { it1 ->
-                                        GRDVPNHelper.grdSubscriberCredential?.parseAndDecodeJWTFormat(
+                                        GRDSubscriberCredential().parseAndDecodeJWTFormat(
                                             it1
                                         )
                                     }

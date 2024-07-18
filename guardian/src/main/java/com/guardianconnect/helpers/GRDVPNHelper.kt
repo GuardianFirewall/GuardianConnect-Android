@@ -19,23 +19,27 @@ import com.guardianconnect.enumeration.GRDServerFeatureEnvironment
 import com.guardianconnect.managers.GRDConnectManager
 import com.guardianconnect.managers.GRDCredentialManager
 import com.guardianconnect.managers.GRDServerManager
+import com.guardianconnect.model.TimeZoneNotification
 import com.guardianconnect.model.TunnelModel
 import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_USER_PREFERRED_DNS_SERVERS
 import com.guardianconnect.util.Constants.Companion.GRD_SUBSCRIBER_CREDENTIAL
 import com.guardianconnect.util.Constants.Companion.GRD_WIREGUARD
+import com.guardianconnect.util.Constants.Companion.kGRDLastKnownAutomaticTimezone
 import com.guardianconnect.util.ErrorMessages
 import com.guardianconnect.util.GRDLogger
 import com.wireguard.android.backend.GoBackend
 import com.wireguard.android.backend.Tunnel
 import com.wireguard.config.Config
 import com.wireguard.crypto.KeyPair
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.Reader
 import java.io.StringReader
+import java.util.TimeZone
 
 /* The GRDVPNHelper class is the main class the integrating app is interacting with. It should
     provide high level APIs to start a VPN connection, stop a VPN connection and is the source of
@@ -45,7 +49,6 @@ import java.io.StringReader
 object GRDVPNHelper {
 
     private val TAG = GRDVPNHelper::class.java.simpleName
-    var grdSubscriberCredential: GRDSubscriberCredential? = null
     var grdCredentialManager: GRDCredentialManager? = null
     var grdServerManager: GRDServerManager? = null
     private var context: Context? = null
@@ -61,8 +64,10 @@ object GRDVPNHelper {
     var iapApplicationId: String? = null
     var allowedProductIds: List<String>? = mutableListOf()
 
+    internal val _timezoneChannel = Channel<TimeZoneNotification>()
+    val timezoneChannel = _timezoneChannel.receiveAsFlow()
+
     init {
-        grdSubscriberCredential = GRDSubscriberCredential()
         grdCredentialManager = GRDCredentialManager()
         grdServerManager = GRDServerManager()
     }
@@ -97,6 +102,23 @@ object GRDVPNHelper {
             }
         }
         observeStatus()
+    }
+
+    fun checkTimeZoneChanged() {
+        val currentTimeZone = TimeZone.getDefault().displayName
+        GRDLogger.d(TAG, "checkTimeZoneChanged currentTimeZone: $currentTimeZone")
+        val lastKnownTimeZone = GRDConnectManager.getSharedPrefs().getString(kGRDLastKnownAutomaticTimezone, null)
+
+        if (lastKnownTimeZone != null && lastKnownTimeZone != currentTimeZone) {
+            val notification = TimeZoneNotification()
+            notification.oldTimezoneName = lastKnownTimeZone
+            notification.newTimezoneName = currentTimeZone
+            GRDLogger.d(TAG, "checkTimeZoneChanged timeZoneNotification: $notification")
+            _timezoneChannel.trySend(notification)
+            GRDConnectManager.getSharedPrefsEditor().putString(kGRDLastKnownAutomaticTimezone, currentTimeZone).apply()
+        } else if (lastKnownTimeZone == null) {
+            GRDConnectManager.getSharedPrefsEditor().putString(kGRDLastKnownAutomaticTimezone, currentTimeZone).apply()
+        }
     }
 
     fun setRegionPrecision(precision: String) {
@@ -345,9 +367,9 @@ object GRDVPNHelper {
         iOnApiResponse: IOnApiResponse
     ) {
         var subscriberCredential: String? = null
-        if (grdSubscriberCredential?.isExpired() == false) {
+        if (!GRDSubscriberCredential().isExpired()) {
             subscriberCredential =
-                grdSubscriberCredential?.retrieveSubscriberCredentialJWTFormat()
+                GRDSubscriberCredential.retrieveSubscriberCredentialJWTFormat()
         }
         subscriberCredential?.let {
             initRegionAndConnectDevice(it, validForDays, mainCredentials, iOnApiResponse)
@@ -367,6 +389,29 @@ object GRDVPNHelper {
                     iOnApiResponse.onError(error)
                 }
             })
+        }
+    }
+
+    // Retrieve valid Subscriber Credential
+    suspend fun validSubscriberCredential(
+        iOnApiResponse: IOnApiResponse
+    ) {
+        val credential = GRDSubscriberCredential.retrieveSubscriberCredentialJWTFormat()
+        if (credential != null && !GRDSubscriberCredential().isExpired()) {
+            iOnApiResponse.onSuccess(credential)
+        } else {
+            createSubscriberCredential(
+                object : IOnApiResponse {
+                    override fun onSuccess(any: Any?) {
+                        val newCredential = any as String
+                        iOnApiResponse.onSuccess(newCredential)
+                    }
+
+                    override fun onError(error: String?) {
+                        iOnApiResponse.onError(error)
+                    }
+                }
+            )
         }
     }
 
@@ -402,7 +447,7 @@ object GRDVPNHelper {
                 override fun onSuccess(any: Any?) {
                     val subCredentialResponse = any as SubscriberCredentialResponse
                     subCredentialResponse.subscriberCredential?.let { scs ->
-                        grdSubscriberCredential?.storeSubscriberCredentialJWTFormat(scs)
+                        GRDSubscriberCredential().storeSubscriberCredentialJWTFormat(scs)
                         iOnApiResponse.onSuccess(scs)
                     } ?: run {
                         iOnApiResponse.onError("Missing subscriberCredential")
@@ -631,7 +676,7 @@ object GRDVPNHelper {
     suspend fun clearVPNConfiguration() {
         val grdCredentialObject = grdCredentialManager?.getMainCredentials()
         val subscriberCredentialsJSON =
-            grdSubscriberCredential?.retrieveSubscriberCredentialJWTFormat()
+            GRDSubscriberCredential.retrieveSubscriberCredentialJWTFormat()
         val deviceId = grdCredentialObject?.clientId
         if (deviceId != null) {
             val vpnCredential = VPNCredentials()
@@ -767,6 +812,11 @@ object GRDVPNHelper {
                     "Default httpClient: ${Repository.instance.defaultHTTPClient()}, " +
                     "Host name: ${grdCredentialManager?.getMainCredentials()?.hostname}"
         )
+    }
+
+    // Resets all the values set in GuardianConnect either encrypted into the Keystore or unencrypted in the SharedPreferences
+    fun resetAllGuardianConnectValues() {
+        GRDConnectManager.getSharedPrefsEditor().clear().apply()
     }
 
     enum class GRDVPNHelperStatus(val status: String) {

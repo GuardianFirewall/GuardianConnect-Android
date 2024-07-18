@@ -42,5 +42,6 @@ class Constants {
         const val kGRDExcludeLANTraffic = "kGRDExcludeLANTraffic"
         const val VPN_CREDENTIALS_INVALIDATION_ERROR = "VPN_CREDENTIALS_INVALIDATION_ERROR"
         const val SUBSCRIBER_CREDENTIAL_FAIL_PET = "SUBSCRIBER_CREDENTIAL_FAIL_PET"
+        const val kGRDLastKnownAutomaticTimezone = "kGRDLastKnownAutomaticTimezone"
     }
 }
