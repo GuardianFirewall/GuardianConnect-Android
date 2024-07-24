@@ -8,6 +8,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.guardianconnect.GRDCredential
 import com.guardianconnect.GRDPEToken
+import com.guardianconnect.GRDRegion
 import com.guardianconnect.GRDSubscriberCredential
 import com.guardianconnect.GRDTransportProtocol
 import com.guardianconnect.GRDWireGuardConfiguration
@@ -105,19 +106,25 @@ object GRDVPNHelper {
     }
 
     fun checkTimeZoneChanged() {
-        val currentTimeZone = TimeZone.getDefault().displayName
+        val currentTimeZone = TimeZone.getDefault()
+        val currentGRDRegion = GRDRegion()
+        currentGRDRegion.namePretty = currentTimeZone.displayName
         GRDLogger.d(TAG, "checkTimeZoneChanged currentTimeZone: $currentTimeZone")
-        val lastKnownTimeZone = GRDConnectManager.getSharedPrefs().getString(kGRDLastKnownAutomaticTimezone, null)
+        val lastKnownTimeZoneString =
+            GRDConnectManager.getSharedPrefs().getString(kGRDLastKnownAutomaticTimezone, null)
+        val lastKnownTimeZone = Gson().fromJson(lastKnownTimeZoneString, GRDRegion::class.java)
 
-        if (lastKnownTimeZone != null && lastKnownTimeZone != currentTimeZone) {
+        if (lastKnownTimeZone != null && lastKnownTimeZone.namePretty != currentTimeZone.displayName) {
             val notification = TimeZoneNotification()
             notification.oldTimezoneName = lastKnownTimeZone
-            notification.newTimezoneName = currentTimeZone
+            notification.newTimezoneName = currentGRDRegion
             GRDLogger.d(TAG, "checkTimeZoneChanged timeZoneNotification: $notification")
             _timezoneChannel.trySend(notification)
-            GRDConnectManager.getSharedPrefsEditor().putString(kGRDLastKnownAutomaticTimezone, currentTimeZone).apply()
+            GRDConnectManager.getSharedPrefsEditor()
+                .putString(kGRDLastKnownAutomaticTimezone, Gson().toJson(currentGRDRegion)).apply()
         } else if (lastKnownTimeZone == null) {
-            GRDConnectManager.getSharedPrefsEditor().putString(kGRDLastKnownAutomaticTimezone, currentTimeZone).apply()
+            GRDConnectManager.getSharedPrefsEditor()
+                .putString(kGRDLastKnownAutomaticTimezone, Gson().toJson(currentGRDRegion)).apply()
         }
     }
 
@@ -366,30 +373,21 @@ object GRDVPNHelper {
         mainCredentials: Boolean,
         iOnApiResponse: IOnApiResponse
     ) {
-        var subscriberCredential: String? = null
-        if (!GRDSubscriberCredential().isExpired()) {
-            subscriberCredential =
-                GRDSubscriberCredential.retrieveSubscriberCredentialJWTFormat()
-        }
-        subscriberCredential?.let {
-            initRegionAndConnectDevice(it, validForDays, mainCredentials, iOnApiResponse)
-        } ?: run {
-            createSubscriberCredential(object : IOnApiResponse {
-                override fun onSuccess(any: Any?) {
-                    val subscriberCredentialString = any as String
-                    initRegionAndConnectDevice(
-                        subscriberCredentialString,
-                        validForDays,
-                        mainCredentials,
-                        iOnApiResponse
-                    )
-                }
+        validSubscriberCredential(object : IOnApiResponse {
+            override fun onSuccess(any: Any?) {
+                val subscriberCredentialString = any as String
+                initRegionAndConnectDevice(
+                    subscriberCredentialString,
+                    validForDays,
+                    mainCredentials,
+                    iOnApiResponse
+                )
+            }
 
-                override fun onError(error: String?) {
-                    iOnApiResponse.onError(error)
-                }
-            })
-        }
+            override fun onError(error: String?) {
+                iOnApiResponse.onError(error)
+            }
+        })
     }
 
     // Retrieve valid Subscriber Credential
@@ -404,6 +402,7 @@ object GRDVPNHelper {
                 object : IOnApiResponse {
                     override fun onSuccess(any: Any?) {
                         val newCredential = any as String
+                        GRDSubscriberCredential().storeSubscriberCredentialJWTFormat(newCredential)
                         iOnApiResponse.onSuccess(newCredential)
                     }
 
@@ -447,7 +446,6 @@ object GRDVPNHelper {
                 override fun onSuccess(any: Any?) {
                     val subCredentialResponse = any as SubscriberCredentialResponse
                     subCredentialResponse.subscriberCredential?.let { scs ->
-                        GRDSubscriberCredential().storeSubscriberCredentialJWTFormat(scs)
                         iOnApiResponse.onSuccess(scs)
                     } ?: run {
                         iOnApiResponse.onError("Missing subscriberCredential")
@@ -598,7 +596,8 @@ object GRDVPNHelper {
         subscriberCredentialString: String,
         grdSgwServer: GRDSGWServer,
         iOnApiResponse: IOnApiResponse,
-        validForDays: Long) {
+        validForDays: Long
+    ) {
         val newVPNDevice = NewVPNDevice()
         newVPNDevice.transportProtocol = GRD_WIREGUARD
         newVPNDevice.subscriberCredential = subscriberCredentialString
@@ -611,7 +610,7 @@ object GRDVPNHelper {
         grdSgwServer.hostname?.let {
             api.initRegionServer(it)
 
-        }?: run {
+        } ?: run {
             GRDLogger.e(TAG, "Can't create standalone credential! SGW hostname missing")
             return
         }
@@ -675,42 +674,50 @@ object GRDVPNHelper {
     /* Handles VPN credential invalidation on the server and removal locally on the device. */
     suspend fun clearVPNConfiguration() {
         val grdCredentialObject = grdCredentialManager?.getMainCredentials()
-        val subscriberCredentialsJSON =
-            GRDSubscriberCredential.retrieveSubscriberCredentialJWTFormat()
-        val deviceId = grdCredentialObject?.clientId
-        if (deviceId != null) {
-            val vpnCredential = VPNCredentials()
-            vpnCredential.apiAuthToken = grdCredentialObject.apiAuthToken
-            vpnCredential.subscriberCredential = subscriberCredentialsJSON
-            grdCredentialManager?.deleteMainCredential()
-            // TODO
-            // this change should be complete and prevent the PET from being killed as well
-            // whenever the reset config button is tapped in the sample app
-            // but I am not entirely sure and we have to double check if any regressions
-            // from this change may occur
-            //GRDConnectManager.getSharedPrefs()?.edit()?.clear()?.apply()
-            clearLocalCache()
-            Repository.instance.invalidateVPNCredentials(
-                deviceId,
-                vpnCredential,
-                object : IOnApiResponse {
-                    override fun onSuccess(any: Any?) {
-                        GRDConnectManager.getCoroutineScope().launch {
-                            grdStatusFlow.emit(GRDVPNHelperStatus.VPN_CREDENTIALS_INVALIDATED.status)
-                        }
-                    }
+        validSubscriberCredential(object : IOnApiResponse {
+            override fun onSuccess(any: Any?) {
+                val deviceId = grdCredentialObject?.clientId
+                if (deviceId != null) {
+                    val vpnCredential = VPNCredentials()
+                    vpnCredential.apiAuthToken = grdCredentialObject.apiAuthToken
+                    vpnCredential.subscriberCredential = any as String
+                    grdCredentialManager?.deleteMainCredential()
+                    // TODO
+                    // this change should be complete and prevent the PET from being killed as well
+                    // whenever the reset config button is tapped in the sample app
+                    // but I am not entirely sure and we have to double check if any regressions
+                    // from this change may occur
+                    //GRDConnectManager.getSharedPrefs()?.edit()?.clear()?.apply()
+                    clearLocalCache()
+                    Repository.instance.invalidateVPNCredentials(
+                        deviceId,
+                        vpnCredential,
+                        object : IOnApiResponse {
+                            override fun onSuccess(any: Any?) {
+                                GRDConnectManager.getCoroutineScope().launch {
+                                    grdStatusFlow.emit(GRDVPNHelperStatus.VPN_CREDENTIALS_INVALIDATED.status)
+                                }
+                            }
 
-                    override fun onError(error: String?) {
-                        GRDConnectManager.getCoroutineScope().launch {
-                            grdErrorFlow.emit(Constants.VPN_CREDENTIALS_INVALIDATION_ERROR)
-                        }
+                            override fun onError(error: String?) {
+                                GRDConnectManager.getCoroutineScope().launch {
+                                    grdErrorFlow.emit(Constants.VPN_CREDENTIALS_INVALIDATION_ERROR)
+                                }
+                            }
+                        })
+                } else {
+                    GRDConnectManager.getCoroutineScope().launch {
+                        grdErrorFlow.emit("Device id is null!")
                     }
-                })
-        } else {
-            GRDConnectManager.getCoroutineScope().launch {
-                grdErrorFlow.emit("Device id is null!")
+                }
             }
-        }
+
+            override fun onError(error: String?) {
+                GRDConnectManager.getCoroutineScope().launch {
+                    error?.let { grdErrorFlow.emit(it) }
+                }
+            }
+        })
     }
 
     /*  Checks whether the a valid GRDCredential object is present on the device and verifies
