@@ -160,8 +160,8 @@ class GRDConnectDevice {
         iOnApiResponse: IOnApiResponse
     ) {
         val requestBody: MutableMap<String, Any> = mutableMapOf()
-        requestBody[peTokenKey] = currentDevice()?.peToken as String
-        requestBody[kGRDConnectDeviceUUIDKey] = currentDevice()?.uuid as String
+        requestBody[peTokenKey] = peToken as String
+        requestBody[kGRDConnectDeviceUUIDKey] = uuid as String
         requestBody[kGRDConnectSubscriberIdentifierKey] =
             GRDConnectSubscriber.currentSubscriber()?.identifier as String
         requestBody[kGRDConnectSubscriberSecretKey] =

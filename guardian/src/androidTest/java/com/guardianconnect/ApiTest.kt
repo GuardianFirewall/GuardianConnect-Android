@@ -1,8 +1,8 @@
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.guardianconnect.GRDDeviceFilterConfigBlocklist
 import com.guardianconnect.GRDRegion
 import com.guardianconnect.api.IApiCalls
-import com.guardianconnect.model.EValidationMethod
 import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants
 import com.wireguard.crypto.KeyPair
@@ -324,11 +324,16 @@ class ApiTest {
                 SubscriberCredentialResponse()
             )
         )
-        val validationMethodPEToken = ValidationMethodPEToken()
-        validationMethodPEToken.validationMethod = EValidationMethod.PE_TOKEN.method
-        validationMethodPEToken.peToken = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
-        val response = apiService.getSubscriberCredentialsPEToken(
-            validationMethodPEToken
+        val request = mutableMapOf<String, Any>()
+        request["validation-method"] = "pe-token"
+        request["pe-token"] = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
+        val gson = Gson()
+        val requestMap: MutableMap<String, Any> = gson.fromJson(
+            gson.toJson(request),
+            object : TypeToken<MutableMap<String, Any>>() {}.type
+        )
+        val response = apiService.getSubscriberCredential(
+            requestMap
         ).execute()
 
         assertTrue(response.body() != null)
@@ -354,11 +359,16 @@ class ApiTest {
                 SubscriberCredentialResponse()
             )
         )
-        val validationMethodPEToken = ValidationMethodPEToken()
-        validationMethodPEToken.validationMethod = EValidationMethod.PE_TOKEN.method
-        validationMethodPEToken.peToken = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
-        val response = apiService.getSubscriberCredentialsPEToken(
-            validationMethodPEToken
+        val request = mutableMapOf<String, Any>()
+        request["validation-method"] = "pe-token"
+        request["pe-token"] = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
+        val gson = Gson()
+        val requestMap: MutableMap<String, Any> = gson.fromJson(
+            gson.toJson(request),
+            object : TypeToken<MutableMap<String, Any>>() {}.type
+        )
+        val response = apiService.getSubscriberCredential(
+            requestMap
         ).execute()
 
         response.body()?.string().let {
@@ -397,11 +407,16 @@ class ApiTest {
                 SubscriberCredentialResponse()
             )
         )
-        val validationMethodPEToken = ValidationMethodPEToken()
-        validationMethodPEToken.validationMethod = EValidationMethod.PE_TOKEN.method
-        validationMethodPEToken.peToken = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
-        val response = apiService.getSubscriberCredentialsPEToken(
-            validationMethodPEToken
+        val request = mutableMapOf<String, Any>()
+        request["validation-method"] = "pe-token"
+        request["pe-token"] = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
+        val gson = Gson()
+        val requestMap: MutableMap<String, Any> = gson.fromJson(
+            gson.toJson(request),
+            object : TypeToken<MutableMap<String, Any>>() {}.type
+        )
+        val response = apiService.getSubscriberCredential(
+            requestMap
         ).execute()
 
         val responseString = response.body()?.string()
@@ -460,11 +475,16 @@ class ApiTest {
                 SubscriberCredentialResponse()
             )
         )
-        val validationMethodPEToken = ValidationMethodPEToken()
-        validationMethodPEToken.validationMethod = EValidationMethod.PE_TOKEN.method
-        validationMethodPEToken.peToken = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
-        val response = apiService.getSubscriberCredentialsPEToken(
-            validationMethodPEToken
+        val request = mutableMapOf<String, Any>()
+        request["validation-method"] = "pe-token"
+        request["pe-token"] = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
+        val gson = Gson()
+        val requestMap: MutableMap<String, Any> = gson.fromJson(
+            gson.toJson(request),
+            object : TypeToken<MutableMap<String, Any>>() {}.type
+        )
+        val response = apiService.getSubscriberCredential(
+            requestMap
         ).execute()
 
         val responseString = response.body()?.string()
@@ -523,11 +543,16 @@ class ApiTest {
                 SubscriberCredentialResponse()
             )
         )
-        val validationMethodPEToken = ValidationMethodPEToken()
-        validationMethodPEToken.validationMethod = EValidationMethod.PE_TOKEN.method
-        validationMethodPEToken.peToken = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
-        val response = apiService.getSubscriberCredentialsPEToken(
-            validationMethodPEToken
+        val request = mutableMapOf<String, Any>()
+        request["validation-method"] = "pe-token"
+        request["pe-token"] = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
+        val gson = Gson()
+        val requestMap: MutableMap<String, Any> = gson.fromJson(
+            gson.toJson(request),
+            object : TypeToken<MutableMap<String, Any>>() {}.type
+        )
+        val response = apiService.getSubscriberCredential(
+            requestMap
         ).execute()
 
         val responseString = response.body()?.string()
@@ -589,11 +614,16 @@ class ApiTest {
                 SubscriberCredentialResponse()
             )
         )
-        val validationMethodPEToken = ValidationMethodPEToken()
-        validationMethodPEToken.validationMethod = EValidationMethod.PE_TOKEN.method
-        validationMethodPEToken.peToken = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
-        val response = apiService.getSubscriberCredentialsPEToken(
-            validationMethodPEToken
+        val request = mutableMapOf<String, Any>()
+        request["validation-method"] = "pe-token"
+        request["pe-token"] = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
+        val gson = Gson()
+        val requestMap: MutableMap<String, Any> = gson.fromJson(
+            gson.toJson(request),
+            object : TypeToken<MutableMap<String, Any>>() {}.type
+        )
+        val response = apiService.getSubscriberCredential(
+            requestMap
         ).execute()
 
         val responseString = response.body()?.string()
@@ -654,11 +684,16 @@ class ApiTest {
                 SubscriberCredentialResponse()
             )
         )
-        val validationMethodPEToken = ValidationMethodPEToken()
-        validationMethodPEToken.validationMethod = EValidationMethod.PE_TOKEN.method
-        validationMethodPEToken.peToken = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
-        val response = apiService.getSubscriberCredentialsPEToken(
-            validationMethodPEToken
+        val request = mutableMapOf<String, Any>()
+        request["validation-method"] = "pe-token"
+        request["pe-token"] = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
+        val gson = Gson()
+        val requestMap: MutableMap<String, Any> = gson.fromJson(
+            gson.toJson(request),
+            object : TypeToken<MutableMap<String, Any>>() {}.type
+        )
+        val response = apiService.getSubscriberCredential(
+            requestMap
         ).execute()
 
         val responseString = response.body()?.string()
