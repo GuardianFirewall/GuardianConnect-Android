@@ -186,11 +186,11 @@ class GRDConnectSubscriber {
 
         val requestBody: MutableMap<String, Any> = mutableMapOf()
         requestBody[kGRDConnectSubscriberIdentifierKey] =
-            currentSubscriber()?.identifier as String
+            identifier as String
         requestBody[kGRDConnectSubscriberSecretKey] =
-            currentSubscriber()?.secret as String
+            secret as String
         requestBody[peTokenKey] = pet as String
-        requestBody[kGRDConnectSubscriberEmailKey] = currentSubscriber()?.email as String
+        requestBody[kGRDConnectSubscriberEmailKey] = email as String
 
         Repository.instance.updateGRDConnectSubscriber(
             requestBody,
@@ -214,9 +214,9 @@ class GRDConnectSubscriber {
 
         val requestBody: MutableMap<String, Any> = mutableMapOf()
         requestBody[kGRDConnectSubscriberIdentifierKey] =
-            currentSubscriber()?.identifier as String
+            identifier as String
         requestBody[kGRDConnectSubscriberSecretKey] =
-            currentSubscriber()?.secret as String
+            secret as String
         requestBody[peTokenKey] = pet as String
 
         Repository.instance.validateGRDConnectSubscriber(
@@ -266,9 +266,9 @@ class GRDConnectSubscriber {
 
         val requestBody: MutableMap<String, Any> = mutableMapOf()
         requestBody[kGRDConnectSubscriberIdentifierKey] =
-            currentSubscriber()?.identifier as String
+            identifier as String
         requestBody[kGRDConnectSubscriberSecretKey] =
-            currentSubscriber()?.secret as String
+            secret as String
         requestBody[peTokenKey] = pet as String
 
         Repository.instance.getConnectDeviceReference(
@@ -304,9 +304,9 @@ class GRDConnectSubscriber {
 
         val requestBody: MutableMap<String, Any> = mutableMapOf()
         requestBody[kGRDConnectSubscriberIdentifierKey] =
-            currentSubscriber()?.identifier as String
+            identifier as String
         requestBody[kGRDConnectSubscriberSecretKey] =
-            currentSubscriber()?.secret as String
+            secret as String
         requestBody[peTokenKey] = pet as String
 
         val list = ArrayList<ConnectDeviceResponse>()
@@ -345,9 +345,9 @@ class GRDConnectSubscriber {
     ) {
         val accountSignUpStateRequest: MutableMap<String, Any> = mutableMapOf()
         accountSignUpStateRequest[kGRDConnectSubscriberIdentifierKey] =
-            currentSubscriber()?.identifier as String
+            identifier as String
         accountSignUpStateRequest[kGRDConnectSubscriberSecretKey] =
-            currentSubscriber()?.secret as String
+            secret as String
 
         Repository.instance.getAccountCreationState(
             accountSignUpStateRequest,

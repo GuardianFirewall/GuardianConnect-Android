@@ -95,6 +95,7 @@ class GRDConnectDevice {
         pet: String,
         nickname: String,
         acceptedTOS: Boolean,
+        grdConnectSubscriber: GRDConnectSubscriber,
         iOnApiResponse: IOnApiResponse
     ) {
         val requestBody: MutableMap<String, Any> = mutableMapOf()
@@ -102,9 +103,9 @@ class GRDConnectDevice {
         requestBody[kGRDConnectDeviceNicknameKey] = nickname
         requestBody[kGrdDeviceAcceptedTos] = acceptedTOS
         requestBody[kGRDConnectSubscriberIdentifierKey] =
-            GRDConnectSubscriber.currentSubscriber()?.identifier as String
+            grdConnectSubscriber.identifier as String
         requestBody[kGRDConnectSubscriberSecretKey] =
-            GRDConnectSubscriber.currentSubscriber()?.secret as String
+            grdConnectSubscriber.secret as String
 
         Repository.instance.addNewConnectDevice(
             requestBody,
@@ -134,7 +135,7 @@ class GRDConnectDevice {
         val requestBody: MutableMap<String, Any> = mutableMapOf()
         requestBody[peTokenKey] = pet
         requestBody[kGRDConnectDeviceNicknameKey] = nickname
-        requestBody[kGRDConnectDeviceUUIDKey] = currentDevice()?.uuid as String
+        requestBody[kGRDConnectDeviceUUIDKey] = uuid as String
 
         Repository.instance.updateConnectDevice(
             requestBody,
@@ -157,15 +158,16 @@ class GRDConnectDevice {
     }
 
     fun deleteConnectDevice(
+        grdConnectSubscriber: GRDConnectSubscriber,
         iOnApiResponse: IOnApiResponse
     ) {
         val requestBody: MutableMap<String, Any> = mutableMapOf()
         requestBody[peTokenKey] = peToken as String
         requestBody[kGRDConnectDeviceUUIDKey] = uuid as String
         requestBody[kGRDConnectSubscriberIdentifierKey] =
-            GRDConnectSubscriber.currentSubscriber()?.identifier as String
+            grdConnectSubscriber.identifier as String
         requestBody[kGRDConnectSubscriberSecretKey] =
-            GRDConnectSubscriber.currentSubscriber()?.secret as String
+            grdConnectSubscriber.secret as String
 
         Repository.instance.deleteConnectDevice(
             requestBody,
@@ -189,15 +191,16 @@ class GRDConnectDevice {
     //This one is most likely going to be removed. We have GRDConnectSubscriber.allDevices().
     //For now we’ll leave it unused.
     fun allDevices(
+        grdConnectSubscriber: GRDConnectSubscriber,
         iOnApiResponse: IOnApiResponse
     ) {
         val pet = GRDPEToken.instance.retrievePEToken()
 
         val requestBody: MutableMap<String, Any> = mutableMapOf()
         requestBody[kGRDConnectSubscriberIdentifierKey] =
-            GRDConnectSubscriber.currentSubscriber()?.identifier as String
+            grdConnectSubscriber.identifier as String
         requestBody[kGRDConnectSubscriberSecretKey] =
-            GRDConnectSubscriber.currentSubscriber()?.secret as String
+            grdConnectSubscriber.secret as String
         requestBody[peTokenKey] = pet as String
 
         val list = ArrayList<ConnectDeviceResponse>()
