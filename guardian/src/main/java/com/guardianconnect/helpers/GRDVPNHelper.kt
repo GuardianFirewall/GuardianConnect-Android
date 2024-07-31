@@ -107,8 +107,12 @@ object GRDVPNHelper {
 
     fun checkTimeZoneChanged() {
         val currentTimeZone = TimeZone.getDefault()
-        val currentGRDRegion = GRDRegion()
-        currentGRDRegion.namePretty = currentTimeZone.displayName
+        val currentGRDRegion = if (GRDServerManager.getPreferredRegion() != null) {
+            GRDServerManager.getPreferredRegion()
+        } else {
+            GRDRegion.automaticRegion()
+        }
+        currentGRDRegion?.namePretty = currentTimeZone.displayName
         GRDLogger.d(TAG, "checkTimeZoneChanged currentTimeZone: $currentTimeZone")
         val lastKnownTimeZoneString =
             GRDConnectManager.getSharedPrefs().getString(kGRDLastKnownAutomaticTimezone, null)
