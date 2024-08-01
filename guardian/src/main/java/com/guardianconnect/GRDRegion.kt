@@ -36,6 +36,8 @@ class GRDRegion {
 
     var isAutomatic: Boolean = false
 
+    var timeZoneName: String? = null
+
     companion object {
         fun automaticRegion(): GRDRegion {
             val auto = GRDRegion()

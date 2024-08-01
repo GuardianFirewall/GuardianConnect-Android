@@ -27,7 +27,7 @@ import com.guardianconnect.util.Constants
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_USER_PREFERRED_DNS_SERVERS
 import com.guardianconnect.util.Constants.Companion.GRD_SUBSCRIBER_CREDENTIAL
 import com.guardianconnect.util.Constants.Companion.GRD_WIREGUARD
-import com.guardianconnect.util.Constants.Companion.kGRDLastKnownAutomaticTimezone
+import com.guardianconnect.util.Constants.Companion.kGRDLastKnownAutomaticRegion
 import com.guardianconnect.util.ErrorMessages
 import com.guardianconnect.util.GRDLogger
 import com.wireguard.android.backend.GoBackend
@@ -115,7 +115,7 @@ object GRDVPNHelper {
         currentGRDRegion?.namePretty = currentTimeZone.displayName
         GRDLogger.d(TAG, "checkTimeZoneChanged currentTimeZone: $currentTimeZone")
         val lastKnownTimeZoneString =
-            GRDConnectManager.getSharedPrefs().getString(kGRDLastKnownAutomaticTimezone, null)
+            GRDConnectManager.getSharedPrefs().getString(kGRDLastKnownAutomaticRegion, null)
         val lastKnownTimeZone = Gson().fromJson(lastKnownTimeZoneString, GRDRegion::class.java)
 
         if (lastKnownTimeZone != null && lastKnownTimeZone.namePretty != currentTimeZone.displayName) {
@@ -125,10 +125,10 @@ object GRDVPNHelper {
             GRDLogger.d(TAG, "checkTimeZoneChanged timeZoneNotification: $notification")
             _timezoneChannel.trySend(notification)
             GRDConnectManager.getSharedPrefsEditor()
-                .putString(kGRDLastKnownAutomaticTimezone, Gson().toJson(currentGRDRegion)).apply()
+                .putString(kGRDLastKnownAutomaticRegion, Gson().toJson(currentGRDRegion)).apply()
         } else if (lastKnownTimeZone == null) {
             GRDConnectManager.getSharedPrefsEditor()
-                .putString(kGRDLastKnownAutomaticTimezone, Gson().toJson(currentGRDRegion)).apply()
+                .putString(kGRDLastKnownAutomaticRegion, Gson().toJson(currentGRDRegion)).apply()
         }
     }
 

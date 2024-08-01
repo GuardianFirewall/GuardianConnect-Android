@@ -1,18 +1,32 @@
 package com.guardianconnect
 
 import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
 import com.guardianconnect.helpers.GRDVPNHelper
 import com.guardianconnect.managers.GRDConnectManager
-import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_DEVICE
 import com.guardianconnect.util.GRDKeystore
 import kotlinx.coroutines.launch
-import java.util.*
-import kotlin.collections.ArrayList
+import java.util.Date
 
 class GRDConnectDevice {
+
+    @SerializedName("ep-grd-device-created-at")
+    var epGrdDeviceCreatedAt: Long? = null
+
+    @SerializedName("ep-grd-device-nickname")
+    var epGrdDeviceNickname: String? = null
+
+    @SerializedName("ep-grd-device-pe-token")
+    var epGrdDevicePeToken: String? = null
+
+    @SerializedName("ep-grd-device-pet-expires")
+    var epGrdDevicePetExpires: Long? = null
+
+    @SerializedName("ep-grd-device-uuid")
+    var epGrdDeviceUuid: String? = null
 
     var createdAt: Date? = null
 
@@ -203,7 +217,7 @@ class GRDConnectDevice {
             grdConnectSubscriber.secret as String
         requestBody[peTokenKey] = pet as String
 
-        val list = ArrayList<ConnectDeviceResponse>()
+        val list = ArrayList<GRDConnectDevice>()
         Repository.instance.allConnectDevices(
             requestBody,
             object : IOnApiResponse {
@@ -211,7 +225,7 @@ class GRDConnectDevice {
                     if (any != null) {
                         val anyList = any as List<*>
                         val allDevices =
-                            anyList.filterIsInstance<ConnectDeviceResponse>()
+                            anyList.filterIsInstance<GRDConnectDevice>()
                         list.addAll(allDevices)
                         initGRDConnectDevice()
                         iOnApiResponse.onSuccess(list)

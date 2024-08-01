@@ -16,6 +16,7 @@ import com.guardianconnect.model.api.TimeZonesResponse
 import com.guardianconnect.util.Constants
 import com.guardianconnect.util.Constants.Companion.GRD_AUTOMATIC_REGION
 import com.guardianconnect.util.Constants.Companion.GRD_REGIONS_LIST_FROM_SHARED_PREFS
+import com.guardianconnect.util.Constants.Companion.kGRDLastKnownAutomaticRegion
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -106,11 +107,19 @@ class GRDServerManager {
                     val list = anyList.filterIsInstance<TimeZonesResponse>()
                     list.let {
                         val currentTimeZoneId = TimeZone.getDefault().id
+                        var grdRegion: GRDRegion? = null
                         for (item in it) {
                             item.timezones?.let { tz ->
                                 for (timeZone in tz) {
                                     if (timeZone == currentTimeZoneId) {
                                         item.name?.let { name ->
+                                            grdRegion = GRDRegion().apply {
+                                                this.name = name
+                                                this.namePretty = item.namePretty
+                                                this.continent = item.continent
+                                                this.country = item.countryISOCode
+                                                this.isAutomatic = true
+                                            }
                                             selectedRegion = name
                                             requestBody[kGRDServerManagerRegionKey] = selectedRegion
 
@@ -127,12 +136,14 @@ class GRDServerManager {
 
                         if (selectedRegion.isEmpty()) {
                             iOnApiResponse.onError("No available servers for your timezone: $currentTimeZoneId")
+                        } else {
+                            grdRegion?.timeZoneName = currentTimeZoneId
+                            GRDConnectManager.getSharedPrefsEditor().putString(kGRDLastKnownAutomaticRegion, Gson().toJson(grdRegion)).apply()
+                            requestListOfServersForRegion(
+                                requestBody,
+                                iOnApiResponse
+                            )
                         }
-
-                        requestListOfServersForRegion(
-                            requestBody,
-                            iOnApiResponse
-                        )
                     }
                 }
 

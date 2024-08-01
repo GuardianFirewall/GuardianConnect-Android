@@ -309,7 +309,7 @@ class GRDConnectSubscriber {
             secret as String
         requestBody[peTokenKey] = pet as String
 
-        val list = ArrayList<ConnectDeviceResponse>()
+        val list = ArrayList<GRDConnectDevice>()
         Repository.instance.allConnectDevices(
             requestBody,
             object : IOnApiResponse {
@@ -317,7 +317,7 @@ class GRDConnectSubscriber {
                     if (any != null) {
                         val anyList = any as List<*>
                         val allDevices =
-                            anyList.filterIsInstance<ConnectDeviceResponse>()
+                            anyList.filterIsInstance<GRDConnectDevice>()
                         list.addAll(allDevices)
 
                         val currentDevice = this@GRDConnectSubscriber.device
