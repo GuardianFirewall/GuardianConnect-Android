@@ -4,6 +4,6 @@ import com.guardianconnect.GRDRegion
 
 data class TimeZoneNotification(
     var changed: Boolean? = null,
-    var oldTimezoneName: GRDRegion? = null,
-    var newTimezoneName: GRDRegion? = null
+    var oldRegion: GRDRegion? = null,
+    var newRegion: GRDRegion? = null
 )

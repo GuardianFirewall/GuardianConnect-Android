@@ -120,8 +120,8 @@ object GRDVPNHelper {
 
         if (lastKnownTimeZone != null && lastKnownTimeZone.namePretty != currentTimeZone.displayName) {
             val notification = TimeZoneNotification()
-            notification.oldTimezoneName = lastKnownTimeZone
-            notification.newTimezoneName = currentGRDRegion
+            notification.oldRegion = lastKnownTimeZone
+            notification.newRegion = currentGRDRegion
             GRDLogger.d(TAG, "checkTimeZoneChanged timeZoneNotification: $notification")
             _timezoneChannel.trySend(notification)
             GRDConnectManager.getSharedPrefsEditor()
