@@ -223,14 +223,12 @@ class GRDConnectDevice {
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
                     if (any != null) {
-                        val anyList = any as List<*>
-                        val allDevices =
-                            anyList.filterIsInstance<GRDConnectDevice>()
+                        val allDevices = any as List<GRDConnectDevice>
                         list.addAll(allDevices)
                         initGRDConnectDevice()
                         iOnApiResponse.onSuccess(list)
                     } else {
-                        iOnApiResponse.onSuccess(null)
+                        iOnApiResponse.onError("Error response body is null")
                     }
                 }
 

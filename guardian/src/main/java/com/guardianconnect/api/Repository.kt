@@ -3,6 +3,7 @@ package com.guardianconnect.api
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 import com.guardianconnect.*
 import com.guardianconnect.helpers.GRDVPNHelper
@@ -919,20 +920,20 @@ class Repository {
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
-                    data class ObjectList(val items: List<Map<String, Any>>)
-
                     val body = response.body()?.string()
                     if (body != null) {
-                        val objectList: ObjectList =
-                            Gson().fromJson(body, object : TypeToken<ObjectList>() {}.type)
-
-                        iOnApiResponse.onSuccess(objectList)
-                        Log.d(TAG, "All Connect subscriber devices returned successfully!")
+                        try {
+                            val objectList: List<GRDConnectDevice> = Gson().fromJson(body, object : TypeToken<List<GRDConnectDevice>>() {}.type)
+                            iOnApiResponse.onSuccess(objectList)
+                            Log.d(TAG, "All Connect subscriber devices returned successfully!")
+                        } catch (e: JsonSyntaxException) {
+                            Log.e(TAG, "Failed to parse JSON", e)
+                            iOnApiResponse.onError("Failed to parse response")
+                        }
                     } else {
                         Log.e(TAG, "Error response body is null")
                         iOnApiResponse.onError("Error response body is null")
                     }
-
                 } else {
                     val errorBody = response.errorBody()?.string()
                     if (errorBody != null) {
