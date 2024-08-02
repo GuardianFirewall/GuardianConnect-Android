@@ -307,7 +307,13 @@ class GRDConnectSubscriber {
             identifier as String
         requestBody[kGRDConnectSubscriberSecretKey] =
             secret as String
-        requestBody[peTokenKey] = pet as String
+        //
+        // Note from CJ 2024-08-02
+        // Commenting this out for the time being
+        // as we're currently only allowing Connect Subscribers
+        // to list all devices which are always supposed to authenticate
+        // with the Connect Subscriber identifier & secret
+        //requestBody[peTokenKey] = pet as String
 
         val list = ArrayList<GRDConnectDevice>()
         Repository.instance.allConnectDevices(
