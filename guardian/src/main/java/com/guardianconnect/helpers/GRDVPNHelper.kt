@@ -71,6 +71,7 @@ object GRDVPNHelper {
 
     var preferredValidationMethod: GRDSubscriberCredentialValidationMethod =
         GRDSubscriberCredentialValidationMethod.Invalid
+    var customSubscriberCredentialAuthKeys: MutableMap<String, Any>? = null
 
     init {
         grdCredentialManager = GRDCredentialManager()
@@ -425,12 +426,48 @@ object GRDVPNHelper {
     suspend fun createSubscriberCredential(
         iOnApiResponse: IOnApiResponse
     ) {
-        val requestBody = mutableMapOf<String, Any>()
+        var requestBody = mutableMapOf<String, Any>()
         val currentPEToken = GRDPEToken.currentPEToken()
+        var validationMethod = GRDSubscriberCredentialValidationMethod.Invalid
+        val preferredValidationMethod = GRDSubscriberCredential.preferredValidationMethod()
 
-        if (currentPEToken != null) {
+        //
+        // Determine if the validation method should be locked
+        // to a specific kind of validation, or whether it should
+        // run in automatic mode
+        if (preferredValidationMethod != GRDSubscriberCredentialValidationMethod.Invalid) {
+            validationMethod = preferredValidationMethod
+
+        } else if (preferredValidationMethod == GRDSubscriberCredentialValidationMethod.Custom) {
+            validationMethod = GRDSubscriberCredentialValidationMethod.Custom
+            if (customSubscriberCredentialAuthKeys != null) {
+                requestBody = customSubscriberCredentialAuthKeys as MutableMap<String, Any>
+            }
+
+        } else {
+            GRDLogger.d(TAG, "Subscriber Credential validation automatic mode")
+            //
+            // Automatic mode attempting to determine what kind of
+            //  subscription the user most likely has
+            if (currentPEToken != null) {
+                validationMethod = GRDSubscriberCredentialValidationMethod.PEToken
+
+            } else {
+                validationMethod = GRDSubscriberCredentialValidationMethod.GooglePlayToken
+            }
+        }
+
+        if (validationMethod == GRDSubscriberCredentialValidationMethod.PEToken) {
             requestBody["validation-method"] = "pe-token"
-            currentPEToken.token?.let { requestBody["pe-token"] = it }
+            if (currentPEToken != null) {
+                currentPEToken.token?.let { requestBody["pe-token"] = it }
+
+            } else {
+                grdErrorFlow.emit(GRDVPNHelperStatus.MISSING_PET.status)
+                iOnApiResponse.onError("Subscriber Credential validation method set to PE-Token but no PE-Token is available on device")
+                return
+            }
+
         } else {
             requestBody["validation-method"] = "iap-android"
             val currentPurchase = GRDBillingManager.getCurrentPurchase()
@@ -442,6 +479,7 @@ object GRDVPNHelper {
                             ?: ""
                 requestBody["product-type"] =
                     if (GRDBillingManager.isSubscription(currentPurchase)) "subscription" else "consumable"
+
             } else {
                 iOnApiResponse.onError("No valid purchase found")
                 return
