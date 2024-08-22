@@ -20,6 +20,7 @@ import com.guardianconnect.enumeration.GRDServerFeatureEnvironment
 import com.guardianconnect.managers.GRDConnectManager
 import com.guardianconnect.managers.GRDCredentialManager
 import com.guardianconnect.managers.GRDServerManager
+import com.guardianconnect.model.GRDSubscriberCredentialValidationMethod
 import com.guardianconnect.model.TimeZoneNotification
 import com.guardianconnect.model.TunnelModel
 import com.guardianconnect.model.api.*
@@ -67,6 +68,9 @@ object GRDVPNHelper {
 
     internal val _timezoneChannel = Channel<TimeZoneNotification>()
     val timezoneChannel = _timezoneChannel.receiveAsFlow()
+
+    var preferredValidationMethod: GRDSubscriberCredentialValidationMethod =
+        GRDSubscriberCredentialValidationMethod.Invalid
 
     init {
         grdCredentialManager = GRDCredentialManager()
@@ -772,6 +776,7 @@ object GRDVPNHelper {
                 grdErrorFlow.emit("Connect public key is empty!")
             }
         }
+        preferredValidationMethod = GRDSubscriberCredential.preferredValidationMethod()
 
         Repository.instance.connectPublishableKey = connectPublishableKey
         Repository.instance.initConnectAPIServer()

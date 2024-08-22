@@ -300,7 +300,11 @@ class GRDConnectSubscriber {
     fun allDevices(
         iOnApiResponse: IOnApiResponse
     ) {
-        val pet = GRDPEToken.instance.retrievePEToken()
+        // Check if identifier or secret are null or empty
+        if (identifier.isNullOrEmpty() || secret.isNullOrEmpty()) {
+            iOnApiResponse.onSuccess(ArrayList<GRDConnectDevice>())
+            return
+        }
 
         val requestBody: MutableMap<String, Any> = mutableMapOf()
         requestBody[kGRDConnectSubscriberIdentifierKey] =
@@ -336,7 +340,7 @@ class GRDConnectSubscriber {
                         }
                         iOnApiResponse.onSuccess(list)
                     } else {
-                        iOnApiResponse.onSuccess(null)
+                        iOnApiResponse.onSuccess(ArrayList<GRDConnectDevice>())
                     }
                 }
 

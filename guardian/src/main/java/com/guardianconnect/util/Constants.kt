@@ -43,5 +43,6 @@ class Constants {
         const val VPN_CREDENTIALS_INVALIDATION_ERROR = "VPN_CREDENTIALS_INVALIDATION_ERROR"
         const val SUBSCRIBER_CREDENTIAL_FAIL_PET = "SUBSCRIBER_CREDENTIAL_FAIL_PET"
         const val kGRDLastKnownAutomaticRegion = "kGRDLastKnownAutomaticRegion"
+        const val kGRDSubscriberCredentialValidationMethod = "kGRDSubscriberCredentialValidationMethod"
     }
 }

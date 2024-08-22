@@ -93,7 +93,20 @@ class GRDCredentialManager {
 
     // Get main credentials
     fun getMainCredentials(): GRDCredential? {
-        return getAllCredentials().firstOrNull { it.mainCredential == true }
+        val allCredentials = getAllCredentials()
+        if (allCredentials.isNullOrEmpty()) {
+            GRDLogger.e("GRDCredentialManager", "No credentials found.")
+            return null
+        }
+
+        // Check if there are any null items in the list
+        val nonNullCredentials = allCredentials.filterNotNull()
+        if (nonNullCredentials.isEmpty()) {
+            GRDLogger.e("GRDCredentialManager", "All credentials are null.")
+            return null
+        }
+
+        return nonNullCredentials.firstOrNull { it.mainCredential == true }
     }
 
     // return the currently valid Credential

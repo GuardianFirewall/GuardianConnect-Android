@@ -3,7 +3,10 @@ package com.guardianconnect
 import android.util.Base64
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
+import com.guardianconnect.managers.GRDConnectManager
+import com.guardianconnect.model.GRDSubscriberCredentialValidationMethod
 import com.guardianconnect.util.Constants.Companion.GRD_SUBSCRIBER_CREDENTIAL
+import com.guardianconnect.util.Constants.Companion.kGRDSubscriberCredentialValidationMethod
 import com.guardianconnect.util.GRDKeystore
 import java.util.Date
 
@@ -85,5 +88,27 @@ class GRDSubscriberCredential {
                 GRDSubscriberCredential().parseAndDecodeJWTFormat(it)
             }
         }
+
+        fun setPreferredValidationMethod(method: GRDSubscriberCredentialValidationMethod) {
+            val prefs = GRDConnectManager.getSharedPrefs()
+            with(prefs.edit()) {
+                putString(kGRDSubscriberCredentialValidationMethod, method.name)
+                apply()
+            }
+        }
+
+        fun preferredValidationMethod(): GRDSubscriberCredentialValidationMethod {
+            val methodName = GRDConnectManager.getSharedPrefs().getString(
+                kGRDSubscriberCredentialValidationMethod,
+                GRDSubscriberCredentialValidationMethod.Invalid.name
+            ) ?: GRDSubscriberCredentialValidationMethod.Invalid.name
+
+            return try {
+                GRDSubscriberCredentialValidationMethod.valueOf(methodName)
+            } catch (e: IllegalArgumentException) {
+                GRDSubscriberCredentialValidationMethod.Invalid
+            }
+        }
+
     }
 }
