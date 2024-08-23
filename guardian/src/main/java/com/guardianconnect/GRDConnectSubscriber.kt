@@ -121,11 +121,23 @@ class GRDConnectSubscriber {
                     it
                 )
             }
+
+            // Temporarily copy the secret
+            val tmpSecret = grdConnectSubscriber.secret
+
+            // Set the secret to null on the object so that
+            // it is not written into the shared preferences
+            // as a plaintext string
             grdConnectSubscriber.secret = null
+
+            // store the actual object
             GRDKeystore.instance.saveToKeyStore(
                 GRD_CONNECT_SUBSCRIBER,
                 Gson().toJson(grdConnectSubscriber)
             )
+
+            // restore the secret
+            grdConnectSubscriber.secret = tmpSecret
             null
         } catch (error: Exception) {
             error
