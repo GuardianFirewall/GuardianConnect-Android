@@ -187,13 +187,7 @@ class GRDConnectDevice {
             requestBody,
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
-                    val deleteResponse = any as MutableMap<String, Any>
-                    val grdConnectDevice = initFromMap(deleteResponse)
-                    if (grdConnectDevice != null) {
-                        iOnApiResponse.onSuccess(grdConnectDevice)
-                    } else {
-                        iOnApiResponse.onError("grdConnectDevice is null")
-                    }
+                    iOnApiResponse.onSuccess(any)
                 }
 
                 override fun onError(error: String?) {

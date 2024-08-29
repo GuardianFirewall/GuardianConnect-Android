@@ -973,15 +973,8 @@ class Repository {
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
-                    var connectDeviceResponse = mapOf<String, Any>()
-                    val body = response.body()?.string()
-                    if (body != null) {
-                        val type = object : TypeToken<Map<String, Any>>() {}.type
-                        connectDeviceResponse = Gson().fromJson(body, type)
-                    }
-                    iOnApiResponse.onSuccess(connectDeviceResponse)
+                    iOnApiResponse.onSuccess(true)
                     Log.d(TAG, "GRDConnect Device successfully deleted.")
-
                 } else {
                     val errorBody = response.errorBody()?.string()
                     if (errorBody != null) {
