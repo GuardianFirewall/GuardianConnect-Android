@@ -61,12 +61,12 @@ class GRDConnectDevice {
             newDevice.uuid = device[kGRDConnectDeviceUUIDKey] as? String
             newDevice.peToken = map["pe-token"] as? String
 
-            val petExpiresUnix = map["pet-expires"] as? Double
+            val petExpiresUnix = map["pet-expires"] as? Long
             if (petExpiresUnix != null) {
                 newDevice.petExpires = Date(petExpiresUnix.toLong() * 1000)
             }
 
-            val createdAtUnix = device[kGRDConnectDeviceCreatedAtKey] as? Double
+            val createdAtUnix = device[kGRDConnectDeviceCreatedAtKey] as? Long
             if (createdAtUnix != null) {
                 newDevice.createdAt = Date(createdAtUnix.toLong() * 1000)
             }
@@ -244,5 +244,9 @@ class GRDConnectDevice {
         } catch (error: Exception) {
             error
         }
+    }
+
+    override fun toString(): String {
+        return "GRDConnectDevice(epGrdDeviceCreatedAt=$epGrdDeviceCreatedAt, epGrdDeviceNickname=$epGrdDeviceNickname, epGrdDevicePeToken=$epGrdDevicePeToken, epGrdDevicePetExpires=$epGrdDevicePetExpires, epGrdDeviceUuid=$epGrdDeviceUuid, createdAt=$createdAt, nickname=$nickname, peToken=$peToken, petExpires=$petExpires, uuid=$uuid, currentDevice=$currentDevice)"
     }
 }

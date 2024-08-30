@@ -13,6 +13,7 @@ import com.guardianconnect.util.Constants
 import com.guardianconnect.util.Constants.Companion.API_ERROR
 import com.guardianconnect.util.Constants.Companion.kGRDErrGuardianAccountNotSetup
 import com.guardianconnect.util.GRDLogger
+import com.guardianconnect.util.MapDeserializer
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
@@ -669,13 +670,18 @@ class Repository {
                 if (response.isSuccessful) {
                     var grdConnectSubscriberResponse = mapOf<String, Any>()
                     val body = response.body()?.string()
+                    Log.d(TAG, "New GRDConnect Subscriber created BODY: $body")
                     if (body != null) {
+                        val gson = GsonBuilder()
+                            .registerTypeAdapter(object : TypeToken<Map<String, Any>>() {}.type, MapDeserializer())
+                            .create()
+
                         val type = object : TypeToken<Map<String, Any>>() {}.type
-                        grdConnectSubscriberResponse = Gson().fromJson(body, type)
+                        grdConnectSubscriberResponse = gson.fromJson(body, type)
                     }
 
                     iOnApiResponse.onSuccess(grdConnectSubscriberResponse)
-                    Log.d(TAG, "New GRDConnect Subscriber created.")
+                    Log.d(TAG, "New GRDConnect Subscriber created GRD SUBSCRIBER MAP: $grdConnectSubscriberResponse")
 
                 } else {
                     val errorBody = response.errorBody()?.string()

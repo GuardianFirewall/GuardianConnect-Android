@@ -1,15 +1,14 @@
 package com.guardianconnect
 
+import android.util.Log
 import com.google.gson.Gson
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
 import com.guardianconnect.helpers.GRDVPNHelper
-import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_SUBSCRIBER_SECRET
 import com.guardianconnect.util.GRDKeystore
 import java.util.Date
-import kotlin.jvm.Throws
 
 class GRDConnectSubscriber {
 
@@ -53,11 +52,11 @@ class GRDConnectSubscriber {
             newSubscriber.subscriptionNameFormatted =
                 map[kGRDConnectSubscriberSubscriptionNameFormattedKey] as? String
 
-            val subDateUnix = map[kGRDConnectSubscriberSubscriptionExpirationDateKey] as? Double
+            val subDateUnix = map[kGRDConnectSubscriberSubscriptionExpirationDateKey] as? Long
             if (subDateUnix != null) {
                 newSubscriber.subscriptionExpirationDate = Date(subDateUnix.toLong() * 1000)
             }
-            val createdAtUnix = map[kGRDConnectSubscriberCreatedAtKey] as? Double
+            val createdAtUnix = map[kGRDConnectSubscriberCreatedAtKey] as? Long
             if (createdAtUnix != null) {
                 newSubscriber.createdAt = Date(createdAtUnix.toLong() * 1000)
             }
@@ -181,7 +180,8 @@ class GRDConnectSubscriber {
                     pet?.store()
                     response[kGRDConnectSubscriberSecretKey] = this@GRDConnectSubscriber.secret.toString()
                     val grdConnectSubscriber = initFromMap(response)
-
+                    grdConnectSubscriber.secret = requestBody[kGRDConnectSubscriberSecretKey] as? String
+                    grdConnectSubscriber.identifier = requestBody[kGRDConnectSubscriberIdentifierKey] as? String
                     store(grdConnectSubscriber)
                     iOnApiResponse.onSuccess(grdConnectSubscriber)
                 }
@@ -383,5 +383,9 @@ class GRDConnectSubscriber {
                     iOnApiResponse.onError(error)
                 }
             })
+    }
+
+    override fun toString(): String {
+        return "GRDConnectSubscriber(identifier=$identifier, secret=$secret, email=$email, subscriptionSKU=$subscriptionSKU, subscriptionNameFormatted=$subscriptionNameFormatted, subscriptionExpirationDate=$subscriptionExpirationDate, createdAt=$createdAt, device=$device)"
     }
 }
