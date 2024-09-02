@@ -13,29 +13,38 @@ import java.util.Date
 
 class GRDConnectDevice {
 
+//    @SerializedName("ep-grd-device-created-at")
+//    var epGrdDeviceCreatedAt: Long? = null
+//
+//    @SerializedName("ep-grd-device-nickname")
+//    var epGrdDeviceNickname: String? = null
+//
+//    @SerializedName("ep-grd-device-pe-token")
+//    var epGrdDevicePeToken: String? = null
+//
+//    @SerializedName("ep-grd-device-pet-expires")
+//    var epGrdDevicePetExpires: Long? = null
+//
+//    @SerializedName("ep-grd-device-uuid")
+//    var epGrdDeviceUuid: String? = null
+
     @SerializedName("ep-grd-device-created-at")
-    var epGrdDeviceCreatedAt: Long? = null
-
-    @SerializedName("ep-grd-device-nickname")
-    var epGrdDeviceNickname: String? = null
-
-    @SerializedName("ep-grd-device-pe-token")
-    var epGrdDevicePeToken: String? = null
-
-    @SerializedName("ep-grd-device-pet-expires")
-    var epGrdDevicePetExpires: Long? = null
-
-    @SerializedName("ep-grd-device-uuid")
-    var epGrdDeviceUuid: String? = null
+    var createdAtUnix: Long? = null
 
     var createdAt: Date? = null
 
+    @SerializedName("ep-grd-device-nickname")
     var nickname: String? = null
 
+    @SerializedName("ep-grd-device-pe-token")
     var peToken: String? = null
+
+    @SerializedName("ep-grd-device-pet-expires")
+    var petExpiresUnix: Long? = null
 
     var petExpires: Date? = null
 
+    @SerializedName("ep-grd-device-uuid")
     var uuid: String? = null
 
     var currentDevice: Boolean? = false
@@ -176,12 +185,17 @@ class GRDConnectDevice {
         iOnApiResponse: IOnApiResponse
     ) {
         val requestBody: MutableMap<String, Any> = mutableMapOf()
-        requestBody[peTokenKey] = peToken as String
         requestBody[kGRDConnectDeviceUUIDKey] = uuid as String
-        requestBody[kGRDConnectSubscriberIdentifierKey] =
-            grdConnectSubscriber.identifier as String
-        requestBody[kGRDConnectSubscriberSecretKey] =
-            grdConnectSubscriber.secret as String
+
+        if (peToken.isNullOrEmpty() == false) {
+            requestBody[peTokenKey] = peToken as String
+
+        } else {
+            requestBody[kGRDConnectSubscriberIdentifierKey] =
+                grdConnectSubscriber.identifier as String
+            requestBody[kGRDConnectSubscriberSecretKey] =
+                grdConnectSubscriber.secret as String
+        }
 
         Repository.instance.deleteConnectDevice(
             requestBody,
@@ -247,6 +261,6 @@ class GRDConnectDevice {
     }
 
     override fun toString(): String {
-        return "GRDConnectDevice(epGrdDeviceCreatedAt=$epGrdDeviceCreatedAt, epGrdDeviceNickname=$epGrdDeviceNickname, epGrdDevicePeToken=$epGrdDevicePeToken, epGrdDevicePetExpires=$epGrdDevicePetExpires, epGrdDeviceUuid=$epGrdDeviceUuid, createdAt=$createdAt, nickname=$nickname, peToken=$peToken, petExpires=$petExpires, uuid=$uuid, currentDevice=$currentDevice)"
+        return "GRDConnectDevice(createdAt=$createdAt, nickname=$nickname, peToken=$peToken, petExpires=$petExpires, uuid=$uuid, currentDevice=$currentDevice)"
     }
 }
