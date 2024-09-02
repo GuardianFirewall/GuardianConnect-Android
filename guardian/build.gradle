@@ -24,7 +24,7 @@ android {
         minSdkVersion 24
         targetSdkVersion 34
         versionCode 4
-        versionName '0.5.0'
+        versionName '0.5.2'
         buildConfigField 'int', 'MIN_SDK_VERSION', "$minSdkVersion.apiLevel"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -69,7 +69,7 @@ dependencies {
 
 ext {
     PUBLISH_GROUP_ID = 'com.guardianapp.connect'
-    PUBLISH_VERSION = '0.5.0'
+    PUBLISH_VERSION = '0.5.2'
     PUBLISH_ARTIFACT_ID = 'GuardianConnect'
 }
 apply from: 'publish-remote.gradle'
