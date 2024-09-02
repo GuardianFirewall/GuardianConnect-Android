@@ -40,6 +40,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var etPeToken: EditText
     private lateinit var btnPeToken: Button
     private lateinit var btnDNSProxy: Button
+    private lateinit var btnConnectSubscriber: Button
     private var adapter: AllRegionsAdapter? = null
     private var rvList: RecyclerView? = null
     private val regionsAdapterList: ArrayList<GRDRegion> = ArrayList()
@@ -54,14 +55,22 @@ class MainActivity : AppCompatActivity() {
         intentFilter.addAction("com.guardianconnect.action.GRD_SET_TUNNEL_UP")
         intentFilter.addAction("com.guardianconnect.action.GRD_SET_TUNNEL_DOWN")
         myReceiver = MyBroadcastReceiver()
-        ContextCompat.registerReceiver(applicationContext, myReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        ContextCompat.registerReceiver(
+            applicationContext,
+            myReceiver,
+            intentFilter,
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
 
         initGRDVPNHelper()
         initUI()
         initRecyclerView()
         loadRegionsList()
         collectFlowStates()
+        setOnClick()
+    }
 
+    private fun setOnClick() {
         btnStartTunnel.setOnClickListener {
             progressBar.visibility = View.VISIBLE
             lifecycleScope.launch {
@@ -109,6 +118,14 @@ class MainActivity : AppCompatActivity() {
 
         btnDNSProxy.setOnClickListener {
             startActivity(Intent(this, GRDDNSActivity::class.java))
+        }
+
+        btnConnectSubscriber.setOnClickListener {
+            val connectSubscriberFragment = ConnectSubscriberFragment()
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, connectSubscriberFragment)
+                .addToBackStack(null)
+                .commit()
         }
     }
 
@@ -222,6 +239,7 @@ class MainActivity : AppCompatActivity() {
         etPeToken = findViewById(R.id.etPeToken)
         btnPeToken = findViewById(R.id.btnPeToken)
         btnDNSProxy = findViewById(R.id.btnDNSProxy)
+        btnConnectSubscriber = findViewById(R.id.btnConnectSubscriber)
 
         if (GRDVPNHelper.isTunnelRunning()) {
             btnStartTunnel.visibility = View.GONE

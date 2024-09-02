@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorOnPrimary"
+    android:padding="16dp"
+    tools:context=".ConnectSubscriberFragment">
+
+    <EditText
+        android:id="@+id/etConnectApiHostname"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Connect API hostname"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/etConnectApiPublishableKey"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="Connect API Publishable Key"
+        app:layout_constraintTop_toBottomOf="@id/etConnectApiHostname" />
+
+    <Button
+        android:id="@+id/btnSetConnectApiVariables"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Set Connect API Variables"
+        app:layout_constraintTop_toBottomOf="@id/etConnectApiPublishableKey" />
+
+    <View
+        android:id="@+id/spacer"
+        android:layout_width="match_parent"
+        android:layout_height="16dp"
+        app:layout_constraintTop_toBottomOf="@id/btnSetConnectApiVariables" />
+
+    <EditText
+        android:id="@+id/etConnectSubscriberIdentifier"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Connect Subscriber Identifier"
+        app:layout_constraintTop_toBottomOf="@id/spacer" />
+
+    <EditText
+        android:id="@+id/etConnectSubscriberSecret"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="Connect Subscriber Secret"
+        app:layout_constraintTop_toBottomOf="@id/etConnectSubscriberIdentifier" />
+
+    <Button
+        android:id="@+id/btnRegisterConnectSubscriber"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Register Connect Subscriber"
+        app:layout_constraintTop_toBottomOf="@id/etConnectSubscriberSecret" />
+
+    <View
+        android:id="@+id/spacer1"
+        android:layout_width="match_parent"
+        android:layout_height="16dp"
+        app:layout_constraintTop_toBottomOf="@id/btnRegisterConnectSubscriber" />
+
+    <Button
+        android:id="@+id/btnListConnectDevices"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="List Connect Devices"
+        app:layout_constraintTop_toBottomOf="@id/spacer1" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:progress="60" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

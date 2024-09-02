@@ -182,13 +182,14 @@ class GRDConnectDevice {
 
     fun deleteConnectDevice(
         grdConnectSubscriber: GRDConnectSubscriber,
+        grdConnectDevice: GRDConnectDevice,
         iOnApiResponse: IOnApiResponse
     ) {
         val requestBody: MutableMap<String, Any> = mutableMapOf()
-        requestBody[kGRDConnectDeviceUUIDKey] = uuid as String
+        requestBody[kGRDConnectDeviceUUIDKey] = grdConnectDevice.uuid as String
 
-        if (peToken.isNullOrEmpty() == false) {
-            requestBody[peTokenKey] = peToken as String
+        if (grdConnectDevice.peToken.isNullOrEmpty() == false) {
+            requestBody[peTokenKey] = grdConnectDevice.peToken as String
 
         } else {
             requestBody[kGRDConnectSubscriberIdentifierKey] =
