@@ -341,12 +341,16 @@ class GRDConnectSubscriber {
                         val anyList = any as List<*>
                         val allDevices =
                             anyList.filterIsInstance<GRDConnectDevice>()
+                        for (device in allDevices) {
+                            device.createdAt = Date((device.createdAtUnix?: 0) * 1000)
+                            device.petExpires = Date((device.petExpiresUnix?: 0) * 1000)
+                        }
                         list.addAll(allDevices)
 
                         val currentDevice = this@GRDConnectSubscriber.device
                         if (currentDevice != null) {
                             list.forEach { device ->
-                                if (device.epGrdDeviceUuid == currentDevice.uuid) {
+                                if (device.uuid == currentDevice.uuid) {
                                     device.currentDevice = true
                                 }
                             }
