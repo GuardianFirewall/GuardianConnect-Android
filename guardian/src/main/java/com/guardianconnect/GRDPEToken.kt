@@ -1,5 +1,6 @@
 package com.guardianconnect
 
+import com.google.gson.internal.LazilyParsedNumber
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
 import com.guardianconnect.helpers.GRDVPNHelper
@@ -10,7 +11,6 @@ import com.guardianconnect.util.Constants.Companion.GRD_PE_TOKEN
 import com.guardianconnect.util.Constants.Companion.GRD_PE_TOKEN_CONNECT_API_ENV
 import com.guardianconnect.util.Constants.Companion.GRD_PE_TOKEN_EXPIRATION_DATE
 import com.guardianconnect.util.GRDKeystore
-import com.guardianconnect.util.GRDLogger
 import kotlinx.coroutines.launch
 import java.util.Date
 
@@ -45,7 +45,7 @@ class GRDPEToken {
         fun newPETFromMap(map: Map<String, Any>, connectAPIEnv: String?): GRDPEToken? {
             val newPET = GRDPEToken()
             newPET.token = map["pe-token"] as? String ?: return null
-            val expirationDateUnix = map["pet-expires"] as? Double ?: return null
+            val expirationDateUnix = map["pet-expires"] as? LazilyParsedNumber ?: return null
             newPET.expirationDateUnix = expirationDateUnix.toLong()
             newPET.expirationDate = Date((newPET.expirationDateUnix ?: 0) * 1000)
             newPET.connectAPIEnv = connectAPIEnv?: Constants.kGRDConnectAPIHostname

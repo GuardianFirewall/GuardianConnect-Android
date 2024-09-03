@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonSyntaxException
+import com.google.gson.ToNumberPolicy
 import com.google.gson.reflect.TypeToken
 import com.guardianconnect.*
 import com.guardianconnect.helpers.GRDVPNHelper
@@ -13,7 +14,6 @@ import com.guardianconnect.util.Constants
 import com.guardianconnect.util.Constants.Companion.API_ERROR
 import com.guardianconnect.util.Constants.Companion.kGRDErrGuardianAccountNotSetup
 import com.guardianconnect.util.GRDLogger
-import com.guardianconnect.util.MapDeserializer
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
@@ -673,7 +673,7 @@ class Repository {
                     Log.d(TAG, "New GRDConnect Subscriber created BODY: $body")
                     if (body != null) {
                         val gson = GsonBuilder()
-                            .registerTypeAdapter(object : TypeToken<Map<String, Any>>() {}.type, MapDeserializer())
+                            .setObjectToNumberStrategy(ToNumberPolicy.LAZILY_PARSED_NUMBER)
                             .create()
 
                         val type = object : TypeToken<Map<String, Any>>() {}.type
