@@ -2,6 +2,7 @@ package com.guardianconnect
 
 import android.util.Log
 import com.google.gson.Gson
+import com.google.gson.internal.LazilyParsedNumber
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
 import com.guardianconnect.helpers.GRDVPNHelper
@@ -174,8 +175,11 @@ class GRDConnectSubscriber {
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
                     val response = any as MutableMap<String, Any>
+                    val transformedResponse = response.toMutableMap()
+                    transformedResponse["pet-expires"] = (response["pet-expires"] as? LazilyParsedNumber)?.toLong() ?: 0L
+
                     val pet = GRDPEToken.newPETFromMap(
-                        response, GRDVPNHelper.connectAPIHostname
+                        transformedResponse, GRDVPNHelper.connectAPIHostname
                     )
                     pet?.store()
                     response[kGRDConnectSubscriberSecretKey] = this@GRDConnectSubscriber.secret.toString()
