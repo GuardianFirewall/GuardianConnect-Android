@@ -10,8 +10,14 @@ import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
 import com.guardianconnect.GRDConnectSubscriber
+import com.guardianconnect.GRDConnectSubscriber.Companion.initFromMap
+import com.guardianconnect.GRDConnectSubscriber.Companion.kGRDConnectSubscriberIdentifierKey
+import com.guardianconnect.GRDConnectSubscriber.Companion.kGRDConnectSubscriberSecretKey
+import com.guardianconnect.GRDPEToken
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.helpers.GRDVPNHelper
+import com.guardianconnect.managers.GRDConnectManager
+import com.guardianconnect.util.Constants.Companion.kGRDDemoAppPublishableKey
 
 class ConnectSubscriberFragment : Fragment() {
 
@@ -40,6 +46,9 @@ class ConnectSubscriberFragment : Fragment() {
         }
 
         view.findViewById<Button>(R.id.btnRegisterConnectSubscriber).setOnClickListener {
+            val publishableKey = etConnectApiPublishableKey.text
+            GRDConnectManager.getSharedPrefsEditor()
+                .putString(kGRDDemoAppPublishableKey, publishableKey.toString()).apply()
             registerConnectSubscriber()
         }
 
@@ -52,7 +61,11 @@ class ConnectSubscriberFragment : Fragment() {
 
     private fun getValues() {
         etConnectApiHostname.setText(GRDVPNHelper.connectAPIHostname)
-        etConnectApiPublishableKey.setText(GRDVPNHelper.connectPublishableKey)
+        etConnectApiPublishableKey.setText(
+            GRDConnectManager.getSharedPrefs().getString(
+                kGRDDemoAppPublishableKey, ""
+            )
+        )
         val subscriber = GRDConnectSubscriber.currentSubscriber()
         etConnectSubscriberIdentifier.setText(subscriber?.identifier)
         etConnectSubscriberSecret.setText(subscriber?.secret)
@@ -81,7 +94,7 @@ class ConnectSubscriberFragment : Fragment() {
         grdConnectSubscriber.registerNewConnectSubscriber(true, "test", object : IOnApiResponse {
             override fun onError(error: String?) {
                 progressBar.visibility = View.GONE
-                Toast.makeText(context, "Error registering subscriber", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
             }
 
             override fun onSuccess(any: Any?) {

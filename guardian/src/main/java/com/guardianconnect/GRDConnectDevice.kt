@@ -2,6 +2,7 @@ package com.guardianconnect
 
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
+import com.google.gson.internal.LazilyParsedNumber
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
 import com.guardianconnect.helpers.GRDVPNHelper
@@ -70,14 +71,14 @@ class GRDConnectDevice {
             newDevice.uuid = device[kGRDConnectDeviceUUIDKey] as? String
             newDevice.peToken = map["pe-token"] as? String
 
-            val petExpiresUnix = map["pet-expires"] as? Long
-            if (petExpiresUnix != null) {
-                newDevice.petExpires = Date(petExpiresUnix.toLong() * 1000)
+            val petExpiresUnix = (map["pet-expires"] as? LazilyParsedNumber)?.toLong() ?: 0L
+            if (petExpiresUnix != 0L) {
+                newDevice.petExpires = Date(petExpiresUnix * 1000)
             }
 
-            val createdAtUnix = device[kGRDConnectDeviceCreatedAtKey] as? Long
-            if (createdAtUnix != null) {
-                newDevice.createdAt = Date(createdAtUnix.toLong() * 1000)
+            val createdAtUnix = (device[kGRDConnectDeviceCreatedAtKey] as? LazilyParsedNumber)?.toLong() ?: 0L
+            if (createdAtUnix != 0L) {
+                newDevice.createdAt = Date(createdAtUnix * 1000)
             }
 
             return newDevice

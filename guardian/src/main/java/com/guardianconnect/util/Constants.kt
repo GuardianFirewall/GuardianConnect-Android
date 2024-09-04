@@ -44,5 +44,6 @@ class Constants {
         const val SUBSCRIBER_CREDENTIAL_FAIL_PET = "SUBSCRIBER_CREDENTIAL_FAIL_PET"
         const val kGRDLastKnownAutomaticRegion = "kGRDLastKnownAutomaticRegion"
         const val kGRDSubscriberCredentialValidationMethod = "kGRDSubscriberCredentialValidationMethod"
+        const val kGRDDemoAppPublishableKey = "kGRDDemoAppPublishableKey"
     }
 }

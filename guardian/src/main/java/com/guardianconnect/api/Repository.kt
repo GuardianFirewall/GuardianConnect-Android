@@ -728,8 +728,11 @@ class Repository {
                     var connectSubscriberUpdateResponse = mapOf<String, Any>()
                     val body = response.body()?.string()
                     if (body != null) {
+                        val gson = GsonBuilder()
+                            .setObjectToNumberStrategy(ToNumberPolicy.LAZILY_PARSED_NUMBER)
+                            .create()
                         val type = object : TypeToken<Map<String, Any>>() {}.type
-                        connectSubscriberUpdateResponse = Gson().fromJson(body, type)
+                        connectSubscriberUpdateResponse = gson.fromJson(body, type)
                     }
 
                     iOnApiResponse.onSuccess(connectSubscriberUpdateResponse)
@@ -779,8 +782,11 @@ class Repository {
                     var connectSubscriberValidateResponse = mapOf<String, Any>()
                     val body = response.body()?.string()
                     if (body != null) {
+                        val gson = GsonBuilder()
+                            .setObjectToNumberStrategy(ToNumberPolicy.LAZILY_PARSED_NUMBER)
+                            .create()
                         val type = object : TypeToken<Map<String, Any>>() {}.type
-                        connectSubscriberValidateResponse = Gson().fromJson(body, type)
+                        connectSubscriberValidateResponse = gson.fromJson(body, type)
                     }
                     iOnApiResponse.onSuccess(connectSubscriberValidateResponse)
                     Log.d(TAG, "GRDConnect Subscriber validated.")
@@ -830,8 +836,11 @@ class Repository {
                     var connectDeviceResponse = mapOf<String, Any>()
                     val body = response.body()?.string()
                     if (body != null) {
+                        val gson = GsonBuilder()
+                            .setObjectToNumberStrategy(ToNumberPolicy.LAZILY_PARSED_NUMBER)
+                            .create()
                         val type = object : TypeToken<Map<String, Any>>() {}.type
-                        connectDeviceResponse = Gson().fromJson(body, type)
+                        connectDeviceResponse = gson.fromJson(body, type)
                     }
                     iOnApiResponse.onSuccess(connectDeviceResponse)
                     Log.d(TAG, "GRDConnect Device added.")
@@ -881,8 +890,11 @@ class Repository {
                     var connectDeviceResponse = mapOf<String, Any>()
                     val body = response.body()?.string()
                     if (body != null) {
+                        val gson = GsonBuilder()
+                            .setObjectToNumberStrategy(ToNumberPolicy.LAZILY_PARSED_NUMBER)
+                            .create()
                         val type = object : TypeToken<Map<String, Any>>() {}.type
-                        connectDeviceResponse = Gson().fromJson(body, type)
+                        connectDeviceResponse = gson.fromJson(body, type)
                     }
                     iOnApiResponse.onSuccess(connectDeviceResponse)
                     Log.d(TAG, "GRDConnect Device updated.")
@@ -929,7 +941,10 @@ class Repository {
                     val body = response.body()?.string()
                     if (body != null) {
                         try {
-                            val objectList: List<GRDConnectDevice> = Gson().fromJson(body, object : TypeToken<List<GRDConnectDevice>>() {}.type)
+                            val gson = GsonBuilder()
+                                .setObjectToNumberStrategy(ToNumberPolicy.LAZILY_PARSED_NUMBER)
+                                .create()
+                            val objectList: List<GRDConnectDevice> = gson.fromJson(body, object : TypeToken<List<GRDConnectDevice>>() {}.type)
                             iOnApiResponse.onSuccess(objectList)
                             Log.d(TAG, "All Connect subscriber devices returned successfully!")
                         } catch (e: JsonSyntaxException) {
@@ -1028,8 +1043,11 @@ class Repository {
                     var connectDeviceReferenceResponse = mapOf<String, Any>()
                     val body = response.body()?.string()
                     if (body != null) {
+                        val gson = GsonBuilder()
+                            .setObjectToNumberStrategy(ToNumberPolicy.LAZILY_PARSED_NUMBER)
+                            .create()
                         val type = object : TypeToken<Map<String, Any>>() {}.type
-                        connectDeviceReferenceResponse = Gson().fromJson(body, type)
+                        connectDeviceReferenceResponse = gson.fromJson(body, type)
                     }
                     iOnApiResponse.onSuccess(connectDeviceReferenceResponse)
                     Log.d(TAG, "Connect subscriber device reference returned successfully!")

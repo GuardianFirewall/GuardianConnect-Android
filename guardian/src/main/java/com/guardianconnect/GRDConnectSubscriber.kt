@@ -53,13 +53,13 @@ class GRDConnectSubscriber {
             newSubscriber.subscriptionNameFormatted =
                 map[kGRDConnectSubscriberSubscriptionNameFormattedKey] as? String
 
-            val subDateUnix = map[kGRDConnectSubscriberSubscriptionExpirationDateKey] as? Long
-            if (subDateUnix != null) {
-                newSubscriber.subscriptionExpirationDate = Date(subDateUnix.toLong() * 1000)
+            val subDateUnix = (map[kGRDConnectSubscriberSubscriptionExpirationDateKey] as? LazilyParsedNumber)?.toLong() ?: 0L
+            if (subDateUnix != 0L) {
+                newSubscriber.subscriptionExpirationDate = Date(subDateUnix * 1000)
             }
-            val createdAtUnix = map[kGRDConnectSubscriberCreatedAtKey] as? Long
-            if (createdAtUnix != null) {
-                newSubscriber.createdAt = Date(createdAtUnix.toLong() * 1000)
+            val createdAtUnix = (map[kGRDConnectSubscriberCreatedAtKey] as? LazilyParsedNumber)?.toLong() ?: 0L
+            if (createdAtUnix != 0L) {
+                newSubscriber.createdAt = Date(createdAtUnix * 1000)
             }
 
             // Skip for the time being until the same function is
@@ -88,8 +88,10 @@ class GRDConnectSubscriber {
 
     fun initGRDConnectSubscriber(): Exception? {
         val secret = GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER_SECRET)
-        val grdConnectSubscriberString = GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER)
-        val grdConnectSubscriber = Gson().fromJson(grdConnectSubscriberString, GRDConnectSubscriber::class.java)
+        val grdConnectSubscriberString =
+            GRDKeystore.instance.retrieveFromKeyStore(GRD_CONNECT_SUBSCRIBER)
+        val grdConnectSubscriber =
+            Gson().fromJson(grdConnectSubscriberString, GRDConnectSubscriber::class.java)
         if (secret.isNullOrEmpty() || grdConnectSubscriberString.isNullOrEmpty() || grdConnectSubscriber == null) {
             return Exception("Connect Subscriber missing")
         }
@@ -344,8 +346,8 @@ class GRDConnectSubscriber {
                         val allDevices =
                             anyList.filterIsInstance<GRDConnectDevice>()
                         for (device in allDevices) {
-                            device.createdAt = Date((device.createdAtUnix?: 0) * 1000)
-                            device.petExpires = Date((device.petExpiresUnix?: 0) * 1000)
+                            device.createdAt = Date((device.createdAtUnix ?: 0) * 1000)
+                            device.petExpires = Date((device.petExpiresUnix ?: 0) * 1000)
                         }
                         list.addAll(allDevices)
 
