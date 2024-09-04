@@ -13,22 +13,6 @@ import kotlinx.coroutines.launch
 import java.util.Date
 
 class GRDConnectDevice {
-
-//    @SerializedName("ep-grd-device-created-at")
-//    var epGrdDeviceCreatedAt: Long? = null
-//
-//    @SerializedName("ep-grd-device-nickname")
-//    var epGrdDeviceNickname: String? = null
-//
-//    @SerializedName("ep-grd-device-pe-token")
-//    var epGrdDevicePeToken: String? = null
-//
-//    @SerializedName("ep-grd-device-pet-expires")
-//    var epGrdDevicePetExpires: Long? = null
-//
-//    @SerializedName("ep-grd-device-uuid")
-//    var epGrdDeviceUuid: String? = null
-
     @SerializedName("ep-grd-device-created-at")
     var createdAtUnix: Long? = null
 
