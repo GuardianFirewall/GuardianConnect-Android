@@ -199,14 +199,11 @@ class GRDConnectSubscriber {
     fun updateConnectSubscriber(
         iOnApiResponse: IOnApiResponse
     ) {
-        val pet = GRDPEToken.instance.retrievePEToken()
-
         val requestBody: MutableMap<String, Any> = mutableMapOf()
         requestBody[kGRDConnectSubscriberIdentifierKey] =
             identifier as String
         requestBody[kGRDConnectSubscriberSecretKey] =
             secret as String
-        requestBody[peTokenKey] = pet as String
         requestBody[kGRDConnectSubscriberEmailKey] = email as String
 
         Repository.instance.updateGRDConnectSubscriber(
