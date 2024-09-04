@@ -175,11 +175,9 @@ class GRDConnectSubscriber {
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
                     val response = any as MutableMap<String, Any>
-                    val transformedResponse = response.toMutableMap()
-                    transformedResponse["pet-expires"] = (response["pet-expires"] as? LazilyParsedNumber)?.toLong() ?: 0L
 
                     val pet = GRDPEToken.newPETFromMap(
-                        transformedResponse, GRDVPNHelper.connectAPIHostname
+                        response, GRDVPNHelper.connectAPIHostname
                     )
                     pet?.store()
                     response[kGRDConnectSubscriberSecretKey] = this@GRDConnectSubscriber.secret.toString()
