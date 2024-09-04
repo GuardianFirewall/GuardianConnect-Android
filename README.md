@@ -16,3 +16,8 @@ implementation 'com.guardianapp.connect:GuardianConnect:$GuardianConnectVersion'
 
 ### Sample Application
 The project contains a sample application built to showcase & test functionality. It is also a reference implementation for the APIs provided by the GuardianConnect library and can be run locally on any Android device
+
+
+### Building
+In order to build the library for local development tasks & testing first clone the repo and then run `./gradlew guardian:build` from the root of the repo.  
+The build system will create a new directory with the build output under `./guardian/build/outputs/aar`
