@@ -28,7 +28,9 @@ import com.guardianconnect.GRDWireGuardConfiguration
 import com.guardianconnect.util.Constants
 import com.guardianconnect.util.applicationScope
 import com.wireguard.android.backend.Tunnel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
     private var myReceiver: MyBroadcastReceiver? = null
@@ -131,25 +133,32 @@ class MainActivity : AppCompatActivity() {
 
     private fun collectFlowStates() {
         GRDConnectManager.getCoroutineScope().launch {
-            GRDVPNHelper.configStringFlow.collect {
-                etConfig.setText(it)
+            GRDVPNHelper.configStringFlow.collect { configString ->
+                withContext(Dispatchers.Main) {
+                    etConfig.setText(configString)
+                }
             }
         }
+
         GRDConnectManager.getCoroutineScope().launch {
             GRDVPNHelper.grdStatusFlow.collect {
                 Log.d("MainActivity", it)
                 when (it) {
                     GRDVPNHelper.GRDVPNHelperStatus.CONNECTED.status -> {
-                        progressBar.visibility = View.GONE
-                        btnStartTunnel.visibility = View.GONE
-                        btnStopTunnel.visibility = View.VISIBLE
+                        withContext(Dispatchers.Main) {
+                            progressBar.visibility = View.GONE
+                            btnStartTunnel.visibility = View.GONE
+                            btnStopTunnel.visibility = View.VISIBLE
+                        }
                     }
                 }
             }
         }
         GRDConnectManager.getCoroutineScope().launch {
             GRDVPNHelper.grdErrorFlow.collect {
-                progressBar.visibility = View.GONE
+                withContext(Dispatchers.Main) {
+                    progressBar.visibility = View.GONE
+                }
                 Log.e("MainActivity", it)
             }
         }
@@ -265,8 +274,10 @@ class MainActivity : AppCompatActivity() {
             // needs to be called again
             lifecycleScope.launch {
                 GRDVPNHelper.createAndStartTunnel()
+                withContext(Dispatchers.Main) {
+                    progressBar.visibility = View.GONE
+                }
             }
-            progressBar.visibility = View.GONE
         }
 
     override fun onDestroy() {

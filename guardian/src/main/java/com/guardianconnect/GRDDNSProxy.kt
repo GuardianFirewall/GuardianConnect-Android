@@ -8,6 +8,9 @@ import android.os.Handler
 import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -92,7 +95,9 @@ class GRDDNSProxy : VpnService() {
 
                 handler.post {
                     Log.d(TAG, "VPN connection established")
-                    startVpnConnection()
+                    CoroutineScope(Dispatchers.IO).launch {
+                        startVpnConnection()
+                    }
                 }
             } catch (e: Exception) {
                 e.message?.let { errorMessage ->
@@ -143,33 +148,40 @@ class GRDDNSProxy : VpnService() {
 
 
     private fun startVpnConnection() {
-        val protectFd = parcelFileDescriptor?.fd
-        val vpnInput = FileInputStream(parcelFileDescriptor?.fileDescriptor)
-        val vpnOutput = FileOutputStream(parcelFileDescriptor?.fileDescriptor)
-        val relayBuffer = ByteBuffer.allocate(1024)
-        while (true) {
-            relayBuffer.clear()
-            val bytesRead: Int = try {
-                vpnInput.channel.read(relayBuffer)
-            } catch (e: IOException) {
-                break
+        parcelFileDescriptor?.fileDescriptor?.let { fd ->
+            FileInputStream(fd).use { vpnInput ->
+                FileOutputStream(fd).use { vpnOutput ->
+                    val relayBuffer = ByteBuffer.allocate(1024)
+                    while (true) {
+                        relayBuffer.clear()
+                        val bytesRead: Int = try {
+                            vpnInput.channel.read(relayBuffer)
+                        } catch (e: IOException) {
+                            break
+                        } finally {
+                            vpnInput.channel.close()
+                        }
+                        if (bytesRead <= 0) {
+                            break
+                        }
+                        relayBuffer.flip()
+                        val dnsRequest = ByteArray(bytesRead)
+                        relayBuffer[dnsRequest]
+                        val dnsResponse: ByteArray = dnsRequest
+                        relayBuffer.clear()
+                        relayBuffer.put(dnsResponse)
+                        relayBuffer.flip()
+                        try {
+                            vpnOutput.channel.write(relayBuffer)
+                        } catch (e: IOException) {
+                            break
+                        } finally {
+                            vpnOutput.channel.close()
+                        }
+                        relayBuffer.clear()
+                    }
+                }
             }
-            if (bytesRead <= 0) {
-                break
-            }
-            relayBuffer.flip()
-            val dnsRequest = ByteArray(bytesRead)
-            relayBuffer[dnsRequest]
-            val dnsResponse: ByteArray = dnsRequest
-            relayBuffer.clear()
-            dnsResponse.let { relayBuffer.put(it) }
-            relayBuffer.flip()
-            try {
-                vpnOutput.channel.write(relayBuffer)
-            } catch (e: IOException) {
-                break
-            }
-            relayBuffer.clear()
         }
     }
 
@@ -188,8 +200,10 @@ class GRDDNSProxy : VpnService() {
         }
 
         fun stopVpnConnection() {
-            isVpnRunning = false
-            closeVpnConnection()
+            CoroutineScope(Dispatchers.IO).launch {
+                isVpnRunning = false
+                closeVpnConnection()
+            }
         }
     }
 
