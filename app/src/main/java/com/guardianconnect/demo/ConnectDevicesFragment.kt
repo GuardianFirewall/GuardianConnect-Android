@@ -58,7 +58,10 @@ class ConnectDevicesFragment : Fragment() {
                 Toast.makeText(context, "Error fetching devices", Toast.LENGTH_SHORT).show()
             }
 
-        })
+        }) ?: kotlin.run {
+            Toast.makeText(context, "No current subscriber!", Toast.LENGTH_SHORT).show()
+            progressBar.visibility = View.GONE
+        }
     }
 
     private fun deleteDevice(device: GRDConnectDevice) {

@@ -20,7 +20,6 @@ class DemoApplication : android.app.Application() {
                 .detectLeakedSqlLiteObjects()
                 .detectLeakedClosableObjects()
                 .penaltyLog()
-                .penaltyDeath()
                 .build()
         )
         super.onCreate()

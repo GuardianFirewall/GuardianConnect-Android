@@ -4,13 +4,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -18,13 +18,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.guardianconnect.managers.GRDConnectManager
-import com.guardianconnect.managers.GRDCredentialManager
 import com.guardianconnect.GRDPEToken
 import com.guardianconnect.GRDRegion
-import com.guardianconnect.managers.GRDServerManager
-import com.guardianconnect.helpers.GRDVPNHelper
 import com.guardianconnect.GRDWireGuardConfiguration
+import com.guardianconnect.helpers.GRDVPNHelper
+import com.guardianconnect.managers.GRDConnectManager
+import com.guardianconnect.managers.GRDServerManager
 import com.guardianconnect.util.Constants
 import com.guardianconnect.util.applicationScope
 import com.wireguard.android.backend.Tunnel
@@ -46,11 +45,26 @@ class MainActivity : AppCompatActivity() {
     private var adapter: AllRegionsAdapter? = null
     private var rvList: RecyclerView? = null
     private val regionsAdapterList: ArrayList<GRDRegion> = ArrayList()
+    private lateinit var permissionActivityResultLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         etConfig = findViewById(R.id.etConfig)
+
+        permissionActivityResultLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+                // This completion handler is called after the user taps on allow in the OS modal alert
+                // from createAndStartTunnel() & the grdVPNPermissionFlow
+                // To ensure that the user is actually going to be connected createAndStartTunnel
+                // needs to be called again
+                lifecycleScope.launch {
+                    GRDVPNHelper.createAndStartTunnel()
+                    withContext(Dispatchers.Main) {
+                        progressBar.visibility = View.GONE
+                    }
+                }
+            }
 
         val intentFilter = IntentFilter()
         intentFilter.addAction("com.guardianconnect.action.GRD_REFRESH_TUNNEL_STATES")
@@ -266,23 +280,9 @@ class MainActivity : AppCompatActivity() {
         GRDPEToken.instance.storePEToken(peToken)
     }
 
-    private val permissionActivityResultLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            // This completion handler is called after the user taps on allow in the OS modal alert
-            // from createAndStartTunnel() & the grdVPNPermissionFlow
-            // To ensure that the user is actually going to be connected createAndStartTunnel
-            // needs to be called again
-            lifecycleScope.launch {
-                GRDVPNHelper.createAndStartTunnel()
-                withContext(Dispatchers.Main) {
-                    progressBar.visibility = View.GONE
-                }
-            }
-        }
-
     override fun onDestroy() {
         super.onDestroy()
-        if (myReceiver != null) unregisterReceiver(myReceiver)
+        if (myReceiver != null) applicationContext.unregisterReceiver(myReceiver)
     }
 
     class MyBroadcastReceiver : BroadcastReceiver() {
