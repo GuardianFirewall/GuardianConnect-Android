@@ -5,6 +5,9 @@ import com.guardianconnect.helpers.GRDVPNHelper
 import com.guardianconnect.managers.GRDConnectManager
 import com.wireguard.config.Config
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.Reader
 import java.io.StringReader
@@ -95,5 +98,83 @@ class GRDWireGuardConfiguration {
             }
         }
         return config
+    }
+
+    fun resolveDomainWithDoH(domain: String): String? {
+        // Correct Cloudflare DoH API endpoint and parameters
+        val url = "https://cloudflare-dns.com/dns-query?name=$domain&type=A"
+
+        val client = OkHttpClient()
+        val request = Request.Builder()
+            .url(url)
+            .header("Accept", "application/dns-json")
+            .build()
+
+        return try {
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                val responseBody = response.body?.string()
+                if (responseBody != null) {
+                    val jsonObject = JSONObject(responseBody)
+                    // Get the "Answer" section of the DNS response
+                    val answer = jsonObject.getJSONArray("Answer").getJSONObject(0)
+                    answer.getString("data") // The resolved IP address
+                } else {
+                    null
+                }
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    fun getWireGuardConfigStringDoH(
+        grdCredential: GRDCredential,
+        dnsServersParam: String?,
+        appExceptionList: ArrayList<String>? = arrayListOf(),
+        excludeLANTraffic: Boolean = false
+    ): String {
+
+        val dohResolvedIP = resolveDomainWithDoH("cloudflare-dns.com")
+
+        // Fallback if the DoH resolution fails
+        val dnsIP = dohResolvedIP ?: "1.1.1.1"  // Use Cloudflare’s IP directly if DoH fails
+
+        val appExceptions: String = if (grdCredential.mainCredential == true && appExceptionList != null) {
+            if (appExceptionList.size > 1) {
+                appExceptionList.joinToString(", ")
+            } else {
+                appExceptionList.firstOrNull() ?: "empty list"
+            }
+        } else {
+            "null"
+        }
+
+        val allowedIPs = if (excludeLANTraffic) {
+            "0.0.0.0/5,8.0.0.0/7,11.0.0.0/8,12.0.0.0/6,16.0.0.0/4,32.0.0.0/3,64.0.0.0/2,128.0.0.0/3," +
+                    "160.0.0.0/5,168.0.0.0/6,172.0.0.0/12,172.32.0.0/11,172.64.0.0/10,172.128.0.0/9,173.0.0.0/8," +
+                    "174.0.0.0/7,176.0.0.0/4,192.0.0.0/9,192.128.0.0/11,192.160.0.0/13,192.169.0.0/16,192.170.0.0/15," +
+                    "192.172.0.0/14,192.176.0.0/12,192.192.0.0/10,193.0.0.0/8,194.0.0.0/7,196.0.0.0/6,200.0.0.0/5," +
+                    "208.0.0.0/4,224.0.0.0/3,::/1,8000::/2,c000::/3,e000::/4,f000::/5,f800::/6,fc00::/8,fe00::/7"
+        } else {
+            "0.0.0.0/0, ::/0"
+        }
+
+        val configString =
+            "[Interface]" +
+                    "\nPrivateKey = ${grdCredential.devicePrivateKey}" +
+                    "\nAddress = ${grdCredential.IPv4Address}" +
+                    "\nDNS = $dnsIP" +
+                    "\nExcludedApplications = $appExceptions" +
+                    "\n\n[Peer]" +
+                    "\nPublicKey = ${grdCredential.serverPublicKey}" +
+                    "\nAllowedIPs = $allowedIPs" +
+                    "\nEndpoint = ${grdCredential.hostname}:51821"
+
+        Log.d(tag, "Formatted WireGuard config: \n$configString")
+        return configString
     }
 }
