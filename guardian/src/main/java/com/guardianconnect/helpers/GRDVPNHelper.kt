@@ -118,7 +118,7 @@ object GRDVPNHelper {
             GRDRegion.automaticRegion()
         }
         currentGRDRegion?.namePretty = currentTimeZone.displayName
-        GRDLogger.d(TAG, "checkTimeZoneChanged currentTimeZone: $currentTimeZone")
+        GRDLogger.d(TAG, "checkTimeZoneChanged currentTimeZone: ${currentTimeZone.displayName}")
         val lastKnownTimeZoneString =
             GRDConnectManager.getSharedPrefs().getString(kGRDLastKnownAutomaticRegion, null)
         val lastKnownTimeZone = Gson().fromJson(lastKnownTimeZoneString, GRDRegion::class.java)
@@ -127,7 +127,7 @@ object GRDVPNHelper {
             val notification = TimeZoneNotification()
             notification.oldRegion = lastKnownTimeZone
             notification.newRegion = currentGRDRegion
-            GRDLogger.d(TAG, "checkTimeZoneChanged timeZoneNotification: $notification")
+            GRDLogger.d(TAG, "checkTimeZoneChanged timeZoneNotification: old: ${notification.oldRegion?.namePretty} new: ${notification.newRegion?.namePretty}")
             _timezoneChannel.trySend(notification)
             GRDConnectManager.getSharedPrefsEditor()
                 .putString(kGRDLastKnownAutomaticRegion, Gson().toJson(currentGRDRegion)).apply()
