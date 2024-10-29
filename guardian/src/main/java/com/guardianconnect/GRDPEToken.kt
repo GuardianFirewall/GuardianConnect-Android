@@ -32,8 +32,6 @@ class GRDPEToken {
             if (petExpirationDate == -1L) {
                 val sixMonthsInMillis = 6L * 30L * 24L * 60L * 60L * 1000L
                 petExpirationDate = System.currentTimeMillis() + sixMonthsInMillis
-
-                GRDConnectManager.getSharedPrefs().edit().putLong(GRD_PE_TOKEN_EXPIRATION_DATE, petExpirationDate).apply()
             }
 
             val pet = GRDPEToken()
