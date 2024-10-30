@@ -111,30 +111,28 @@ object GRDVPNHelper {
     }
 
     fun checkTimeZoneChanged() {
-        val currentTimeZone = TimeZone.getDefault()
+        val currentTimeZone = TimeZone.getDefault().id
         val currentGRDRegion = if (GRDServerManager.getPreferredRegion() != null) {
             GRDServerManager.getPreferredRegion()
         } else {
             GRDRegion.automaticRegion()
         }
-        currentGRDRegion?.namePretty = currentTimeZone.displayName
-        GRDLogger.d(TAG, "checkTimeZoneChanged currentTimeZone: ${currentTimeZone.displayName}")
+        currentGRDRegion?.timeZoneName = currentTimeZone
+        GRDLogger.d(TAG, "checkTimeZoneChanged currentTimeZone: ${currentTimeZone}")
         val lastKnownTimeZoneString =
             GRDConnectManager.getSharedPrefs().getString(kGRDLastKnownAutomaticRegion, null)
         val lastKnownTimeZone = Gson().fromJson(lastKnownTimeZoneString, GRDRegion::class.java)
 
-        if (lastKnownTimeZone != null && lastKnownTimeZone.namePretty != currentTimeZone.displayName) {
+        if (lastKnownTimeZone != null && lastKnownTimeZone.timeZoneName != currentGRDRegion?.timeZoneName) {
             val notification = TimeZoneNotification()
             notification.oldRegion = lastKnownTimeZone
             notification.newRegion = currentGRDRegion
-            GRDLogger.d(TAG, "checkTimeZoneChanged timeZoneNotification: old: ${notification.oldRegion?.namePretty} new: ${notification.newRegion?.namePretty}")
+            GRDLogger.d(TAG, "checkTimeZoneChanged timeZoneNotification: old: ${notification.oldRegion?.timeZoneName} new: ${notification.newRegion?.timeZoneName}")
             _timezoneChannel.trySend(notification)
-            GRDConnectManager.getSharedPrefsEditor()
-                .putString(kGRDLastKnownAutomaticRegion, Gson().toJson(currentGRDRegion)).apply()
-        } else if (lastKnownTimeZone == null) {
-            GRDConnectManager.getSharedPrefsEditor()
-                .putString(kGRDLastKnownAutomaticRegion, Gson().toJson(currentGRDRegion)).apply()
         }
+
+        GRDConnectManager.getSharedPrefsEditor()
+            .putString(kGRDLastKnownAutomaticRegion, Gson().toJson(currentGRDRegion)).apply()
     }
 
     fun setRegionPrecision(precision: String) {
