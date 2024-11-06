@@ -129,12 +129,13 @@ object GRDVPNHelper {
             notification.oldRegion  = lastKnownTimeZone
             notification.newRegion  = currentGRDRegion
             GRDLogger.d(TAG, "checkTimeZoneChanged timeZoneNotification: old: ${notification.oldRegion?.timeZoneName} new: ${notification.newRegion?.timeZoneName}")
+            //
+            // Note from CJ 2024-11-06
+            // Remove the last known automatic region from shared preferences prior to
+            // posting the notification in order to ensure that the app is only notified once
+            GRDConnectManager.getSharedPrefsEditor().remove(kGRDLastKnownAutomaticRegion)?.apply()
             _timezoneChannel.trySend(notification)
         }
-
-        if (lastKnownTimeZone == null || lastKnownTimeZone.timeZoneName != currentGRDRegion?.timeZoneName)
-            GRDConnectManager.getSharedPrefsEditor()
-                .putString(kGRDLastKnownAutomaticRegion, Gson().toJson(currentGRDRegion)).apply()
     }
 
     fun setRegionPrecision(precision: String) {
