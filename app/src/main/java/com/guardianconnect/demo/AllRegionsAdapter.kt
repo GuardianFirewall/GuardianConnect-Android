@@ -65,7 +65,7 @@ class AllRegionsAdapter(
                     grdRegion
                 )
                 if (grdRegion.namePretty == GRD_AUTOMATIC_REGION) {
-                    GRDServerManager.clearPreferredRegion()
+                    GRDServerManager.setPreferredRegion(null)
                     Toast.makeText(
                         context,
                         "Preferred region cleared!",

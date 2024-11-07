@@ -37,19 +37,24 @@ class GRDServerManager {
         const val kGRDServerManagerFeatureEnvironmentKey = "feature-environment"
         const val kGRDServerManagerBetaCapableKey = "beta-capable"
 
-        /*  Function to reset the user preferred region. */
-        fun clearPreferredRegion() {
-            GRDConnectManager.getSharedPrefsEditor().remove(Constants.GRD_PREFERRED_REGION)?.apply()
-            Log.d(TAG, "Preferred Region cleared!")
-        }
-
         /*  Permanently override the region that the device should connect to.
             The function should take the name property of the region object and store it into the
             SharedPreferences for the key GRD_Preferred_Region */
         fun setPreferredRegion(region: GRDRegion?) {
             val editor = GRDConnectManager.getSharedPrefsEditor()
             if (region == null || region.name == GRD_AUTOMATIC_REGION) {
-                clearPreferredRegion()
+                //
+                // Note from CJ 2024-11-06
+                // Ensure that we remove the last known automatic routing mode
+                // region that we had recorded so that we do not post
+                // a time zone change notification to an integrating application
+                // whenever the user changes time zones but has since set the routing
+                // mode to a specific region
+                editor.remove(Constants.kGRDLastKnownAutomaticRegion)
+
+                editor.remove(Constants.GRD_PREFERRED_REGION)?.apply()
+                Log.d(TAG, "Preferred Region cleared!")
+
             } else {
                 val gson = Gson()
                 val json = gson.toJson(region)
