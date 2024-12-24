@@ -36,6 +36,7 @@ class GRDServerManager {
         const val kGRDServerManagerPaidKey = "paid"
         const val kGRDServerManagerFeatureEnvironmentKey = "feature-environment"
         const val kGRDServerManagerBetaCapableKey = "beta-capable"
+        const val kGRDServerManagerRegionPrecision = "region-precision"
 
         /*  Permanently override the region that the device should connect to.
             The function should take the name property of the region object and store it into the
@@ -95,7 +96,8 @@ class GRDServerManager {
             requestBody = mutableMapOf<String, Any>(
                 kGRDServerManagerRegionKey to preferredRegion?.name.toString(),
                 kGRDServerManagerFeatureEnvironmentKey to vpnServerFeatureEnvironment as GRDServerFeatureEnvironment,
-                kGRDServerManagerBetaCapableKey to preferBetaCapableServers as Boolean
+                kGRDServerManagerBetaCapableKey to preferBetaCapableServers as Boolean,
+                kGRDServerManagerRegionPrecision to regionPrecision as String
             )
             Log.d(TAG, "serversForRegion requestBody: $requestBody")
 
@@ -127,6 +129,9 @@ class GRDServerManager {
                                             }
                                             selectedRegion = name
                                             requestBody[kGRDServerManagerRegionKey] = selectedRegion
+                                            regionPrecision?.let {
+                                                requestBody[kGRDServerManagerRegionPrecision] = it
+                                            }
 
                                             Log.d(
                                                 TAG,

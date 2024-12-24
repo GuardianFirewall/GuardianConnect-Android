@@ -3,6 +3,11 @@ import com.google.gson.reflect.TypeToken
 import com.guardianconnect.GRDDeviceFilterConfigBlocklist
 import com.guardianconnect.GRDRegion
 import com.guardianconnect.api.IApiCalls
+import com.guardianconnect.enumeration.GRDServerFeatureEnvironment
+import com.guardianconnect.managers.GRDServerManager.Companion.kGRDServerManagerBetaCapableKey
+import com.guardianconnect.managers.GRDServerManager.Companion.kGRDServerManagerFeatureEnvironmentKey
+import com.guardianconnect.managers.GRDServerManager.Companion.kGRDServerManagerRegionKey
+import com.guardianconnect.managers.GRDServerManager.Companion.kGRDServerManagerRegionPrecision
 import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants
 import com.wireguard.crypto.KeyPair
@@ -297,22 +302,6 @@ class ApiTest {
         Mockito.`when`(callTimeZonesResponse.execute())
             .thenReturn(Response.success(listOf(TimeZonesResponse())))
         val response = apiService.getListOfSupportedTimeZones().execute()
-        assertTrue(response.body() != null)
-    }
-
-    @Test
-    fun testListOfServersForRegion() {
-        val apiService = retrofit.create(IApiCalls::class.java)
-        Mockito.`when`(callListOfServersForRegion.execute()).thenReturn(
-            Response.success(
-                listOf(GRDSGWServer())
-            )
-        )
-        val requestServersForRegion = RequestServersForRegion()
-        requestServersForRegion.region = "eu-de"
-        val response = apiService.requestListOfServersForRegion(
-            requestServersForRegion
-        ).execute()
         assertTrue(response.body() != null)
     }
 

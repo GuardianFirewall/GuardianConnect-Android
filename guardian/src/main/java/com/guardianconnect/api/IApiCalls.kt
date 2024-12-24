@@ -55,11 +55,6 @@ interface IApiCalls {
         @Path("precision") precision: String
     ): Call<ResponseBody>
 
-    @POST("/api/v1.2/servers/hostnames-for-region")
-    fun requestListOfServersForRegion(
-        @Body RequestServersForRegion: RequestServersForRegion
-    ): Call<ResponseBody>
-
     @POST("/api/v1.3/servers/hostnames-for-region")
     fun requestListOfServersForRegionWithRegionPrecision(
         @Body request: @JvmSuppressWildcards MutableMap<String, Any>

@@ -391,56 +391,6 @@ class Repository {
         })
     }
 
-    fun requestListOfServersForRegion(
-        requestServersForRegion: RequestServersForRegion,
-        iOnApiResponse: IOnApiResponse
-    ) {
-        val call: Call<ResponseBody>? =
-            apiCallsConnect?.requestListOfServersForRegion(requestServersForRegion)
-        var objectList: ArrayList<GRDSGWServer>?
-        call?.enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                if (response.isSuccessful) {
-                    val string = response.body()?.string()
-                    objectList = ArrayList(
-                        Gson().fromJson(
-                            string,
-                            Array<GRDSGWServer>::class.java
-                        ).asList()
-                    )
-                    iOnApiResponse.onSuccess(objectList)
-                    Log.d(
-                        TAG,
-                        "List of servers returned successfully!"
-                    )
-                } else {
-                    val errorBody = response.errorBody()?.string()
-                    if (errorBody != null) {
-                        try {
-                            val jObjError = JSONObject(errorBody)
-                            Log.d(TAG, jObjError.toString())
-                            iOnApiResponse.onError(jObjError.toString())
-                        } catch (e: JSONException) {
-                            // Handle the case when the error response is not in JSON format
-                            Log.e(TAG, "Error response is not in JSON format")
-                            iOnApiResponse.onError("Error response is not in JSON format")
-                        }
-                    } else {
-                        Log.e(TAG, "Error response body is null")
-                        iOnApiResponse.onError("Error response body is null")
-                    }
-                }
-            }
-
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                iOnApiResponse.onError(t.message)
-                Log.d(
-                    TAG,
-                    API_ERROR + " requestListOfServersForRegion() " + t.message
-                )
-            }
-        })
-    }
 
     fun requestListOfServersForRegion(
         requestServersForRegion: MutableMap<String, Any>,
