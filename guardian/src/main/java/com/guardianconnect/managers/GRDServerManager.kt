@@ -17,8 +17,7 @@ import com.guardianconnect.util.Constants
 import com.guardianconnect.util.Constants.Companion.GRD_AUTOMATIC_REGION
 import com.guardianconnect.util.Constants.Companion.GRD_REGIONS_LIST_FROM_SHARED_PREFS
 import com.guardianconnect.util.Constants.Companion.kGRDLastKnownAutomaticRegion
-import java.util.*
-import kotlin.collections.ArrayList
+import java.util.TimeZone
 
 /* This class provides higher level helper functions to quickly get the list of VPN servers and
     pick one
@@ -129,9 +128,10 @@ class GRDServerManager {
                                             }
                                             selectedRegion = name
                                             requestBody[kGRDServerManagerRegionKey] = selectedRegion
-                                            regionPrecision?.let {
-                                                requestBody[kGRDServerManagerRegionPrecision] = it
-                                            }
+                                            val precision = regionPrecision
+                                                ?: Constants.kGRDRegionPrecisionDefault
+                                            requestBody[kGRDServerManagerRegionPrecision] =
+                                                precision
 
                                             Log.d(
                                                 TAG,
@@ -148,7 +148,9 @@ class GRDServerManager {
                             iOnApiResponse.onError("No available servers for your timezone: $currentTimeZoneId")
                         } else {
                             grdRegion?.timeZoneName = currentTimeZoneId
-                            GRDConnectManager.getSharedPrefsEditor().putString(kGRDLastKnownAutomaticRegion, Gson().toJson(grdRegion)).apply()
+                            GRDConnectManager.getSharedPrefsEditor()
+                                .putString(kGRDLastKnownAutomaticRegion, Gson().toJson(grdRegion))
+                                .apply()
                             requestListOfServersForRegion(
                                 requestBody,
                                 iOnApiResponse
@@ -169,7 +171,7 @@ class GRDServerManager {
         serversForRegion: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
-        Repository.instance.requestListOfServersForRegion(
+        Repository.instance.requestListOfServersForRegionWithRegionPrecision(
             serversForRegion,
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {

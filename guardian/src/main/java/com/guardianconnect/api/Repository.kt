@@ -392,7 +392,7 @@ class Repository {
     }
 
 
-    fun requestListOfServersForRegion(
+    fun requestListOfServersForRegionWithRegionPrecision(
         requestServersForRegion: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
