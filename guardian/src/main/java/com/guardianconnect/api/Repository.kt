@@ -437,7 +437,7 @@ class Repository {
                 iOnApiResponse.onError(t.message)
                 Log.d(
                     TAG,
-                    API_ERROR + " requestListOfServersForRegion() " + t.message
+                    API_ERROR + " requestListOfServersForRegionWithRegionPrecision() " + t.message
                 )
             }
         })

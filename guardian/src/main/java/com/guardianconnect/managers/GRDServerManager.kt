@@ -100,7 +100,7 @@ class GRDServerManager {
             )
             Log.d(TAG, "serversForRegion requestBody: $requestBody")
 
-            requestListOfServersForRegion(
+            requestListOfServersForRegionWithRegionPrecision(
                 requestBody,
                 iOnApiResponse
             )
@@ -151,7 +151,7 @@ class GRDServerManager {
                             GRDConnectManager.getSharedPrefsEditor()
                                 .putString(kGRDLastKnownAutomaticRegion, Gson().toJson(grdRegion))
                                 .apply()
-                            requestListOfServersForRegion(
+                            requestListOfServersForRegionWithRegionPrecision(
                                 requestBody,
                                 iOnApiResponse
                             )
@@ -167,7 +167,7 @@ class GRDServerManager {
         }
     }
 
-    fun requestListOfServersForRegion(
+    fun requestListOfServersForRegionWithRegionPrecision(
         serversForRegion: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
