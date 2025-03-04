@@ -128,10 +128,7 @@ class GRDServerManager {
                                             }
                                             selectedRegion = name
                                             requestBody[kGRDServerManagerRegionKey] = selectedRegion
-                                            val precision = regionPrecision
-                                                ?: Constants.kGRDRegionPrecisionDefault
-                                            requestBody[kGRDServerManagerRegionPrecision] =
-                                                precision
+                                            requestBody[kGRDServerManagerRegionPrecision] = Constants.kGRDRegionPrecisionDefault
 
                                             Log.d(
                                                 TAG,
