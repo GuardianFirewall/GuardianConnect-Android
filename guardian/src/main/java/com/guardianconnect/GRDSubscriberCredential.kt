@@ -59,34 +59,23 @@ class GRDSubscriberCredential {
     fun isExpired(): Boolean {
         val currentUnixTime = System.currentTimeMillis() / 1000
 
-        val subscriptionExpirationUnix = subscriptionExpirationDateUnix
-        val tokenExpirationUnix = tokenExpirationDateUnix
+        val subscriptionExpirationUnix  = subscriptionExpirationDateUnix
+        val tokenExpirationUnix         = tokenExpirationDateUnix
 
-        if ((subscriptionExpirationUnix != null && subscriptionExpirationUnix < currentUnixTime) ||
-            (tokenExpirationUnix != null && tokenExpirationUnix < currentUnixTime)
-        ) {
+        if ((subscriptionExpirationUnix != null && subscriptionExpirationUnix < currentUnixTime) || (tokenExpirationUnix != null && tokenExpirationUnix < currentUnixTime)) {
             return true
         }
+
         return false
     }
 
     companion object {
-        // return the currently valid Subscriber Credential in it's encoded JWT format.
-        fun retrieveSubscriberCredentialJWTFormat(): String? {
-            val subscriberCredential =
-                GRDKeystore.instance.retrieveFromKeyStore(GRD_SUBSCRIBER_CREDENTIAL)
-            return if (!subscriberCredential.isNullOrEmpty()) {
-                return subscriberCredential
-            } else {
-                null
-            }
-        }
-
         // Return the current Subscriber Credential as a GRDSubscriberCredential object
         fun currentSubscriberCredential(): GRDSubscriberCredential? {
-            return retrieveSubscriberCredentialJWTFormat()?.let {
-                GRDSubscriberCredential().parseAndDecodeJWTFormat(it)
-            }
+            val jwt = GRDKeystore.instance.retrieveFromKeyStore(GRD_SUBSCRIBER_CREDENTIAL) ?: return null
+            val subscriberCredential = GRDSubscriberCredential().parseAndDecodeJWTFormat(jwt)
+            
+            return subscriberCredential
         }
 
         fun setPreferredValidationMethod(method: GRDSubscriberCredentialValidationMethod) {
@@ -105,10 +94,10 @@ class GRDSubscriberCredential {
 
             return try {
                 GRDSubscriberCredentialValidationMethod.valueOf(methodName)
+
             } catch (e: IllegalArgumentException) {
                 GRDSubscriberCredentialValidationMethod.Invalid
             }
         }
-
     }
 }
