@@ -404,9 +404,10 @@ object GRDVPNHelper {
     suspend fun validSubscriberCredential(
         iOnApiResponse: IOnApiResponse
     ) {
-        val credential = GRDSubscriberCredential.retrieveSubscriberCredentialJWTFormat()
-        if (credential != null && !GRDSubscriberCredential().isExpired()) {
-            iOnApiResponse.onSuccess(credential)
+        val subscriberCredential = GRDSubscriberCredential.currentSubscriberCredential()
+        if (subscriberCredential != null && subscriberCredential.isExpired() == true) {
+            iOnApiResponse.onSuccess(subscriberCredential)
+            
         } else {
             createSubscriberCredential(
                 object : IOnApiResponse {
@@ -424,13 +425,11 @@ object GRDVPNHelper {
         }
     }
 
-    suspend fun createSubscriberCredential(
-        iOnApiResponse: IOnApiResponse
-    ) {
-        var requestBody = mutableMapOf<String, Any>()
-        val currentPEToken = GRDPEToken.currentPEToken()
-        var validationMethod = GRDSubscriberCredentialValidationMethod.Invalid
-        val preferredValidationMethod = GRDSubscriberCredential.preferredValidationMethod()
+    suspend fun createSubscriberCredential(iOnApiResponse: IOnApiResponse) {
+        var requestBody                 = mutableMapOf<String, Any>()
+        val currentPEToken              = GRDPEToken.currentPEToken()
+        var validationMethod            = GRDSubscriberCredentialValidationMethod.Invalid
+        val preferredValidationMethod   = GRDSubscriberCredential.preferredValidationMethod()
 
         //
         // Determine if the validation method should be locked
