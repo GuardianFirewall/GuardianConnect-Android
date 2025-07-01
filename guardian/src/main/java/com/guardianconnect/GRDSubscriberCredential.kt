@@ -68,6 +68,10 @@ class GRDSubscriberCredential {
 
         return false
     }
+    
+    fun remove() {
+        GRDConnectManager.getSharedPrefsEditor().remove(GRD_SUBSCRIBER_CREDENTIAL).apply()
+    }
 
     companion object {
         // Return the current Subscriber Credential as a GRDSubscriberCredential object
