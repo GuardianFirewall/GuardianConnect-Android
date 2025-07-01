@@ -69,10 +69,6 @@ class GRDSubscriberCredential {
         return false
     }
     
-    fun remove() {
-        GRDConnectManager.getSharedPrefsEditor().remove(GRD_SUBSCRIBER_CREDENTIAL).apply()
-    }
-
     companion object {
         // Return the current Subscriber Credential as a GRDSubscriberCredential object
         fun currentSubscriberCredential(): GRDSubscriberCredential? {
@@ -80,6 +76,11 @@ class GRDSubscriberCredential {
             val subscriberCredential = GRDSubscriberCredential().parseAndDecodeJWTFormat(jwt)
             
             return subscriberCredential
+        }
+        
+        // Remove the Subscriber Credential JWT encoded string out of the shared preferences
+        fun remove() {
+            GRDConnectManager.getSharedPrefsEditor().remove(GRD_SUBSCRIBER_CREDENTIAL).apply()
         }
 
         fun setPreferredValidationMethod(method: GRDSubscriberCredentialValidationMethod) {
