@@ -434,10 +434,8 @@ class ApiTest {
                 ).execute()
 
                 response.body().let { vpn ->
-                    val vpnCredentials = VPNCredentials()
-                    vpnCredentials.apiAuthToken = vpn?.apiAuthToken
-                    vpnCredentials.subscriberCredential =
-                        subscriberCredentialResponse.subscriberCredential
+                    val requestBody = mutableMapOf<String, Any>()
+                    requestBody["api-auth-token"]           = vpn?.apiAuthToken!!
 
                     Mockito.`when`(callVerifyVPNDevice.execute()).thenReturn(
                         Response.success(
@@ -447,7 +445,7 @@ class ApiTest {
                     val response = vpn?.clientId?.let { it1 ->
                         apiService.verifyVPNCredentials(
                             it1,
-                            vpnCredentials
+                            requestBody
                         ).execute()
                     }
                     assertTrue(response?.code() == 200)
@@ -502,10 +500,9 @@ class ApiTest {
                 ).execute()
 
                 response.body().let { vpn ->
-                    val vpnCredentials = VPNCredentials()
-                    vpnCredentials.apiAuthToken = vpn?.apiAuthToken
-                    vpnCredentials.subscriberCredential =
-                        subscriberCredentialResponse.subscriberCredential
+                    val requestBody = mutableMapOf<String, Any>()
+                    requestBody["subscriber-credential"]    = subscriberCredentialResponse.subscriberCredential!!
+                    requestBody["api-auth-token"]           = vpn?.apiAuthToken!!
 
                     Mockito.`when`(callInvalidateVPNDevice.execute()).thenReturn(
                         Response.success(
@@ -515,7 +512,7 @@ class ApiTest {
                     val response = vpn?.clientId?.let { it1 ->
                         apiService.invalidateVPNCredentials(
                             it1,
-                            vpnCredentials
+                            requestBody
                         ).execute()
                     }
                     assertTrue(response?.code() == 200)
@@ -570,18 +567,13 @@ class ApiTest {
                 ).execute()
 
                 response.body().let { vpn ->
-                    val vpnCredentials = VPNCredentials()
-                    vpnCredentials.apiAuthToken = vpn?.apiAuthToken
-                    vpnCredentials.subscriberCredential =
-                        subscriberCredentialResponse.subscriberCredential
-
                     Mockito.`when`(callDownloadAlerts.execute()).thenReturn(
                         Response.success(
                             listOf(AlertsResponse())
                         )
                     )
                     val alerts = Alerts()
-                    alerts.apiAuthToken = vpnCredentials.apiAuthToken
+                    alerts.apiAuthToken = vpn?.apiAuthToken
                     alerts.timestamp = 128396546
                     val response = vpn?.clientId?.let { it1 ->
                         apiService.downloadAlerts(
@@ -641,22 +633,19 @@ class ApiTest {
                 ).execute()
 
                 response.body().let { vpn ->
-                    val vpnCredentials = VPNCredentials()
-                    vpnCredentials.apiAuthToken = vpn?.apiAuthToken
-                    vpnCredentials.subscriberCredential =
-                        subscriberCredentialResponse.subscriberCredential
+                    val requestBody = mutableMapOf<String, Any>()
+                    requestBody["api-auth-token"]           = vpn?.apiAuthToken!!
 
                     Mockito.`when`(callSetAlertsDownloadTimeStamp.execute()).thenReturn(
                         Response.success(
                             "Test".toResponseBody()
                         )
                     )
-                    val baseRequest = BaseRequest()
-                    baseRequest.apiAuthToken = vpnCredentials.apiAuthToken
+                    
                     val response = vpn?.clientId?.let { it1 ->
                         apiService.setAlertsDownloadTimestamp(
                             it1,
-                            baseRequest
+                            requestBody
                         ).execute()
                     }
                     assertTrue(response?.code() == 200)
@@ -711,11 +700,6 @@ class ApiTest {
                 ).execute()
 
                 response.body().let { vpn ->
-                    val vpnCredentials = VPNCredentials()
-                    vpnCredentials.apiAuthToken = vpn?.apiAuthToken
-                    vpnCredentials.subscriberCredential =
-                        subscriberCredentialResponse.subscriberCredential
-
                     Mockito.`when`(callSetDeviceFilterConfig.execute()).thenReturn(
                         Response.success(
                             "Test".toResponseBody()

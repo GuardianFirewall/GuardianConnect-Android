@@ -26,13 +26,13 @@ interface IApiCalls {
     @POST("/api/v1.3/device/{deviceid}/verify-credentials")
     fun verifyVPNCredentials(
         @Path("deviceid") deviceid: String,
-        @Body apiVpnCredentials: VPNCredentials
+        @Body requestData: @JvmSuppressWildcards MutableMap<String, Any>
     ): Call<ResponseBody>
 
     @POST("/api/v1.3/device/{deviceid}/invalidate-credentials")
     fun invalidateVPNCredentials(
         @Path("deviceid") deviceid: String,
-        @Body apiVpnCredentials: VPNCredentials
+        @Body requestData: @JvmSuppressWildcards MutableMap<String, Any>
     ): Call<ResponseBody>
 
     @POST("/api/v1.2/device/{deviceid}/alerts")
@@ -44,7 +44,7 @@ interface IApiCalls {
     @POST("/api/v1.2/device/{deviceid}/set-alerts-download-timestamp")
     fun setAlertsDownloadTimestamp(
         @Path("deviceid") deviceid: String,
-        @Body baseRequest: BaseRequest
+        @Body requestData: @JvmSuppressWildcards MutableMap<String, Any>
     ): Call<ResponseBody>
 
     @GET("/api/v1/servers/all-server-regions")
@@ -57,7 +57,7 @@ interface IApiCalls {
 
     @POST("/api/v1.3/servers/hostnames-for-region")
     fun requestListOfServersForRegionWithRegionPrecision(
-        @Body request: @JvmSuppressWildcards MutableMap<String, Any>
+        @Body requestData: @JvmSuppressWildcards MutableMap<String, Any>
     ): Call<ResponseBody>
 
     @GET("/api/v1.1/servers/timezones-for-regions")
