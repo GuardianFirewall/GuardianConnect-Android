@@ -351,6 +351,7 @@ object GRDVPNHelper {
             getActiveTunnel()?.setStateAsync(Tunnel.State.DOWN)
             clearVPNConfiguration()
             grdMsgFlow.emit("Tunnel successfully cleared!")
+
         } catch (e: Exception) {
             grdErrorFlow.emit("Error restarting tunnel! " + e.message)
         }
@@ -401,9 +402,7 @@ object GRDVPNHelper {
     }
 
     // Retrieve valid Subscriber Credential
-    suspend fun validSubscriberCredential(
-        iOnApiResponse: IOnApiResponse
-    ) {
+    suspend fun validSubscriberCredential(iOnApiResponse: IOnApiResponse) {
         val subscriberCredential = GRDSubscriberCredential.currentSubscriberCredential()
         if (subscriberCredential != null && subscriberCredential.isExpired() == true) {
             iOnApiResponse.onSuccess(subscriberCredential)
