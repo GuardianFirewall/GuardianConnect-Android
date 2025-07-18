@@ -891,9 +891,9 @@ object GRDVPNHelper {
         grdServerManager?.returnAllAvailableRegions(onRegionListener)
     }
 
-    val configStringFlow = MutableSharedFlow<String>()
-    val grdMsgFlow = MutableSharedFlow<String>()
-    val grdErrorFlow = MutableSharedFlow<String>()
-    val grdVPNPermissionFlow = MutableSharedFlow<Intent>()
-    val grdStatusFlow = MutableSharedFlow<String>()
+    val configStringFlow        = MutableSharedFlow<String>()
+    val grdMsgFlow              = MutableSharedFlow<String>()
+    val grdErrorFlow            = MutableSharedFlow<String>()
+    val grdVPNPermissionFlow    = MutableSharedFlow<Intent>()
+    val grdStatusFlow           = MutableSharedFlow<String>()
 }
