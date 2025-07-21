@@ -23,7 +23,7 @@ object GRDLogger {
     }
 
     fun togglePersistentLogging(logEnabled: Boolean) {
-        GRDConnectManager.getSharedPrefsEditor().putBoolean("kGRDPersistentLogEnabled", logEnabled)?.commit()
+        GRDConnectManager.getSharedPrefsEditor().putBoolean(GRD_PERSISTENT_LOG_ENABLED, logEnabled)?.apply()
     }
 
     fun zzz_log(logPriority: Int, tag: String, message: String, preventPersistentLogging: Boolean) {
