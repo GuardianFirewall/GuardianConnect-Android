@@ -153,17 +153,14 @@ class Repository {
         })
     }
 
-    fun verifyVPNCredentials(
-        deviceId: String,
-        vpnCredentials: VPNCredentials,
-        iOnApiResponse: IOnApiResponse
-    ) {
-        val call: Call<ResponseBody>? = apiCalls?.verifyVPNCredentials(deviceId, vpnCredentials)
+    fun verifyVPNCredentials(deviceId: String, requestData: MutableMap<String, Any>, iOnApiResponse: IOnApiResponse) {
+        val call: Call<ResponseBody>? = apiCalls?.verifyVPNCredentials(deviceId, requestData)
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
                     iOnApiResponse.onSuccess(response)
                     Log.d(TAG, "VPN credentials verified")
+                    
                 } else {
                     val errorBody = response.errorBody()?.string()
                     if (errorBody != null) {
@@ -176,6 +173,7 @@ class Repository {
                             Log.e(TAG, "Error response is not in JSON format")
                             iOnApiResponse.onError("Error response is not in JSON format")
                         }
+                        
                     } else {
                         Log.e(TAG, "Error response body is null")
                         iOnApiResponse.onError("Error response body is null")
@@ -192,11 +190,11 @@ class Repository {
 
     fun invalidateVPNCredentials(
         deviceId: String,
-        vpnCredentials: VPNCredentials,
+        requestData: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
         val call: Call<ResponseBody>? =
-            apiCalls?.invalidateVPNCredentials(deviceId, vpnCredentials)
+            apiCalls?.invalidateVPNCredentials(deviceId, requestData)
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
@@ -271,10 +269,10 @@ class Repository {
 
     fun setAlertsDownloadTimestamp(
         deviceId: String,
-        baseRequest: BaseRequest,
+        requestData: MutableMap<String, Any>,
         iOnApiResponse: IOnApiResponse
     ) {
-        val call: Call<ResponseBody>? = apiCalls?.setAlertsDownloadTimestamp(deviceId, baseRequest)
+        val call: Call<ResponseBody>? = apiCalls?.setAlertsDownloadTimestamp(deviceId, requestData)
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {

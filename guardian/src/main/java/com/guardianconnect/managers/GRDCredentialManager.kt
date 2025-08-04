@@ -139,12 +139,11 @@ class GRDCredentialManager {
                         tag,
                         "List initListOfCredentials: ${Gson().toJson(credentialsArrayList)}"
                     )
+
                 } else {
-                    GRDLogger.d(
-                        tag,
-                        "List Of Credentials is empty"
-                    )
+                    GRDLogger.d(tag, "List Of Credentials is empty")
                 }
+
             } catch (e: JSONException) {
                 GRDConnectManager.getCoroutineScope().launch {
                     GRDVPNHelper.grdErrorFlow.emit(e.stackTraceToString())

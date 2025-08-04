@@ -277,6 +277,10 @@ class GRDConnectSubscriber {
         iOnApiResponse: IOnApiResponse
     ) {
         val pet = GRDPEToken.instance.retrievePEToken()
+        if (pet.isNullOrEmpty() == true) {
+            iOnApiResponse.onError("PE-Token missing")
+            return
+        }
 
         val requestBody: MutableMap<String, Any> = mutableMapOf()
         requestBody[kGRDConnectSubscriberIdentifierKey] =

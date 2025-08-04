@@ -351,6 +351,7 @@ object GRDVPNHelper {
             getActiveTunnel()?.setStateAsync(Tunnel.State.DOWN)
             clearVPNConfiguration()
             grdMsgFlow.emit("Tunnel successfully cleared!")
+
         } catch (e: Exception) {
             grdErrorFlow.emit("Error restarting tunnel! " + e.message)
         }
@@ -401,12 +402,11 @@ object GRDVPNHelper {
     }
 
     // Retrieve valid Subscriber Credential
-    suspend fun validSubscriberCredential(
-        iOnApiResponse: IOnApiResponse
-    ) {
-        val credential = GRDSubscriberCredential.retrieveSubscriberCredentialJWTFormat()
-        if (credential != null && !GRDSubscriberCredential().isExpired()) {
-            iOnApiResponse.onSuccess(credential)
+    suspend fun validSubscriberCredential(iOnApiResponse: IOnApiResponse) {
+        val subscriberCredential = GRDSubscriberCredential.currentSubscriberCredential()
+        if (subscriberCredential != null && subscriberCredential.isExpired() == true) {
+            iOnApiResponse.onSuccess(subscriberCredential)
+            
         } else {
             createSubscriberCredential(
                 object : IOnApiResponse {
@@ -424,13 +424,11 @@ object GRDVPNHelper {
         }
     }
 
-    suspend fun createSubscriberCredential(
-        iOnApiResponse: IOnApiResponse
-    ) {
-        var requestBody = mutableMapOf<String, Any>()
-        val currentPEToken = GRDPEToken.currentPEToken()
-        var validationMethod = GRDSubscriberCredentialValidationMethod.Invalid
-        val preferredValidationMethod = GRDSubscriberCredential.preferredValidationMethod()
+    suspend fun createSubscriberCredential(iOnApiResponse: IOnApiResponse) {
+        var requestBody                 = mutableMapOf<String, Any>()
+        val currentPEToken              = GRDPEToken.currentPEToken()
+        var validationMethod            = GRDSubscriberCredentialValidationMethod.Invalid
+        val preferredValidationMethod   = GRDSubscriberCredential.preferredValidationMethod()
 
         //
         // Determine if the validation method should be locked
@@ -720,41 +718,38 @@ object GRDVPNHelper {
 
     /* Handles VPN credential invalidation on the server and removal locally on the device. */
     suspend fun clearVPNConfiguration() {
-        val grdCredentialObject = grdCredentialManager?.getMainCredentials()
+        val sgwCredential = grdCredentialManager?.getMainCredentials()
         validSubscriberCredential(object : IOnApiResponse {
             override fun onSuccess(any: Any?) {
-                val deviceId = grdCredentialObject?.clientId
-                if (deviceId != null) {
-                    val vpnCredential = VPNCredentials()
-                    vpnCredential.apiAuthToken = grdCredentialObject.apiAuthToken
-                    vpnCredential.subscriberCredential = any as String
-                    grdCredentialManager?.deleteMainCredential()
-                    // TODO
-                    // this change should be complete and prevent the PET from being killed as well
-                    // whenever the reset config button is tapped in the sample app
-                    // but I am not entirely sure and we have to double check if any regressions
-                    // from this change may occur
-                    //GRDConnectManager.getSharedPrefs()?.edit()?.clear()?.apply()
-                    clearLocalCache()
-                    Repository.instance.invalidateVPNCredentials(
-                        deviceId,
-                        vpnCredential,
-                        object : IOnApiResponse {
-                            override fun onSuccess(any: Any?) {
-                                GRDConnectManager.getCoroutineScope().launch {
-                                    grdStatusFlow.emit(GRDVPNHelperStatus.VPN_CREDENTIALS_INVALIDATED.status)
-                                }
+                if (sgwCredential?.clientId.isNullOrEmpty() == false) {
+                    val requestBody = mutableMapOf<String, Any>()
+                    requestBody["subscriber-credential"]    = any as String
+                    requestBody["api-auth-token"]           = sgwCredential?.apiAuthToken!!
+                    
+                    Repository.instance.invalidateVPNCredentials(sgwCredential?.clientId!!, requestBody, object : IOnApiResponse {
+                        override fun onSuccess(any: Any?) {
+                            GRDConnectManager.getCoroutineScope().launch {
+                                grdStatusFlow.emit(GRDVPNHelperStatus.VPN_CREDENTIALS_INVALIDATED.status)
                             }
+                        }
 
-                            override fun onError(error: String?) {
-                                GRDConnectManager.getCoroutineScope().launch {
-                                    grdErrorFlow.emit(Constants.VPN_CREDENTIALS_INVALIDATION_ERROR)
-                                }
+                        override fun onError(error: String?) {
+                            GRDConnectManager.getCoroutineScope().launch {
+                                grdErrorFlow.emit(Constants.VPN_CREDENTIALS_INVALIDATION_ERROR)
                             }
-                        })
+                        }
+                    })
+                    
+                    //
+                    // Regardless of the outcome of the API request
+                    // ensure that we clear everything else locally
+                    // on the device
+                    grdCredentialManager?.deleteMainCredential()
+                    clearLocalCache()
+                    
                 } else {
                     GRDConnectManager.getCoroutineScope().launch {
-                        grdErrorFlow.emit("Device id is null!")
+                        grdErrorFlow.emit("VPN credential 'device-id' missing")
                     }
                 }
             }
@@ -896,9 +891,9 @@ object GRDVPNHelper {
         grdServerManager?.returnAllAvailableRegions(onRegionListener)
     }
 
-    val configStringFlow = MutableSharedFlow<String>()
-    val grdMsgFlow = MutableSharedFlow<String>()
-    val grdErrorFlow = MutableSharedFlow<String>()
-    val grdVPNPermissionFlow = MutableSharedFlow<Intent>()
-    val grdStatusFlow = MutableSharedFlow<String>()
+    val configStringFlow        = MutableSharedFlow<String>()
+    val grdMsgFlow              = MutableSharedFlow<String>()
+    val grdErrorFlow            = MutableSharedFlow<String>()
+    val grdVPNPermissionFlow    = MutableSharedFlow<Intent>()
+    val grdStatusFlow           = MutableSharedFlow<String>()
 }
