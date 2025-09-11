@@ -89,14 +89,14 @@ class GRDServerManager {
             preferredRegion = getPreferredRegion()
         }
         var requestBody: MutableMap<String, Any> = mutableMapOf()
-        if (!preferredRegion?.name.isNullOrEmpty()) {
-            Log.d(TAG, "Using user preferred region: " + preferredRegion?.name.toString())
+        if (preferredRegion?.name.isNullOrEmpty() == false && preferredRegion.name == GRDRegion.automaticRegion().name == false) {
+            Log.d(TAG, "Using user preferred region: " + preferredRegion.name.toString())
 
             requestBody = mutableMapOf<String, Any>(
-                kGRDServerManagerRegionKey to preferredRegion?.name.toString(),
+                kGRDServerManagerRegionKey to preferredRegion.name.toString(),
                 kGRDServerManagerFeatureEnvironmentKey to vpnServerFeatureEnvironment as GRDServerFeatureEnvironment,
                 kGRDServerManagerBetaCapableKey to preferBetaCapableServers as Boolean,
-                kGRDServerManagerRegionPrecision to regionPrecision as String
+                kGRDServerManagerRegionPrecision to preferredRegion.regionPrecision as String
             )
             Log.d(TAG, "serversForRegion requestBody: $requestBody")
 
