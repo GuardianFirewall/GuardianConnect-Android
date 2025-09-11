@@ -15,3 +15,4 @@ dependencyResolutionManagement {
 rootProject.name = "guardian-connect-android"
 include ':guardian'
 include ':app'
+include ':wireguard-tunnel'
