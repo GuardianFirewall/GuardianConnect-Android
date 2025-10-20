@@ -46,8 +46,7 @@ dependencies {
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.3"
     implementation "androidx.core:core-ktx:$coreKtxVersion"
     implementation "androidx.appcompat:appcompat:$appcompatVersion"
-//    implementation "com.wireguard.android:tunnel:1.0.20230706"
-    api project(':wireguard-tunnel')
+    implementation "com.wireguard.android:tunnel:1.0.20250531"
     implementation "androidx.datastore:datastore-preferences:$datastoreVersion"
     implementation "com.journeyapps:zxing-android-embedded:$zxingEmbeddedVersion"
     implementation "com.google.code.gson:gson:$gsonVersion"
@@ -68,7 +67,7 @@ dependencies {
 
 ext {
     PUBLISH_GROUP_ID = 'com.guardianapp.connect'
-    PUBLISH_VERSION = '0.7.1'
+    PUBLISH_VERSION = '0.7.2'
     PUBLISH_ARTIFACT_ID = 'GuardianConnect'
 }
 apply from: 'publish-remote.gradle'
