@@ -404,8 +404,8 @@ object GRDVPNHelper {
     // Retrieve valid Subscriber Credential
     suspend fun validSubscriberCredential(iOnApiResponse: IOnApiResponse) {
         val subscriberCredential = GRDSubscriberCredential.currentSubscriberCredential()
-        if (subscriberCredential != null && subscriberCredential.isExpired() == true) {
-            iOnApiResponse.onSuccess(subscriberCredential)
+        if (subscriberCredential != null && subscriberCredential.isExpired() == false) {
+            iOnApiResponse.onSuccess(subscriberCredential.jwt)
             
         } else {
             createSubscriberCredential(
