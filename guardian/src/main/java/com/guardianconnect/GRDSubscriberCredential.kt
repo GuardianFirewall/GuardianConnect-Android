@@ -2,7 +2,11 @@ package com.guardianconnect
 
 import android.util.Base64
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.ToNumberPolicy
 import com.google.gson.annotations.SerializedName
+import com.google.gson.internal.LazilyParsedNumber
+import com.google.gson.reflect.TypeToken
 import com.guardianconnect.managers.GRDConnectManager
 import com.guardianconnect.model.GRDSubscriberCredentialValidationMethod
 import com.guardianconnect.util.Constants.Companion.GRD_SUBSCRIBER_CREDENTIAL
@@ -11,46 +15,42 @@ import com.guardianconnect.util.GRDKeystore
 import java.util.Date
 
 class GRDSubscriberCredential {
-
-    @SerializedName("jwt")
-    var jwt: String? = null
-
-    @SerializedName("subscription-type")
-    var subscriptionType: String? = null
-
-    @SerializedName("subscription-type-pretty")
-    var subscriptionTypePretty: String? = null
-
-    @SerializedName("subscription-expiration-date-unix")
+    var jwt: 							String? = null
+    var subscriptionType: 				String? = null
+    var subscriptionTypePretty: 		String? = null
     var subscriptionExpirationDateUnix: Long? = null
-
-    var subscriptionExpirationDate: Date? = null
-
-    @SerializedName("token-expiration-date-unix")
-    var tokenExpirationDateUnix: Long? = null
-
-    var tokenExpirationDate: Date? = null
+    var subscriptionExpirationDate: 	Date? = null
+    var tokenExpirationDateUnix: 		Long? = null
+    var tokenExpirationDate: 			Date? = null
 
     // Securely store a Subscriber Credential in it's encoded JWT format
     fun storeSubscriberCredentialJWTFormat(subscriberCredential: String) {
         GRDKeystore.instance.saveToKeyStore(GRD_SUBSCRIBER_CREDENTIAL, subscriberCredential)
     }
 
-    // Parse and decode JWT format
     fun parseAndDecodeJWTFormat(jwtString: String): GRDSubscriberCredential {
-        // Split into 3 parts with . delimiter
         val parts: List<String> = jwtString.split(".")
         val payloadString = String(Base64.decode(parts[1], Base64.DEFAULT))
-        val subscriberCredential =
-            Gson().fromJson(payloadString, GRDSubscriberCredential::class.java)
+		val gson = GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LAZILY_PARSED_NUMBER).create()
+		val type = object : TypeToken<Map<String, Any>>() {}.type
+		val jwt: Map<String, Any> = gson.fromJson(payloadString, type)
+
+		val subscriberCredential = GRDSubscriberCredential()
+		subscriberCredential.subscriptionType 		= jwt["subscription-type"] as? String
+		subscriberCredential.subscriptionTypePretty = jwt["subscription-type-pretty"] as? String
 
         subscriberCredential.jwt = jwtString
-        subscriberCredential.subscriptionExpirationDateUnix?.let {
-            subscriberCredential.subscriptionExpirationDate = Date(it * 1000)
-        }
-        subscriberCredential.tokenExpirationDateUnix?.let {
-            subscriberCredential.tokenExpirationDate = Date(it * 1000)
-        }
+		val subscriptionExpirationDateUnix = (jwt["subscription-expiration-date"] as? LazilyParsedNumber)?.toLong() ?: 0L
+		if (subscriptionExpirationDateUnix != 0L) {
+			subscriberCredential.subscriptionExpirationDateUnix = subscriptionExpirationDateUnix
+			subscriberCredential.subscriptionExpirationDate 	= Date(subscriptionExpirationDateUnix * 1000)
+		}
+
+		val tokenExpirationDateUnix = (jwt["exp"] as? LazilyParsedNumber)?.toLong() ?: 0L
+		if (tokenExpirationDateUnix != 0L) {
+			subscriberCredential.tokenExpirationDateUnix = tokenExpirationDateUnix
+			subscriberCredential.tokenExpirationDate = Date(tokenExpirationDateUnix * 1000)
+		}
 
         return subscriberCredential
     }
@@ -59,10 +59,20 @@ class GRDSubscriberCredential {
     fun isExpired(): Boolean {
         val currentUnixTime = System.currentTimeMillis() / 1000
 
-        val subscriptionExpirationUnix  = subscriptionExpirationDateUnix
-        val tokenExpirationUnix         = tokenExpirationDateUnix
+		if (subscriptionExpirationDateUnix == null || tokenExpirationDateUnix == null) {
+			return true
+		}
 
-        if ((subscriptionExpirationUnix != null && subscriptionExpirationUnix < currentUnixTime) || (tokenExpirationUnix != null && tokenExpirationUnix < currentUnixTime)) {
+		//
+		// The expiration dates are set by subtracting two
+		// days as grace periods in an attempt to ensure
+		// that no Subscriber Credential reaches it's actual
+		// expiration date during normal use of the service
+		val twoDaysInSeconds = 172800L
+		val subscriptionGradePeriod = subscriptionExpirationDateUnix!! - twoDaysInSeconds
+		val tokenGradePeriod		= tokenExpirationDateUnix!! - twoDaysInSeconds
+
+        if (subscriptionGradePeriod < currentUnixTime || tokenGradePeriod < currentUnixTime) {
             return true
         }
 
@@ -72,7 +82,10 @@ class GRDSubscriberCredential {
     companion object {
         // Return the current Subscriber Credential as a GRDSubscriberCredential object
         fun currentSubscriberCredential(): GRDSubscriberCredential? {
-            val jwt = GRDKeystore.instance.retrieveFromKeyStore(GRD_SUBSCRIBER_CREDENTIAL) ?: return null
+            val jwt = GRDKeystore.instance.retrieveFromKeyStore(GRD_SUBSCRIBER_CREDENTIAL)
+			if (jwt == null) {
+				return null
+			}
             val subscriberCredential = GRDSubscriberCredential().parseAndDecodeJWTFormat(jwt)
             
             return subscriberCredential
