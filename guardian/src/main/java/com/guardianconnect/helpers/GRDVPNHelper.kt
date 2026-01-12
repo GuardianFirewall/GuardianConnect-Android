@@ -705,15 +705,17 @@ object GRDVPNHelper {
     }
 
     fun getPreferredDNSServers(): String? {
-        return GRDConnectManager.getSharedPrefs()
-            .getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null)
+        return GRDConnectManager.getSharedPrefs().getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null)
     }
 
-    /*  Clear local cache - removes all values from the Android Keystore and SharedPreferences */
-    fun clearLocalCache() {
-        grdCredentialManager?.getMainCredentials()
-            ?.let { grdCredentialManager?.removeCredential(it) }
+	/**
+	 * Convenience function removing the Subscriber Credential
+	 * for the keystore as well as GRDLogger specific logs
+	 * if any were previously generated
+	 */
+	fun clearLocalCache() {
         GRDConnectManager.getSharedPrefsEditor().remove(GRD_SUBSCRIBER_CREDENTIAL)?.apply()
+		GRDLogger.deleteAllLogs()
     }
 
     /* Handles VPN credential invalidation on the server and removal locally on the device. */
@@ -723,6 +725,7 @@ object GRDVPNHelper {
             override fun onSuccess(any: Any?) {
                 if (sgwCredential?.clientId.isNullOrEmpty() == false) {
                     val requestBody = mutableMapOf<String, Any>()
+
                     requestBody["subscriber-credential"]    = any as String
                     requestBody["api-auth-token"]           = sgwCredential?.apiAuthToken!!
                     
