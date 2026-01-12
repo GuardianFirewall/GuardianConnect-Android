@@ -745,7 +745,6 @@ object GRDVPNHelper {
                     // ensure that we clear everything else locally
                     // on the device
                     grdCredentialManager?.deleteMainCredential()
-                    clearLocalCache()
                     
                 } else {
                     GRDConnectManager.getCoroutineScope().launch {
