@@ -17,6 +17,8 @@ import com.guardianconnect.util.Constants
 import com.guardianconnect.util.Constants.Companion.GRD_AUTOMATIC_REGION
 import com.guardianconnect.util.Constants.Companion.GRD_REGIONS_LIST_FROM_SHARED_PREFS
 import com.guardianconnect.util.Constants.Companion.kGRDLastKnownAutomaticRegion
+import com.guardianconnect.util.Constants.Companion.kGRDRegionPrecisionCityByCountry
+import com.guardianconnect.util.Constants.Companion.kGRDRegionPrecisionCountry
 import java.util.TimeZone
 
 /* This class provides higher level helper functions to quickly get the list of VPN servers and
@@ -24,9 +26,10 @@ import java.util.TimeZone
 */
 
 class GRDServerManager {
+	var regionPrecision: String? = null
     var preferBetaCapableServers: Boolean? = null
-    var vpnServerFeatureEnvironment: GRDServerFeatureEnvironment? = null
-    var regionPrecision: String? = null
+	var returnAutomaticForRegionPrecisionCountry: Boolean? = false
+	var vpnServerFeatureEnvironment: GRDServerFeatureEnvironment? = null
 
     companion object {
         private val TAG = GRDServerManager::class.java.simpleName
@@ -80,10 +83,7 @@ class GRDServerManager {
         gets the list of VPN servers for the selected region from GRDHousekeeping
         return the array of VPN servers
     */
-    fun getGuardianHosts(
-        region: GRDRegion?,
-        iOnApiResponse: IOnApiResponse
-    ) {
+    fun getGuardianHosts(region: GRDRegion?, iOnApiResponse: IOnApiResponse) {
         var preferredRegion = region
         if (region == null) {
             preferredRegion = getPreferredRegion()
@@ -195,10 +195,7 @@ class GRDServerManager {
         device's region, quickly sort them to prefer servers with a capacity-score of 0 or 1 and
         then randomly select one from that array of servers.
     */
-    fun selectServerFromRegion(
-        region: GRDRegion?,
-        iOnApiResponse: IOnApiResponse
-    ) {
+    fun selectServerFromRegion(region: GRDRegion?, iOnApiResponse: IOnApiResponse) {
         getGuardianHosts(region, object : IOnApiResponse {
             override fun onSuccess(any: Any?) {
                 val anyList = any as List<*>
@@ -226,12 +223,8 @@ class GRDServerManager {
     }
 
     /* Returns the array of GRDRegion items */
-    fun returnAllAvailableRegions(
-        onRegionListener: OnRegionListener
-    ) {
-        val connectivityManager =
-            GRDConnectManager.get()
-                .getContext().applicationContext?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    fun returnAllAvailableRegions(onRegionListener: OnRegionListener) {
+        val connectivityManager = GRDConnectManager.get().getContext().applicationContext?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetwork: Network? = connectivityManager.activeNetwork
         if (activeNetwork == null) {
             onRegionListener.onRegionsAvailable(emptyList())
@@ -245,9 +238,7 @@ class GRDServerManager {
             }
 
             val vpnInUse = caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
-            val listFromSharedPreferences =
-                GRDConnectManager.getSharedPrefs()
-                    ?.getString(GRD_REGIONS_LIST_FROM_SHARED_PREFS, "")
+            val listFromSharedPreferences = GRDConnectManager.getSharedPrefs()?.getString(GRD_REGIONS_LIST_FROM_SHARED_PREFS, "")
             val list = ArrayList<GRDRegion>()
             val auto = GRDRegion.automaticRegion()
             list.add(0, auto)
@@ -257,6 +248,7 @@ class GRDServerManager {
                 val type = object : TypeToken<List<GRDRegion>>() {}.type
                 val arrayList: List<GRDRegion> = Gson().fromJson(listFromSharedPreferences, type)
                 onRegionListener.onRegionsAvailable(arrayList)
+
             } else {
                 regionPrecision?.let { regionPrecision ->
                     Repository.instance.requestAllRegionsWithPrecision(
@@ -264,11 +256,38 @@ class GRDServerManager {
                         object : IOnApiResponse {
                             override fun onSuccess(any: Any?) {
                                 val anyList = any as List<*>
-                                val regionsList = anyList.filterIsInstance<GRDRegion>()
+                                var regionsList = anyList.filterIsInstance<GRDRegion>()
                                 list.addAll(regionsList)
                                 list.sortWith(compareBy<GRDRegion> { item ->
                                     if (item.namePretty == GRD_AUTOMATIC_REGION) 0 else 1
                                 }.thenBy { it.namePretty.toString() })
+
+								if (returnAutomaticForRegionPrecisionCountry == true && regionPrecision == kGRDRegionPrecisionCityByCountry) {
+									val tmpRegions = mutableListOf<GRDRegion>()
+
+									for (region in regionsList) {
+										region.cities?.count()?.let {
+											if (it > 1) {
+												val citiesCopy = region.cities?.toMutableList()
+												val countryAutomatic = GRDRegion()
+												countryAutomatic.continent = region.continent
+												countryAutomatic.countryIsoCode = region.countryIsoCode
+												countryAutomatic.name = region.name
+												countryAutomatic.namePretty = "${region.namePretty} - Automatic"
+												countryAutomatic.regionPrecision = kGRDRegionPrecisionCountry
+												countryAutomatic.longitude = region.longitude
+												countryAutomatic.latitude = region.latitude
+												countryAutomatic.country = region.country
+												countryAutomatic.timeZoneName = region.timeZoneName
+												citiesCopy?.add(0, countryAutomatic)
+												region.cities = citiesCopy?.toList()
+											}
+											tmpRegions.add(region)
+										}
+									}
+									regionsList = tmpRegions.toList()
+								}
+
                                 onRegionListener.onRegionsAvailable(list)
                                 GRDConnectManager.getSharedPrefsEditor()?.putString(
                                     GRD_REGIONS_LIST_FROM_SHARED_PREFS, Gson().toJson(list)
