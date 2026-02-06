@@ -707,6 +707,7 @@ object GRDVPNHelper {
 	 */
 	fun clearLocalCache() {
         GRDConnectManager.getSharedPrefsEditor().remove(GRD_SUBSCRIBER_CREDENTIAL)?.apply()
+		GRDCredentialManager().deleteMainCredential()
 		GRDLogger.deleteAllLogs()
     }
 
