@@ -400,113 +400,97 @@ object GRDVPNHelper {
             iOnApiResponse.onSuccess(subscriberCredential.jwt)
             
         } else {
-            createSubscriberCredential(
-                object : IOnApiResponse {
-                    override fun onSuccess(any: Any?) {
-                        val newCredential = any as String
-                        GRDSubscriberCredential().storeSubscriberCredentialJWTFormat(newCredential)
-                        iOnApiResponse.onSuccess(newCredential)
-                    }
+			var requestBody                 = mutableMapOf<String, Any>()
+			val currentPEToken              = GRDPEToken.currentPEToken()
+			var validationMethod            = GRDSubscriberCredentialValidationMethod.Invalid
+			val preferredValidationMethod   = GRDSubscriberCredential.preferredValidationMethod()
 
-                    override fun onError(error: String?) {
-                        iOnApiResponse.onError(error)
-                    }
-                }
-            )
+			//
+			// Determine if the validation method should be locked
+			// to a specific kind of validation, or whether it should
+			// run in automatic mode
+			if (preferredValidationMethod != GRDSubscriberCredentialValidationMethod.Invalid) {
+				validationMethod = preferredValidationMethod
+
+			} else if (preferredValidationMethod == GRDSubscriberCredentialValidationMethod.Custom) {
+				validationMethod = GRDSubscriberCredentialValidationMethod.Custom
+				if (customSubscriberCredentialAuthKeys != null) {
+					requestBody = customSubscriberCredentialAuthKeys as MutableMap<String, Any>
+				}
+
+			} else {
+				GRDLogger.d(TAG, "Subscriber Credential validation automatic mode")
+				//
+				// Automatic mode attempting to determine what kind of
+				//  subscription the user most likely has
+				if (currentPEToken != null) {
+					validationMethod = GRDSubscriberCredentialValidationMethod.PEToken
+
+				} else {
+					validationMethod = GRDSubscriberCredentialValidationMethod.GooglePlayToken
+				}
+			}
+
+			if (validationMethod == GRDSubscriberCredentialValidationMethod.PEToken) {
+				requestBody["validation-method"] = "pe-token"
+				if (currentPEToken != null) {
+					currentPEToken.token?.let { requestBody["pe-token"] = it }
+
+				} else {
+					grdErrorFlow.emit(GRDVPNHelperStatus.MISSING_PET.status)
+					iOnApiResponse.onError("Subscriber Credential validation method set to PE-Token but no PE-Token is available on device")
+					return
+				}
+
+			} else {
+				requestBody["validation-method"] = "iap-android"
+				val currentPurchase = GRDBillingManager.getCurrentPurchase()
+				if (currentPurchase != null) {
+					currentPurchase.products.firstOrNull()?.let { requestBody["product-id"] = it }
+					requestBody["purchase-token"] = currentPurchase.purchaseToken
+					requestBody["bundle-id"] =
+						iapApplicationId ?: context?.packageName
+								?: ""
+					requestBody["product-type"] =
+						if (GRDBillingManager.isSubscription(currentPurchase)) "subscription" else "consumable"
+
+				} else {
+					iOnApiResponse.onError("No valid purchase found")
+					return
+				}
+			}
+
+			Repository.instance.getSubscriberCredential(
+				requestBody,
+				object : IOnApiResponse {
+					override fun onSuccess(any: Any?) {
+						val subCredentialResponse = any as SubscriberCredentialResponse
+						subCredentialResponse.subscriberCredential?.let { scs ->
+							iOnApiResponse.onSuccess(scs)
+						} ?: run {
+							iOnApiResponse.onError("Missing subscriberCredential")
+							GRDConnectManager.getCoroutineScope().launch {
+								grdErrorFlow.emit("Missing subscriberCredential")
+							}
+						}
+					}
+
+					override fun onError(error: String?) {
+						error?.let { e ->
+							val errorMessage =
+								if (e.contains("Failed to query password equivalent token data or password equivalent token does not exist")) {
+									Constants.SUBSCRIBER_CREDENTIAL_FAIL_PET
+								} else {
+									e
+								}
+							iOnApiResponse.onError(errorMessage)
+							GRDConnectManager.getCoroutineScope().launch {
+								grdErrorFlow.emit(errorMessage)
+							}
+						}
+					}
+				})
         }
-    }
-
-    suspend fun createSubscriberCredential(iOnApiResponse: IOnApiResponse) {
-        var requestBody                 = mutableMapOf<String, Any>()
-        val currentPEToken              = GRDPEToken.currentPEToken()
-        var validationMethod            = GRDSubscriberCredentialValidationMethod.Invalid
-        val preferredValidationMethod   = GRDSubscriberCredential.preferredValidationMethod()
-
-        //
-        // Determine if the validation method should be locked
-        // to a specific kind of validation, or whether it should
-        // run in automatic mode
-        if (preferredValidationMethod != GRDSubscriberCredentialValidationMethod.Invalid) {
-            validationMethod = preferredValidationMethod
-
-        } else if (preferredValidationMethod == GRDSubscriberCredentialValidationMethod.Custom) {
-            validationMethod = GRDSubscriberCredentialValidationMethod.Custom
-            if (customSubscriberCredentialAuthKeys != null) {
-                requestBody = customSubscriberCredentialAuthKeys as MutableMap<String, Any>
-            }
-
-        } else {
-            GRDLogger.d(TAG, "Subscriber Credential validation automatic mode")
-            //
-            // Automatic mode attempting to determine what kind of
-            //  subscription the user most likely has
-            if (currentPEToken != null) {
-                validationMethod = GRDSubscriberCredentialValidationMethod.PEToken
-
-            } else {
-                validationMethod = GRDSubscriberCredentialValidationMethod.GooglePlayToken
-            }
-        }
-
-        if (validationMethod == GRDSubscriberCredentialValidationMethod.PEToken) {
-            requestBody["validation-method"] = "pe-token"
-            if (currentPEToken != null) {
-                currentPEToken.token?.let { requestBody["pe-token"] = it }
-
-            } else {
-                grdErrorFlow.emit(GRDVPNHelperStatus.MISSING_PET.status)
-                iOnApiResponse.onError("Subscriber Credential validation method set to PE-Token but no PE-Token is available on device")
-                return
-            }
-
-        } else {
-            requestBody["validation-method"] = "iap-android"
-            val currentPurchase = GRDBillingManager.getCurrentPurchase()
-            if (currentPurchase != null) {
-                currentPurchase.products.firstOrNull()?.let { requestBody["product-id"] = it }
-                requestBody["purchase-token"] = currentPurchase.purchaseToken
-                requestBody["bundle-id"] =
-                    iapApplicationId ?: context?.packageName
-                            ?: ""
-                requestBody["product-type"] =
-                    if (GRDBillingManager.isSubscription(currentPurchase)) "subscription" else "consumable"
-
-            } else {
-                iOnApiResponse.onError("No valid purchase found")
-                return
-            }
-        }
-
-        Repository.instance.getSubscriberCredential(
-            requestBody,
-            object : IOnApiResponse {
-                override fun onSuccess(any: Any?) {
-                    val subCredentialResponse = any as SubscriberCredentialResponse
-                    subCredentialResponse.subscriberCredential?.let { scs ->
-                        iOnApiResponse.onSuccess(scs)
-                    } ?: run {
-                        iOnApiResponse.onError("Missing subscriberCredential")
-                        GRDConnectManager.getCoroutineScope().launch {
-                            grdErrorFlow.emit("Missing subscriberCredential")
-                        }
-                    }
-                }
-
-                override fun onError(error: String?) {
-                    error?.let { e ->
-                        val errorMessage =
-                            if (e.contains("Failed to query password equivalent token data or password equivalent token does not exist")) {
-                                Constants.SUBSCRIBER_CREDENTIAL_FAIL_PET
-                            } else {
-                                e
-                            }
-                        iOnApiResponse.onError(errorMessage)
-                        GRDConnectManager.getCoroutineScope().launch {
-                            grdErrorFlow.emit(errorMessage)
-                        }
-                    }
-                }
-            })
     }
 
     fun initRegionAndConnectDevice(
