@@ -49,7 +49,6 @@ import java.util.TimeZone
 
 @SuppressLint("StaticFieldLeak")
 object GRDVPNHelper {
-
     private val TAG = GRDVPNHelper::class.java.simpleName
     var grdCredentialManager: GRDCredentialManager? = null
     var grdServerManager: GRDServerManager? = null
@@ -58,8 +57,8 @@ object GRDVPNHelper {
     var connectPublishableKey: String = ""
     var tunnelName: String = ""
     var validForDays: Long = 60
-    private var preferBetaCapableServers: Boolean? = null
-    private var vpnServerFeatureEnvironment: GRDServerFeatureEnvironment? = null
+    var preferBetaCapableServers: Boolean? = null
+    var vpnServerFeatureEnvironment: GRDServerFeatureEnvironment? = null
     private var regionPrecision: String? = null
     var appExceptions: ArrayList<String> = arrayListOf()
     var excludeLANTraffic: Boolean? = true
@@ -69,8 +68,7 @@ object GRDVPNHelper {
     internal val _timezoneChannel = Channel<TimeZoneNotification>()
     val timezoneChannel = _timezoneChannel.receiveAsFlow()
 
-    var preferredValidationMethod: GRDSubscriberCredentialValidationMethod =
-        GRDSubscriberCredentialValidationMethod.Invalid
+    var preferredValidationMethod: GRDSubscriberCredentialValidationMethod = GRDSubscriberCredentialValidationMethod.Invalid
     var customSubscriberCredentialAuthKeys: MutableMap<String, Any>? = null
 
     init {
@@ -84,14 +82,9 @@ object GRDVPNHelper {
         vpnServerFeatureEnvironment = GRDServerFeatureEnvironment.ServerFeatureEnvironmentProduction
         appExceptions = getArrayListOfAppExceptions()
 
-        excludeLANTraffic =
-            GRDConnectManager.getSharedPrefs().getBoolean(
-                Constants.kGRDExcludeLANTraffic, true
-            )
+        excludeLANTraffic = GRDConnectManager.getSharedPrefs().getBoolean(Constants.kGRDExcludeLANTraffic, true)
 
-        val savedPrecision = GRDConnectManager.getSharedPrefs()
-            .getString(Constants.kGRDPreferredRegionPrecision, null)
-
+        val savedPrecision = GRDConnectManager.getSharedPrefs().getString(Constants.kGRDPreferredRegionPrecision, null)
         if (!savedPrecision.isNullOrEmpty()) {
             regionPrecision = savedPrecision
             when (regionPrecision) {
@@ -139,14 +132,13 @@ object GRDVPNHelper {
     }
 
     fun setRegionPrecision(precision: String) {
-        GRDConnectManager.getSharedPrefsEditor()
-            .putString(Constants.kGRDPreferredRegionPrecision, precision)?.apply()
-        regionPrecision = precision
+		regionPrecision = precision
+		if (precision == Constants.kGRDRegionPrecisionDefault) {
+			GRDConnectManager.getSharedPrefsEditor().remove(Constants.kGRDPreferredRegionPrecision)?.apply()
+			return
+		}
 
-        if (precision == Constants.kGRDRegionPrecisionDefault) {
-            GRDConnectManager.getSharedPrefsEditor().remove(Constants.kGRDPreferredRegionPrecision)
-                ?.apply()
-        }
+        GRDConnectManager.getSharedPrefsEditor() .putString(Constants.kGRDPreferredRegionPrecision, precision)?.apply()
     }
 
     fun setAppExceptionPackages(apps: ArrayList<String>?) {
