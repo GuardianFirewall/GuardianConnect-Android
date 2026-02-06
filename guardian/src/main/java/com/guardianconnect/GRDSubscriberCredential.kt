@@ -12,6 +12,7 @@ import com.guardianconnect.model.GRDSubscriberCredentialValidationMethod
 import com.guardianconnect.util.Constants.Companion.GRD_SUBSCRIBER_CREDENTIAL
 import com.guardianconnect.util.Constants.Companion.kGRDSubscriberCredentialValidationMethod
 import com.guardianconnect.util.GRDKeystore
+import com.guardianconnect.util.GRDLogger
 import java.util.Date
 
 class GRDSubscriberCredential {
@@ -30,6 +31,11 @@ class GRDSubscriberCredential {
 
     fun parseAndDecodeJWTFormat(jwtString: String): GRDSubscriberCredential {
         val parts: List<String> = jwtString.split(".")
+		if (parts.count() < 1) {
+			GRDLogger.e("GRDSubscriberCredential", "Trying to process invalid Subscriber Credential (JWT): $jwtString")
+			return GRDSubscriberCredential()
+		}
+
         val payloadString = String(Base64.decode(parts[1], Base64.DEFAULT))
 		val gson = GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LAZILY_PARSED_NUMBER).create()
 		val type = object : TypeToken<Map<String, Any>>() {}.type
