@@ -34,6 +34,7 @@ class GRDCredentialManager {
                     credentialsArrayList.remove(it)
                     saveListOfCredentials(credentialsArrayList)
                 }
+
             } else {
                 GRDConnectManager.getSharedPrefsEditor().remove(GRD_CREDENTIAL_LIST)?.apply()
             }
@@ -135,10 +136,7 @@ class GRDCredentialManager {
                     val newArrayList: ArrayList<GRDCredential> = Gson().fromJson(jsonString, type)
                     credentialsArrayList.clear()
                     credentialsArrayList.addAll(newArrayList)
-                    GRDLogger.d(
-                        tag,
-                        "List initListOfCredentials: ${Gson().toJson(credentialsArrayList)}"
-                    )
+                    GRDLogger.d(tag, "List initListOfCredentials: ${Gson().toJson(credentialsArrayList)}")
 
                 } else {
                     GRDLogger.d(tag, "List Of Credentials is empty")
