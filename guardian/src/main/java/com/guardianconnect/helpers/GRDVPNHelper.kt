@@ -686,8 +686,8 @@ object GRDVPNHelper {
 
 	/**
 	 * Convenience function removing the Subscriber Credential
-	 * for the keystore as well as GRDLogger specific logs
-	 * if any were previously generated
+	 * from the keystore, the main credential out of GRDCredentialManager
+	 * as well as GRDLogger specific logs if any were previously generated
 	 */
 	fun clearLocalCache() {
         GRDConnectManager.getSharedPrefsEditor().remove(GRD_SUBSCRIBER_CREDENTIAL)?.apply()
