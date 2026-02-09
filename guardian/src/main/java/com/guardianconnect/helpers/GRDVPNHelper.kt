@@ -562,13 +562,8 @@ object GRDVPNHelper {
             })
     }
 
-    fun connectVpnDevice(
-        subscriberCredentialString: String,
-        grdSgwServer: GRDSGWServer,
-        iOnApiResponse: IOnApiResponse,
-        validForDays: Long,
-        mainCredentials: Boolean
-    ) {
+
+    fun connectVpnDevice(subscriberCredentialString: String, grdSgwServer: GRDSGWServer, iOnApiResponse: IOnApiResponse, validForDays: Long, mainCredentials: Boolean) {
         val newVPNDevice = NewVPNDevice()
         newVPNDevice.transportProtocol = GRD_WIREGUARD
         newVPNDevice.subscriberCredential = subscriberCredentialString
