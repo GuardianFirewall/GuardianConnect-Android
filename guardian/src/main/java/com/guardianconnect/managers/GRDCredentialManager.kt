@@ -153,7 +153,7 @@ class GRDCredentialManager {
 				override fun onSuccess(any: Any?) {
 					val newVPNDeviceResponse = any as NewVPNDeviceResponse
 					val grdCredential = GRDCredential()
-					grdCredential.createGRDCredential(
+					grdCredential.initGRDCredential(
 						GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD,
 						validForDays,
 						false,

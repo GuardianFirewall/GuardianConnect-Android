@@ -388,7 +388,7 @@ object GRDVPNHelper {
 										override fun onSuccess(any: Any?) {
 											val newVPNDeviceResponse = any as NewVPNDeviceResponse
 											val grdCredential = GRDCredential()
-											grdCredential.createGRDCredential(GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD, validForDays, true, newVPNDeviceResponse, grdSgwServer, keyPairGenerated)
+											grdCredential.initGRDCredential(GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD, validForDays, true, newVPNDeviceResponse, grdSgwServer, keyPairGenerated)
 											grdCredentialManager?.addOrUpdateCredential(grdCredential)
 											val grdWireGuardConfiguration = GRDWireGuardConfiguration()
 											val preferredDNSServer = GRDConnectManager.getSharedPrefs().getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null)
@@ -450,7 +450,7 @@ object GRDVPNHelper {
 						override fun onSuccess(any: Any?) {
 							val newVPNDeviceResponse = any as NewVPNDeviceResponse
 							val grdCredential = GRDCredential()
-							grdCredential.createGRDCredential(GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD, validForDays, true, newVPNDeviceResponse, server, keyPairGenerated)
+							grdCredential.initGRDCredential(GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD, validForDays, true, newVPNDeviceResponse, server, keyPairGenerated)
 							grdCredentialManager?.addOrUpdateCredential(grdCredential)
 							val grdWireGuardConfiguration = GRDWireGuardConfiguration()
 							val preferredDNSServer = GRDConnectManager.getSharedPrefs().getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null)
