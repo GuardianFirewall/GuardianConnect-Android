@@ -843,7 +843,9 @@ object GRDVPNHelper {
         )
     }
 
-    // Resets all the values set in GuardianConnect either encrypted into the Keystore or unencrypted in the SharedPreferences
+	/**
+	 * Resets all the values set in GuardianConnect either encrypted into the Keystore or unencrypted in the SharedPreferences
+	 */
     fun resetAllGuardianConnectValues() {
         GRDConnectManager.getSharedPrefsEditor().clear().apply()
     }
