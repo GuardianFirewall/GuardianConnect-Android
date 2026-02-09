@@ -111,7 +111,8 @@ class MainActivity : AppCompatActivity() {
                 btnResetConfiguration.isClickable = true
             }
             lifecycleScope.launch {
-                GRDVPNHelper.stopClearTunnel()
+				GRDVPNHelper.stopTunnel()
+				GRDVPNHelper.clearVPNConfiguration()
             }
             btnResetConfiguration.isClickable = false
             btnStartTunnel.visibility = View.VISIBLE
@@ -229,10 +230,17 @@ class MainActivity : AppCompatActivity() {
     private fun onClickListener(): IOnClickListener {
         return object : IOnClickListener {
             override fun onClick(grdRegion: GRDRegion?) {
-                GRDServerManager.setPreferredRegion(grdRegion)
-                lifecycleScope.launch {
-                    GRDVPNHelper.updateTunnelRegion()
-                }
+				lifecycleScope.launch {
+					GRDServerManager.setPreferredRegion(grdRegion)
+					if (GRDVPNHelper.isTunnelRunning()) {
+						GRDVPNHelper.stopTunnel()
+						GRDVPNHelper.clearVPNConfiguration()
+						GRDVPNHelper.createAndStartTunnel()
+
+					} else {
+						GRDVPNHelper.clearVPNConfiguration()
+					}
+				}
             }
         }
     }
