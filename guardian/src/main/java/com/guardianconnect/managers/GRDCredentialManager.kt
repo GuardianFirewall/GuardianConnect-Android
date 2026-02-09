@@ -3,12 +3,23 @@ package com.guardianconnect.managers
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.guardianconnect.GRDCredential
+import com.guardianconnect.GRDTransportProtocol
+import com.guardianconnect.GRDWireGuardConfiguration
+import com.guardianconnect.api.IOnApiResponse
+import com.guardianconnect.api.Repository
 import com.guardianconnect.helpers.GRDVPNHelper
+import com.guardianconnect.helpers.GRDVPNHelper.appExceptions
+import com.guardianconnect.helpers.GRDVPNHelper.excludeLANTraffic
+import com.guardianconnect.helpers.GRDVPNHelper.grdErrorFlow
+import com.guardianconnect.model.api.*
+import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_USER_PREFERRED_DNS_SERVERS
 import com.guardianconnect.util.Constants.Companion.GRD_CREDENTIAL_LIST
 import com.guardianconnect.util.Constants.Companion.GRD_Main_Credential_WG_Private_Key
 import com.guardianconnect.util.Constants.Companion.GRD_Main_Credential_WG_Public_Key
+import com.guardianconnect.util.Constants.Companion.GRD_WIREGUARD
 import com.guardianconnect.util.GRDKeystore
 import com.guardianconnect.util.GRDLogger
+import com.wireguard.crypto.KeyPair
 import kotlinx.coroutines.launch
 import org.json.JSONException
 import java.lang.reflect.Type
@@ -19,6 +30,7 @@ import java.lang.reflect.Type
     The credential need to be stored and retrieved from the Android Keystore. */
 
 class GRDCredentialManager {
+	// why is this a class property? Callers need to specify what they want upon interacting with the class
     val credentialsArrayList: ArrayList<GRDCredential> = ArrayList()
     val tag = GRDCredentialManager::class.java.simpleName
 
@@ -171,4 +183,59 @@ class GRDCredentialManager {
     fun retrieveGRDMainCredentialWGPrivateKey(): String? {
         return GRDKeystore.instance.retrieveFromKeyStore(GRD_Main_Credential_WG_Private_Key)
     }
+
+	fun createStandaloneSGWCredential(subscriberCredentialString: String, grdSgwServer: GRDSGWServer, iOnApiResponse: IOnApiResponse, validForDays: Long) {
+		val newVPNDevice = NewVPNDevice()
+		newVPNDevice.transportProtocol = GRD_WIREGUARD
+		newVPNDevice.subscriberCredential = subscriberCredentialString
+		val keyPair = KeyPair()
+		val keyPairGenerated = KeyPair(keyPair.privateKey)
+		val publicKey = keyPairGenerated.publicKey.toBase64()
+		newVPNDevice.publicKey = publicKey
+
+		val api = Repository()
+		grdSgwServer.hostname?.let {
+			api.initRegionServer(it)
+
+		} ?: run {
+			GRDLogger.e("GRDCredentialManager", "Can't create standalone credential! SGW hostname missing")
+			return
+		}
+
+		api.createNewVPNDevice(newVPNDevice,
+			object : IOnApiResponse {
+				override fun onSuccess(any: Any?) {
+					val newVPNDeviceResponse = any as NewVPNDeviceResponse
+					val grdCredential = GRDCredential()
+					grdCredential.createGRDCredential(
+						GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD,
+						validForDays,
+						false,
+						newVPNDeviceResponse,
+						grdSgwServer,
+						keyPairGenerated
+					)
+					GRDCredentialManager().addOrUpdateCredential(grdCredential)
+					val grdWireGuardConfiguration = GRDWireGuardConfiguration()
+					val configString =
+						grdWireGuardConfiguration.getWireGuardConfigString(
+							grdCredential,
+							GRDConnectManager.getSharedPrefs()
+								?.getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null),
+							appExceptions,
+							excludeLANTraffic ?: true
+						)
+					iOnApiResponse.onSuccess(configString)
+				}
+
+				override fun onError(error: String?) {
+					iOnApiResponse.onError(error)
+					error?.let {
+						GRDConnectManager.getCoroutineScope().launch {
+							grdErrorFlow.emit(it)
+						}
+					}
+				}
+			})
+	}
 }
