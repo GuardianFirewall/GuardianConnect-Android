@@ -103,6 +103,26 @@ object GRDVPNHelper {
         observeStatus()
     }
 
+	private fun observeStatus() {
+		GRDConnectManager.getCoroutineScope().launch {
+			grdStatusFlow.collect {
+				when (it) {
+					GRDVPNHelperStatus.CONNECTED.status -> {
+						handleOkHttpClient(GRDVPNHelperStatus.CONNECTED.status)
+					}
+
+					GRDVPNHelperStatus.DISCONNECTED.status -> {
+						handleOkHttpClient(GRDVPNHelperStatus.DISCONNECTED.status)
+					}
+
+					GRDVPNHelperStatus.ERROR_CONNECTING.status -> {
+						handleOkHttpClient(GRDVPNHelperStatus.ERROR_CONNECTING.status)
+					}
+				}
+			}
+		}
+	}
+
     fun checkTimeZoneChanged() {
         val currentTimeZone = TimeZone.getDefault().id
         val currentGRDRegion = if (GRDServerManager.getPreferredRegion() != null) {
@@ -660,34 +680,6 @@ object GRDVPNHelper {
         Repository.instance.connectPublishableKey = connectPublishableKey
         Repository.instance.initConnectAPIServer()
         Repository.instance.initConnectSubscriberServer(connectAPIHostname)
-    }
-
-    fun hasCredentials(): Boolean {
-        val credentials = grdCredentialManager?.retrieveCredential()
-        val haveCredentials = credentials?.let { activeConnectionPossible(it) } ?: false
-        val havePEToken = !GRDPEToken.instance.retrievePEToken().isNullOrEmpty()
-
-        return haveCredentials && havePEToken
-    }
-
-    private fun observeStatus() {
-        GRDConnectManager.getCoroutineScope().launch {
-            grdStatusFlow.collect {
-                when (it) {
-                    GRDVPNHelperStatus.CONNECTED.status -> {
-                        handleOkHttpClient(GRDVPNHelperStatus.CONNECTED.status)
-                    }
-
-                    GRDVPNHelperStatus.DISCONNECTED.status -> {
-                        handleOkHttpClient(GRDVPNHelperStatus.DISCONNECTED.status)
-                    }
-
-                    GRDVPNHelperStatus.ERROR_CONNECTING.status -> {
-                        handleOkHttpClient(GRDVPNHelperStatus.ERROR_CONNECTING.status)
-                    }
-                }
-            }
-        }
     }
 
     private fun handleOkHttpClient(status: String) {
