@@ -753,28 +753,6 @@ object GRDVPNHelper {
                 !grdCredential.clientId.isNullOrEmpty()
     }
 
-    fun getServerStatus(onApiResponse: IOnApiResponse): Boolean {
-        var boolean = false
-        Repository.instance.getServerStatus(object : IOnApiResponse {
-            override fun onSuccess(any: Any?) {
-                val bool = any as Boolean
-                boolean = bool
-                onApiResponse.onSuccess(boolean)
-                Log.d(TAG, "getServerStatus success")
-            }
-
-            override fun onError(error: String?) {
-                onApiResponse.onError(error)
-                boolean = false
-                GRDConnectManager.getCoroutineScope().launch {
-                    error?.let { grdErrorFlow.emit("getServerStatus error $it") }
-                }
-
-            }
-        })
-        return boolean
-    }
-
     fun setVariables() {
         if (connectAPIHostname.isEmpty()) {
             connectAPIHostname = Constants.kGRDConnectAPIHostname
