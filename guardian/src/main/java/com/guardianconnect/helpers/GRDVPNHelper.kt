@@ -143,20 +143,15 @@ object GRDVPNHelper {
 
     fun setAppExceptionPackages(apps: ArrayList<String>?) {
         appExceptions = if (apps == null) {
-            GRDConnectManager.getSharedPrefsEditor()
-                .remove(Constants.kGRDAppExceptionsPackageNames)?.apply()
+            GRDConnectManager.getSharedPrefsEditor().remove(Constants.kGRDAppExceptionsPackageNames)?.apply()
             ArrayList()
+
         } else {
-            setArrayListOfAppExceptions(apps)
+			val gson = Gson()
+			val jsonString = gson.toJson(apps)
+			GRDConnectManager.getSharedPrefsEditor().putString(Constants.kGRDAppExceptionsPackageNames, jsonString)?.apply()
             apps
         }
-    }
-
-    private fun setArrayListOfAppExceptions(stringList: ArrayList<String>) {
-        val gson = Gson()
-        val jsonString = gson.toJson(stringList)
-        GRDConnectManager.getSharedPrefsEditor()
-            .putString(Constants.kGRDAppExceptionsPackageNames, jsonString)?.apply()
     }
 
     private fun getArrayListOfAppExceptions(): ArrayList<String> {
@@ -170,138 +165,19 @@ object GRDVPNHelper {
     fun excludeLANTraffic(shouldExclude: Boolean) {
         excludeLANTraffic = shouldExclude
         val localExcludeLANTraffic = excludeLANTraffic as Boolean
-        GRDConnectManager.getSharedPrefsEditor()
-            .putBoolean(Constants.kGRDExcludeLANTraffic, localExcludeLANTraffic)
-            ?.apply()
+        GRDConnectManager.getSharedPrefsEditor().putBoolean(Constants.kGRDExcludeLANTraffic, localExcludeLANTraffic)?.apply()
     }
 
-    suspend fun createAndStartTunnel() {
-        // Check if the user had already granted the permission to set the VPN profile
-        val intent = GoBackend.VpnService.prepare(context)
-        when {
-            // in case the permission was not yet granted emit the intent so that the
-            // OS can be asked to present the modal alert
-            intent != null -> grdVPNPermissionFlow.emit(intent)
+	fun setPreferredDNSServer(dnsServerNumber: String) {
+		GRDConnectManager.getSharedPrefsEditor()?.putString(
+			GRD_CONNECT_USER_PREFERRED_DNS_SERVERS,
+			dnsServerNumber
+		)?.apply()
+	}
 
-            // Ensure that a tunnel name has been set
-            tunnelName.isEmpty() -> grdErrorFlow.emit("Tunnel name should not be empty!")
-
-            // Check if VPN credentials are already present in the GRDCredentialManager
-            else -> grdCredentialManager?.getMainCredentials().let {
-                if (it?.let { it1 -> activeConnectionPossible(it1) } == true) {
-                    // If VPN credentials already exist try to start the VPN tunnel again
-                    createTunnelWithExistingCredentials()
-                } else {
-                    // No VPN credentials exist yet
-                    createTunnelFirstTime(validForDays)
-                }
-            }
-        }
-    }
-
-    private suspend fun createTunnelWithExistingCredentials() {
-        val hostname = grdCredentialManager?.getMainCredentials()?.hostname
-        if (!hostname.isNullOrEmpty()) {
-            Repository.instance.initRegionServer(hostname)
-            val mainCredentials = grdCredentialManager?.getMainCredentials()
-            val configString = mainCredentials?.let {
-                GRDWireGuardConfiguration().getWireGuardConfigString(
-                    it,
-                    GRDConnectManager.getSharedPrefs()
-                        .getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null),
-                    appExceptions,
-                    excludeLANTraffic ?: true
-                )
-            }
-            if (configString?.isNotEmpty() == true) {
-                configStringFlow.emit(configString)
-                createTunnel(configString)
-                grdMsgFlow.emit("Create tunnel with existing credentials successful!")
-            }
-        } else {
-            grdErrorFlow.emit("Hostname is empty!")
-        }
-    }
-
-    private suspend fun createTunnelFirstTime(validForDays: Long) {
-        val mainCredentials = true
-        configureAndConnect(
-            validForDays,
-            mainCredentials,
-            object : IOnApiResponse {
-                override fun onSuccess(any: Any?) {
-                    val configString = any as String
-                    Log.d(TAG, configString)
-                    GRDConnectManager.getCoroutineScope().launch {
-                        configStringFlow.emit(configString)
-                        createTunnel(configString)
-                        grdMsgFlow.emit("Create tunnel first time successful!")
-                    }
-                }
-
-                override fun onError(error: String?) {
-                    error?.let { it1 ->
-                        GRDConnectManager.getCoroutineScope().launch {
-                            grdErrorFlow.emit(it1)
-                        }
-                    }
-                }
-            }
-        )
-    }
-
-    /**
-     * Prepare to establish a VPN connection. This method returns null if the VPN application is
-     * already prepared or if the user has previously consented to the VPN application.
-     * Otherwise, it returns an Intent to a system activity.
-     * The application should launch the activity using Activity.startActivityForResult to get itself prepared.
-     * The activity may pop up a dialog to require user action, and the result will come back via its Activity.onActivityResult.
-     * If the result is Activity.RESULT_OK, the application becomes prepared and is granted to use other methods in this class.
-     * Only one application can be granted at the same time.
-     * The right is revoked when another application is granted.
-     * The application losing the right will be notified via its onRevoke.
-     * Unless it becomes prepared again, subsequent calls to other methods in this class will fail
-     * The user may disable the VPN at any time while it is activated, in which case this method
-     * will return an intent the next time it is executed to obtain the user's consent again.
-     */
-    fun getIntentVpnPermissions(context: Context): Intent? = GoBackend.VpnService.prepare(context)
-
-    suspend fun createTunnel(configString: String) {
-        val inputString: Reader = StringReader(configString)
-        val reader = BufferedReader(inputString)
-        try {
-            val config: Config = Config.parse(reader)
-            if (tunnelName.isNotEmpty()) {
-                GRDConnectManager.getTunnelManager().create(tunnelName, config)
-                Log.d(TAG, "Creating tunnel...")
-                if (GRDConnectManager.getBackend() is GoBackend) {
-                    getServerStatus(object : IOnApiResponse {
-                        override fun onSuccess(any: Any?) {
-                            val serverStatusOK = any as Boolean
-                            GRDConnectManager.getCoroutineScope().launch {
-                                if (serverStatusOK) {
-                                    grdStatusFlow.emit(GRDVPNHelperStatus.SERVER_READY.status)
-                                    startTunnel()
-                                } else {
-                                    grdErrorFlow.emit(GRDVPNHelperStatus.SERVER_ERROR.status)
-                                }
-                            }
-                        }
-
-                        override fun onError(error: String?) {
-                            GRDConnectManager.getCoroutineScope().launch {
-                                error?.let { grdErrorFlow.emit("Server error! $it") }
-                            }
-                        }
-                    })
-                }
-            } else {
-                grdErrorFlow.emit("Tunnel name should not be empty!")
-            }
-        } catch (e: Exception) {
-            e.message?.let { grdErrorFlow.emit("Error parsing config! $it") }
-        }
-    }
+	fun getPreferredDNSServers(): String? {
+		return GRDConnectManager.getSharedPrefs().getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null)
+	}
 
     suspend fun startTunnel() {
         val tunnel = GRDConnectManager.getTunnelManager().tunnelMap[tunnelName]
@@ -309,6 +185,7 @@ object GRDVPNHelper {
             grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTING.status)
             tunnel?.setStateAsync(Tunnel.State.UP)
             grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTED.status)
+
         } catch (e: Throwable) {
             val error = ErrorMessages[e]
             e.message?.let {
@@ -324,48 +201,144 @@ object GRDVPNHelper {
             grdStatusFlow.emit(GRDVPNHelperStatus.DISCONNECTING.status)
             getActiveTunnel()?.setStateAsync(Tunnel.State.DOWN)
             grdStatusFlow.emit(GRDVPNHelperStatus.DISCONNECTED.status)
+
         } catch (t: Throwable) {
             grdErrorFlow.emit("Error stopping tunnel! " + t.stackTraceToString())
         }
     }
 
-    fun isTunnelRunning(): Boolean {
-        val runningTunnel = GRDConnectManager.getTunnelManager().tunnelMap[tunnelName]
-        return (runningTunnel != null && runningTunnel.state == Tunnel.State.UP)
-    }
+	fun isTunnelRunning(): Boolean {
+		val runningTunnel = GRDConnectManager.getTunnelManager().tunnelMap[tunnelName]
+		return (runningTunnel != null && runningTunnel.state == Tunnel.State.UP)
+	}
 
-    fun getActiveTunnel(): TunnelModel? {
-        return GRDConnectManager.getTunnelManager().tunnelMap[tunnelName]
-    }
+	fun getActiveTunnel(): TunnelModel? {
+		return GRDConnectManager.getTunnelManager().tunnelMap[tunnelName]
+	}
 
-    suspend fun stopClearTunnel() {
-        try {
-            getActiveTunnel()?.setStateAsync(Tunnel.State.DOWN)
-            clearVPNConfiguration()
-            grdMsgFlow.emit("Tunnel successfully cleared!")
+	/**
+	 * Prepare to establish a VPN connection. This method returns null if the VPN application is
+	 * already prepared or if the user has previously consented to the VPN application.
+	 * Otherwise, it returns an Intent to a system activity.
+	 * The application should launch the activity using Activity.startActivityForResult to get itself prepared.
+	 * The activity may pop up a dialog to require user action, and the result will come back via its Activity.onActivityResult.
+	 * If the result is Activity.RESULT_OK, the application becomes prepared and is granted to use other methods in this class.
+	 * Only one application can be granted at the same time.
+	 * The right is revoked when another application is granted.
+	 * The application losing the right will be notified via its onRevoke.
+	 * Unless it becomes prepared again, subsequent calls to other methods in this class will fail
+	 * The user may disable the VPN at any time while it is activated, in which case this method
+	 * will return an intent the next time it is executed to obtain the user's consent again.
+	 */
+	fun getIntentVpnPermissions(context: Context): Intent? = GoBackend.VpnService.prepare(context)
 
-        } catch (e: Exception) {
-            grdErrorFlow.emit("Error restarting tunnel! " + e.message)
-        }
-    }
+	suspend fun createAndStartTunnel() {
+		// Check if the user had already granted the permission to set the VPN profile
+		val intent = GoBackend.VpnService.prepare(context)
+		when {
+			// in case the permission was not yet granted emit the intent so that the
+			// OS can be asked to present the modal alert
+			intent != null -> grdVPNPermissionFlow.emit(intent)
 
-    suspend fun restartTunnel() {
-        try {
-            getActiveTunnel()?.setStateAsync(Tunnel.State.DOWN)
-            clearVPNConfiguration()
-            createAndStartTunnel()
-        } catch (e: Exception) {
-            grdErrorFlow.emit("Error restarting tunnel! " + e.message)
-        }
-    }
+			// Ensure that a tunnel name has been set
+			tunnelName.isEmpty() -> grdErrorFlow.emit("Tunnel name should not be empty!")
 
-    suspend fun updateTunnelRegion() {
-        if (isTunnelRunning()) {
-            restartTunnel()
-        } else {
-            clearVPNConfiguration()
-        }
-    }
+			// Check if VPN credentials are already present in the GRDCredentialManager
+			else -> grdCredentialManager?.getMainCredentials().let {
+				if (it?.let { it1 -> activeConnectionPossible(it1) } == true) {
+					// If VPN credentials already exist try to start the VPN tunnel again
+					val hostname = grdCredentialManager?.getMainCredentials()?.hostname
+					if (!hostname.isNullOrEmpty()) {
+						Repository.instance.initRegionServer(hostname)
+						val mainCredentials = grdCredentialManager?.getMainCredentials()
+						val configString = mainCredentials?.let {
+							GRDWireGuardConfiguration().getWireGuardConfigString(
+								it,
+								GRDConnectManager.getSharedPrefs()
+									.getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null),
+								appExceptions,
+								excludeLANTraffic ?: true
+							)
+						}
+						if (configString?.isNotEmpty() == true) {
+							configStringFlow.emit(configString)
+							createTunnel(configString)
+							grdMsgFlow.emit("Create tunnel with existing credentials successful!")
+						}
+					} else {
+						grdErrorFlow.emit("Hostname is empty!")
+					}
+
+				} else {
+					// No VPN credentials exist yet
+					val mainCredentials = true
+					configureAndConnect(
+						validForDays,
+						mainCredentials,
+						object : IOnApiResponse {
+							override fun onSuccess(any: Any?) {
+								val configString = any as String
+								Log.d(TAG, configString)
+								GRDConnectManager.getCoroutineScope().launch {
+									configStringFlow.emit(configString)
+									createTunnel(configString)
+									grdMsgFlow.emit("Create tunnel first time successful!")
+								}
+							}
+
+							override fun onError(error: String?) {
+								error?.let { it1 ->
+									GRDConnectManager.getCoroutineScope().launch {
+										grdErrorFlow.emit(it1)
+									}
+								}
+							}
+						}
+					)
+				}
+			}
+		}
+	}
+
+	suspend fun createTunnel(configString: String) {
+		val inputString: Reader = StringReader(configString)
+		val reader = BufferedReader(inputString)
+		try {
+			val config: Config = Config.parse(reader)
+			if (tunnelName.isNotEmpty()) {
+				GRDConnectManager.getTunnelManager().create(tunnelName, config)
+				Log.d(TAG, "Creating tunnel...")
+				if (GRDConnectManager.getBackend() is GoBackend) {
+					Repository.instance.getServerStatus(object : IOnApiResponse {
+						override fun onSuccess(any: Any?) {
+							val serverStatusOK = any as Boolean
+							GRDConnectManager.getCoroutineScope().launch {
+								if (serverStatusOK) {
+									grdStatusFlow.emit(GRDVPNHelperStatus.SERVER_READY.status)
+									startTunnel()
+
+								} else {
+									grdErrorFlow.emit(GRDVPNHelperStatus.SERVER_ERROR.status)
+								}
+							}
+						}
+
+						override fun onError(error: String?) {
+							GRDConnectManager.getCoroutineScope().launch {
+								error?.let { grdErrorFlow.emit("getServerStatus failed with error $it") }
+							}
+						}
+					})
+				}
+
+			} else {
+				grdErrorFlow.emit("Tunnel name should not be empty!")
+			}
+
+		} catch (e: Exception) {
+			e.message?.let { grdErrorFlow.emit("Error parsing config! $it") }
+		}
+	}
 
     /*  Function that handles the various tasks required to establish a new VPN connection.
     Create new VPN credentials on the selected VPN node with the created Subscriber Credential
