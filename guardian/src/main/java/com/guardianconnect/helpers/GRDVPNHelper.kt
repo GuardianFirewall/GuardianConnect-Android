@@ -344,11 +344,7 @@ object GRDVPNHelper {
     Create new VPN credentials on the selected VPN node with the created Subscriber Credential
     Create a new WireGuard configuration with the VPN credentials from the VPN node
     Connect WireGuard to the VPN node */
-    suspend fun configureAndConnect(
-        validForDays: Long,
-        mainCredentials: Boolean,
-        iOnApiResponse: IOnApiResponse
-    ) {
+    suspend fun configureAndConnect(validForDays: Long, mainCredentials: Boolean, iOnApiResponse: IOnApiResponse) {
         validSubscriberCredential(object : IOnApiResponse {
             override fun onSuccess(any: Any?) {
                 val subscriberCredentialString = any as String
@@ -466,12 +462,7 @@ object GRDVPNHelper {
         }
     }
 
-    fun initRegionAndConnectDevice(
-        subscriberCredentialString: String,
-        validForDays: Long,
-        mainCredentials: Boolean,
-        iOnApiResponse: IOnApiResponse
-    ) {
+    fun initRegionAndConnectDevice(subscriberCredentialString: String, validForDays: Long, mainCredentials: Boolean, iOnApiResponse: IOnApiResponse) {
         grdServerManager?.preferBetaCapableServers = preferBetaCapableServers
         grdServerManager?.vpnServerFeatureEnvironment = vpnServerFeatureEnvironment
         grdServerManager?.regionPrecision = regionPrecision
