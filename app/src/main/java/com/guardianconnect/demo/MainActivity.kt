@@ -194,7 +194,6 @@ class MainActivity : AppCompatActivity() {
         GRDVPNHelper.connectAPIHostname = "connect-api.guardianapp.com"
         GRDVPNHelper.setVariables()
         GRDVPNHelper.initHelper(this)
-        GRDVPNHelper.initRegion()
     }
 
     override fun onPostResume() {

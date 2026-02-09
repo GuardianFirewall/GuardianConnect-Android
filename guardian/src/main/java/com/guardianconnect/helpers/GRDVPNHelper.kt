@@ -585,36 +585,6 @@ object GRDVPNHelper {
         }
     }
 
-
-    fun initRegion() {
-        grdServerManager?.preferBetaCapableServers = preferBetaCapableServers
-        grdServerManager?.vpnServerFeatureEnvironment = vpnServerFeatureEnvironment
-        grdServerManager?.regionPrecision = regionPrecision
-        GRDLogger.d(TAG, "initRegion()")
-
-        grdServerManager?.selectServerFromRegion(null,
-            object : IOnApiResponse {
-                override fun onSuccess(any: Any?) {
-                    val grdSgwServer = any as GRDSGWServer
-                    GRDLogger.d(TAG, "initRegion() $grdSgwServer")
-
-                    grdSgwServer.hostname?.let {
-                        GRDLogger.d(TAG, "initRegion() hostname: $it")
-                        Repository.instance.initRegionServer(it)
-                    } ?: run {
-                        GRDConnectManager.getCoroutineScope().launch {
-                            grdErrorFlow.emit(GRDVPNHelperStatus.SERVER_ERROR.status)
-                        }
-                    }
-                }
-
-                override fun onError(error: String?) {
-                    GRDLogger.d(TAG, "initRegion()")
-                    error?.let { Log.d(TAG, it) }
-                }
-            })
-    }
-
 	/**
 	 * Convenience function removing the Subscriber Credential
 	 * from the keystore, the main credential out of GRDCredentialManager
