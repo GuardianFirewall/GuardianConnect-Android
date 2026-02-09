@@ -98,11 +98,13 @@ class Repository {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
                     iOnApiResponse.onSuccess(true)
-                    Log.d(TAG, "Server is online. Ready to accept connections.")
+
                 } else if (response.code() == 500) {
                     Log.d(TAG, "Server error! Need to use different server")
+
                 } else if (response.code() == 404) {
                     Log.d(TAG, "Endpoint not found on this server!")
+
                 } else {
                     Log.d(TAG, "Unknown error!")
                     iOnApiResponse.onError("Unknown error!")
