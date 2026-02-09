@@ -265,7 +265,7 @@ object GRDVPNHelper {
 
 			// Check if VPN credentials are already present in the GRDCredentialManager
 			else -> grdCredentialManager?.getMainCredentials().let {
-				if (it?.let { it1 -> activeConnectionPossible(it1) } == true) {
+				if (it?.let { it1 -> activeConnectionPossible() } == true) {
 					// If VPN credentials already exist try to start the VPN tunnel again
 					val hostname = grdCredentialManager?.getMainCredentials()?.hostname
 					if (!hostname.isNullOrEmpty()) {
@@ -653,12 +653,12 @@ object GRDVPNHelper {
         properties of the object are not nil or an empty string. This function needs to be called
         in the high level API code paths prior to trying to re-establish a VPN connection to check
         whether all the information is present on device. */
-    fun activeConnectionPossible(grdCredential: GRDCredential): Boolean {
-        return !grdCredential.hostname.isNullOrEmpty() &&
-                !grdCredential.apiAuthToken.isNullOrEmpty() &&
-                !grdCredential.devicePublicKey.isNullOrEmpty() &&
-                !grdCredential.devicePrivateKey.isNullOrEmpty() &&
-                !grdCredential.clientId.isNullOrEmpty()
+    fun activeConnectionPossible(): Boolean {
+		val mainCredentials = GRDCredentialManager().getMainCredentials()
+		if (mainCredentials != null) {
+			return !mainCredentials.hostname.isNullOrEmpty() && !mainCredentials.apiAuthToken.isNullOrEmpty() && !mainCredentials.devicePublicKey.isNullOrEmpty() && !mainCredentials.devicePrivateKey.isNullOrEmpty() && !mainCredentials.clientId.isNullOrEmpty()
+		}
+		return false
     }
 
     fun setVariables() {
