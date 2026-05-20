@@ -269,43 +269,6 @@ class Repository {
         })
     }
 
-    fun setAlertsDownloadTimestamp(
-        deviceId: String,
-        requestData: MutableMap<String, Any>,
-        iOnApiResponse: IOnApiResponse
-    ) {
-        val call: Call<ResponseBody>? = apiCalls?.setAlertsDownloadTimestamp(deviceId, requestData)
-        call?.enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                if (response.isSuccessful) {
-                    iOnApiResponse.onSuccess(response)
-                    Log.d(TAG, "Alerts download timestamp set successfully!")
-                } else {
-                    val errorBody = response.errorBody()?.string()
-                    if (errorBody != null) {
-                        try {
-                            val jObjError = JSONObject(errorBody)
-                            Log.d(TAG, jObjError.toString())
-                            iOnApiResponse.onError(jObjError.toString())
-                        } catch (e: JSONException) {
-                            // Handle the case when the error response is not in JSON format
-                            Log.e(TAG, "Error response is not in JSON format")
-                            iOnApiResponse.onError("Error response is not in JSON format")
-                        }
-                    } else {
-                        Log.e(TAG, "Error response body is null")
-                        iOnApiResponse.onError("Error response body is null")
-                    }
-                }
-            }
-
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                iOnApiResponse.onError(t.message)
-                Log.d(TAG, API_ERROR + " setAlertsDownloadTimestamp() " + t.message)
-            }
-        })
-    }
-
     fun requestAllGuardianRegions(iOnApiResponse: IOnApiResponse) {
         val call: Call<ResponseBody>? = apiCallsConnect?.requestAllGuardianRegions()
         call?.enqueue(object : Callback<ResponseBody> {

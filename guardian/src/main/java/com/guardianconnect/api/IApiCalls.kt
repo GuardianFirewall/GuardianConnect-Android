@@ -44,12 +44,6 @@ interface IApiCalls {
         @Body alerts: Alerts
     ): Call<ResponseBody>
 
-    @POST("/api/v1.2/device/{deviceid}/set-alerts-download-timestamp")
-    fun setAlertsDownloadTimestamp(
-        @Path("deviceid") deviceid: String,
-        @Body requestData: @JvmSuppressWildcards MutableMap<String, Any>
-    ): Call<ResponseBody>
-
     @GET("/api/v1/servers/all-server-regions")
     fun requestAllGuardianRegions(): Call<ResponseBody>
 
