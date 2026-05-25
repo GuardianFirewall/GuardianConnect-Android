@@ -23,6 +23,7 @@ import com.guardianconnect.GRDRegion
 import com.guardianconnect.GRDWireGuardConfiguration
 import com.guardianconnect.helpers.GRDVPNHelper
 import com.guardianconnect.managers.GRDConnectManager
+import com.guardianconnect.managers.GRDCredentialManager
 import com.guardianconnect.managers.GRDServerManager
 import com.guardianconnect.util.Constants
 import com.guardianconnect.util.applicationScope
@@ -198,18 +199,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPostResume() {
         super.onPostResume()
-        val configString =
-            GRDVPNHelper.grdCredentialManager?.getMainCredentials().let {
-                it?.let { it1 ->
-                    GRDWireGuardConfiguration().getWireGuardConfigString(
-                        it1,
-                        GRDConnectManager.getSharedPrefs()
-                            .getString(Constants.GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null),
-                        GRDVPNHelper.appExceptions,
-                        GRDVPNHelper.excludeLANTraffic ?: true
-                    )
-                }
-            }
+        val configString = GRDCredentialManager().getMainCredentials().let {
+			it?.let { it1 ->
+				GRDWireGuardConfiguration().getWireGuardConfigString(
+					it1,
+					GRDConnectManager.getSharedPrefs()
+						.getString(Constants.GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null),
+					GRDVPNHelper.appExceptions,
+					GRDVPNHelper.excludeLANTraffic ?: true
+				)
+			}
+		}
         if (!configString.isNullOrEmpty()) etConfig.setText(configString)
     }
 
@@ -249,8 +249,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadRegionsList() {
-        GRDVPNHelper.grdServerManager?.let { setGRDRegionPrecisionDefault(it) }
-        GRDVPNHelper.grdServerManager?.returnAllAvailableRegions(object :
+		val serverManager = GRDServerManager()
+		serverManager.let { setGRDRegionPrecisionDefault(it) }
+		serverManager.returnAllAvailableRegions(object :
             GRDServerManager.OnRegionListener {
             override fun onRegionsAvailable(listOfGRDRegions: List<GRDRegion>) {
                 regionsAdapterList.addAll(listOfGRDRegions)
