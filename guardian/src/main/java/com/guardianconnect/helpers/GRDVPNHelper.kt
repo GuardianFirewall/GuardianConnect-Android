@@ -470,7 +470,6 @@ object GRDVPNHelper {
 							grdCredential.initGRDCredential(GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD, validForDays, true, newVPNDeviceResponse, server, keyPairGenerated)
 							GRDCredentialManager().addOrUpdateCredential(grdCredential)
 
-							}
 							Repository.instance.getServerStatus(object : IOnApiResponse {
 								override fun onSuccess(any: Any?) {
 									val preferredDNSServer = GRDConnectManager.getSharedPrefs().getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null)
@@ -704,6 +703,11 @@ object GRDVPNHelper {
         Repository.instance.connectPublishableKey = connectPublishableKey
         Repository.instance.initConnectAPIServer()
         Repository.instance.initConnectSubscriberServer(connectAPIHostname)
+
+		val mainCredentials = GRDCredentialManager().getMainCredentials()
+		if (mainCredentials != null) {
+			Repository.instance.initSGWServer(mainCredentials.hostname.toString())
+		}
     }
 
     private fun handleOkHttpClient(status: String) {
