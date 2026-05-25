@@ -379,7 +379,7 @@ object GRDVPNHelper {
 						override fun onSuccess(any: Any?) {
 							val grdSgwServer = any as GRDSGWServer
 							grdSgwServer.hostname?.let {
-								Repository.instance.initRegionServer(it)
+								Repository.instance.initSGWServer(it)
 								val newVPNDevice = NewVPNDevice()
 								newVPNDevice.transportProtocol = GRD_WIREGUARD
 								newVPNDevice.subscriberCredential = subscriberCredential
@@ -454,7 +454,7 @@ object GRDVPNHelper {
 			override fun onSuccess(any: Any?) {
 				val subscriberCredential = any as String
 
-				Repository.instance.initRegionServer(server.hostname!!)
+				Repository.instance.initSGWServer(server.hostname!!)
 				val newVPNDevice = NewVPNDevice()
 				newVPNDevice.transportProtocol = GRD_WIREGUARD
 				newVPNDevice.subscriberCredential = subscriberCredential

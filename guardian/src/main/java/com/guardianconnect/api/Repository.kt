@@ -52,8 +52,8 @@ class Repository {
             .build()
     }
 
-    fun initRegionServer(hostname: String) {
-        GRDLogger.d(TAG, "initRegionServer() hostname: $hostname")
+    fun initSGWServer(hostname: String) {
+        GRDLogger.d(TAG, "initSGWServer() hostname: $hostname")
         if (hostname.isNotEmpty()) {
             val baseUrl = "https://$hostname"
             val gson = GsonBuilder()
@@ -101,9 +101,11 @@ class Repository {
 
                 } else if (response.code() == 500) {
                     Log.d(TAG, "Server error! Need to use different server")
+					iOnApiResponse.onError("Selected server not operational")
 
                 } else if (response.code() == 404) {
                     Log.d(TAG, "Endpoint not found on this server!")
+					iOnApiResponse.onError("Selected server not operational")
 
                 } else {
                     Log.d(TAG, "Unknown error!")

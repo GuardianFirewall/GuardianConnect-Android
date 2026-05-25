@@ -141,7 +141,7 @@ class GRDCredentialManager {
 
 		val api = Repository()
 		grdSgwServer.hostname?.let {
-			api.initRegionServer(it)
+			api.initSGWServer(it)
 
 		} ?: run {
 			GRDLogger.e("GRDCredentialManager", "Can't create standalone credential! SGW hostname missing")
