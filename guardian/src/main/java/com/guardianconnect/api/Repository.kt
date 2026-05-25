@@ -120,6 +120,34 @@ class Repository {
         })
     }
 
+	fun getServerStatusForDeviceId(deviceId: String, iOnApiResponse: IOnApiResponse) {
+		val call: Call<ResponseBody>? = apiCalls?.getServerStatusForDeviceId(deviceId)
+		call?.enqueue(object : Callback<ResponseBody> {
+			override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+				if (response.isSuccessful) {
+					iOnApiResponse.onSuccess(true)
+
+				} else if (response.code() == 500) {
+					Log.d(TAG, "Server error! Need to use different server")
+					iOnApiResponse.onError("Selected server not operational")
+
+				} else if (response.code() == 404) {
+					Log.d(TAG, "Endpoint not found on this server!")
+					iOnApiResponse.onError("Selected server not operational")
+
+				} else {
+					Log.d(TAG, "Unknown error!")
+					iOnApiResponse.onError("Unknown error!")
+				}
+			}
+
+			override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+				iOnApiResponse.onError(t.message)
+				Log.d(TAG, API_ERROR + " getServerStatus() " + t.message)
+			}
+		})
+	}
+
     fun createNewVPNDevice(newVPNDevice: NewVPNDevice, iOnApiResponse: IOnApiResponse) {
         val call: Call<NewVPNDeviceResponse>? = apiCalls?.createNewVPNDevice(newVPNDevice)
         call?.enqueue(object : Callback<NewVPNDeviceResponse> {
