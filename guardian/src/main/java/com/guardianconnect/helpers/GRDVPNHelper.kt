@@ -50,8 +50,6 @@ import java.util.TimeZone
 @SuppressLint("StaticFieldLeak")
 object GRDVPNHelper {
     private val TAG = GRDVPNHelper::class.java.simpleName
-    var grdCredentialManager: GRDCredentialManager? = null
-    var grdServerManager: GRDServerManager? = null
     private var context: Context? = null
     var connectAPIHostname: String = ""
     var connectPublishableKey: String = ""
@@ -70,11 +68,6 @@ object GRDVPNHelper {
 
     var preferredValidationMethod: GRDSubscriberCredentialValidationMethod = GRDSubscriberCredentialValidationMethod.Invalid
     var customSubscriberCredentialAuthKeys: MutableMap<String, Any>? = null
-
-    init {
-        grdCredentialManager = GRDCredentialManager()
-        grdServerManager = GRDServerManager()
-    }
 
     fun initHelper(context: Context) {
         GRDVPNHelper.context = context
@@ -264,30 +257,41 @@ object GRDVPNHelper {
 			tunnelName.isEmpty() -> grdErrorFlow.emit("Tunnel name should not be empty!")
 
 			// Check if VPN credentials are already present in the GRDCredentialManager
-			else -> grdCredentialManager?.getMainCredentials().let {
+			else -> GRDCredentialManager().getMainCredentials().let {
 				if (it?.let { it1 -> activeConnectionPossible() } == true) {
 					// If VPN credentials already exist try to start the VPN tunnel again
-					val hostname = grdCredentialManager?.getMainCredentials()?.hostname
-					if (!hostname.isNullOrEmpty()) {
-						Repository.instance.initRegionServer(hostname)
-						val mainCredentials = grdCredentialManager?.getMainCredentials()
-						val configString = mainCredentials?.let {
-							GRDWireGuardConfiguration().getWireGuardConfigString(
-								it,
-								GRDConnectManager.getSharedPrefs()
-									.getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null),
-								appExceptions,
-								excludeLANTraffic ?: true
-							)
-						}
-						if (configString?.isNotEmpty() == true) {
-							configStringFlow.emit(configString)
-							connectTunnel(configString)
-							grdMsgFlow.emit("Create tunnel with existing credentials successful!")
-						}
+					val mainCredentials = GRDCredentialManager().getMainCredentials()
+					if (!mainCredentials?.hostname.isNullOrEmpty()) {
+						Repository.instance.initSGWServer(mainCredentials.hostname.toString())
+						Repository.instance.getServerStatusForDeviceId(mainCredentials.clientId.toString(), object : IOnApiResponse {
+							override fun onSuccess(any: Any?) {
+								val configString = mainCredentials.let {
+									GRDWireGuardConfiguration().getWireGuardConfigString(
+										it,
+										GRDConnectManager.getSharedPrefs()
+											.getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null),
+										appExceptions,
+										excludeLANTraffic ?: true
+									)
+								}
+								if (configString.isNotEmpty() == true) {
+									GRDConnectManager.getCoroutineScope().launch {
+										configStringFlow.emit(configString)
+										connectTunnel(configString)
+										grdMsgFlow.emit("Create tunnel with existing credentials successful!")
+									}
+								}
+							}
+
+							override fun onError(error: String?) {
+								GRDConnectManager.getCoroutineScope().launch {
+									grdErrorFlow.emit("SGW credential no longer valid on the selected host: {$error}")
+								}
+							}
+						})
 
 					} else {
-						grdErrorFlow.emit("Hostname is empty!")
+						grdErrorFlow.emit("SGW credential does not contain a hostname is empty!")
 					}
 
 				} else {
@@ -389,16 +393,29 @@ object GRDVPNHelper {
 											val newVPNDeviceResponse = any as NewVPNDeviceResponse
 											val grdCredential = GRDCredential()
 											grdCredential.initGRDCredential(GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD, validForDays, true, newVPNDeviceResponse, grdSgwServer, keyPairGenerated)
-											grdCredentialManager?.addOrUpdateCredential(grdCredential)
-											val grdWireGuardConfiguration = GRDWireGuardConfiguration()
-											val preferredDNSServer = GRDConnectManager.getSharedPrefs().getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null)
-											val configString = grdWireGuardConfiguration.getWireGuardConfigString(grdCredential, preferredDNSServer, appExceptions, excludeLANTraffic ?: true)
+											GRDCredentialManager().addOrUpdateCredential(grdCredential)
 
-											GRDConnectManager.getCoroutineScope().launch {
-												configStringFlow.emit(configString)
-												connectTunnel(configString)
-											}
-											iOnApiResponse.onSuccess(configString)
+											Repository.instance.getServerStatus(object : IOnApiResponse {
+												override fun onSuccess(any: Any?) {
+													val preferredDNSServer = GRDConnectManager.getSharedPrefs().getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null)
+													val configString = GRDWireGuardConfiguration().getWireGuardConfigString(grdCredential, preferredDNSServer, appExceptions, excludeLANTraffic ?: true)
+
+													GRDConnectManager.getCoroutineScope().launch {
+														configStringFlow.emit(configString)
+														connectTunnel(configString)
+													}
+													iOnApiResponse.onSuccess(configString)
+												}
+
+												override fun onError(error: String?) {
+													iOnApiResponse.onError(error)
+													error?.let {
+														GRDConnectManager.getCoroutineScope().launch {
+															grdErrorFlow.emit(it)
+														}
+													}
+												}
+											})
 										}
 
 										override fun onError(error: String?) {
@@ -451,16 +468,30 @@ object GRDVPNHelper {
 							val newVPNDeviceResponse = any as NewVPNDeviceResponse
 							val grdCredential = GRDCredential()
 							grdCredential.initGRDCredential(GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD, validForDays, true, newVPNDeviceResponse, server, keyPairGenerated)
-							grdCredentialManager?.addOrUpdateCredential(grdCredential)
-							val grdWireGuardConfiguration = GRDWireGuardConfiguration()
-							val preferredDNSServer = GRDConnectManager.getSharedPrefs().getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null)
-							val configString = grdWireGuardConfiguration.getWireGuardConfigString(grdCredential, preferredDNSServer, appExceptions, excludeLANTraffic ?: true)
+							GRDCredentialManager().addOrUpdateCredential(grdCredential)
 
-							GRDConnectManager.getCoroutineScope().launch {
-								configStringFlow.emit(configString)
-								connectTunnel(configString)
 							}
-							iOnApiResponse.onSuccess(configString)
+							Repository.instance.getServerStatus(object : IOnApiResponse {
+								override fun onSuccess(any: Any?) {
+									val preferredDNSServer = GRDConnectManager.getSharedPrefs().getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null)
+									val configString = GRDWireGuardConfiguration().getWireGuardConfigString(grdCredential, preferredDNSServer, appExceptions, excludeLANTraffic ?: true)
+
+									GRDConnectManager.getCoroutineScope().launch {
+										configStringFlow.emit(configString)
+										connectTunnel(configString)
+									}
+									iOnApiResponse.onSuccess(configString)
+								}
+
+								override fun onError(error: String?) {
+									iOnApiResponse.onError(error)
+									error?.let {
+										GRDConnectManager.getCoroutineScope().launch {
+											grdErrorFlow.emit(it)
+										}
+									}
+								}
+							})
 						}
 
 						override fun onError(error: String?) {
@@ -598,16 +629,16 @@ object GRDVPNHelper {
 
     /* Handles VPN credential invalidation on the server and removal locally on the device. */
     suspend fun clearVPNConfiguration() {
-        val sgwCredential = grdCredentialManager?.getMainCredentials()
+        val mainCredentials = GRDCredentialManager().getMainCredentials()
         validSubscriberCredential(object : IOnApiResponse {
             override fun onSuccess(any: Any?) {
-                if (sgwCredential?.clientId.isNullOrEmpty() == false) {
+                if (mainCredentials?.clientId.isNullOrEmpty() == false) {
                     val requestBody = mutableMapOf<String, Any>()
 
                     requestBody["subscriber-credential"]    = any as String
-                    requestBody["api-auth-token"]           = sgwCredential?.apiAuthToken!!
+                    requestBody["api-auth-token"]           = mainCredentials.apiAuthToken.toString()
                     
-                    Repository.instance.invalidateVPNCredentials(sgwCredential?.clientId!!, requestBody, object : IOnApiResponse {
+                    Repository.instance.invalidateVPNCredentials(mainCredentials.clientId.toString(), requestBody, object : IOnApiResponse {
                         override fun onSuccess(any: Any?) {
                             GRDConnectManager.getCoroutineScope().launch {
                                 grdStatusFlow.emit(GRDVPNHelperStatus.VPN_CREDENTIALS_INVALIDATED.status)
@@ -625,7 +656,7 @@ object GRDVPNHelper {
                     // Regardless of the outcome of the API request
                     // ensure that we clear everything else locally
                     // on the device
-                    grdCredentialManager?.deleteMainCredential()
+					GRDCredentialManager().deleteMainCredential()
                     
                 } else {
                     GRDConnectManager.getCoroutineScope().launch {
@@ -681,16 +712,16 @@ object GRDVPNHelper {
             Repository.instance.initConnectAPIServer()
             Repository.instance.initConnectSubscriberServer(connectAPIHostname)
 
-            val hostname = grdCredentialManager?.getMainCredentials()?.hostname
+            val hostname = GRDCredentialManager().getMainCredentials()?.hostname
             if (!hostname.isNullOrEmpty()) {
-                Repository.instance.initRegionServer(hostname)
+                Repository.instance.initSGWServer(hostname)
             }
         }
         Log.d(TAG, status)
         Log.d(
             TAG, "httpClient: ${Repository.instance.httpClient}, " +
                     "Default httpClient: ${Repository.instance.defaultHTTPClient()}, " +
-                    "Host name: ${grdCredentialManager?.getMainCredentials()?.hostname}"
+                    "Host name: ${GRDCredentialManager().getMainCredentials()?.hostname}"
         )
     }
 
@@ -717,10 +748,11 @@ object GRDVPNHelper {
     }
 
     fun allRegions(onRegionListener: GRDServerManager.OnRegionListener) {
-        grdServerManager?.preferBetaCapableServers = preferBetaCapableServers
-        grdServerManager?.vpnServerFeatureEnvironment = vpnServerFeatureEnvironment
-        grdServerManager?.regionPrecision = regionPrecision
-        grdServerManager?.returnAllAvailableRegions(onRegionListener)
+		val serverManager = GRDServerManager()
+		serverManager.preferBetaCapableServers = preferBetaCapableServers
+		serverManager.vpnServerFeatureEnvironment = vpnServerFeatureEnvironment
+		serverManager.regionPrecision = regionPrecision
+		serverManager.returnAllAvailableRegions(onRegionListener)
     }
 
     val configStringFlow        = MutableSharedFlow<String>()
