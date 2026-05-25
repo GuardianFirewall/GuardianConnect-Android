@@ -67,7 +67,7 @@ dependencies {
 
 ext {
     PUBLISH_GROUP_ID = 'com.guardianapp.connect'
-    PUBLISH_VERSION = '0.7.2'
+    PUBLISH_VERSION = '0.7.4'
     PUBLISH_ARTIFACT_ID = 'GuardianConnect'
 }
 apply from: 'publish-remote.gradle'
