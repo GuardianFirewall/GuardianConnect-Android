@@ -147,7 +147,7 @@ object GRDVPNHelper {
 			return
 		}
 
-        GRDConnectManager.getSharedPrefsEditor() .putString(Constants.kGRDPreferredRegionPrecision, precision)?.apply()
+        GRDConnectManager.getSharedPrefsEditor().putString(Constants.kGRDPreferredRegionPrecision, precision)?.apply()
     }
 
     fun setAppExceptions(apps: ArrayList<String>?) {
