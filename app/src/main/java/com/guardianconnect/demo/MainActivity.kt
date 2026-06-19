@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity() {
                 // To ensure that the user is actually going to be connected createAndStartTunnel
                 // needs to be called again
                 lifecycleScope.launch {
-                    GRDVPNHelper.createAndStartTunnel()
+                    GRDVPNHelper.connectVPNTunnel()
                     withContext(Dispatchers.Main) {
                         progressBar.visibility = View.GONE
                     }
@@ -91,14 +91,14 @@ class MainActivity : AppCompatActivity() {
         btnStartTunnel.setOnClickListener {
             progressBar.visibility = View.VISIBLE
             lifecycleScope.launch {
-                GRDVPNHelper.createAndStartTunnel()
+                GRDVPNHelper.connectVPNTunnel()
             }
             btnResetConfiguration.isClickable = true
         }
 
         btnStopTunnel.setOnClickListener {
             lifecycleScope.launch {
-                GRDVPNHelper.stopTunnel()
+                GRDVPNHelper.disconnectVPNTunnel()
             }
             btnStartTunnel.visibility = View.VISIBLE
             btnStopTunnel.visibility = View.GONE
@@ -112,7 +112,7 @@ class MainActivity : AppCompatActivity() {
                 btnResetConfiguration.isClickable = true
             }
             lifecycleScope.launch {
-				GRDVPNHelper.stopTunnel()
+				GRDVPNHelper.disconnectVPNTunnel()
 				GRDVPNHelper.clearVPNConfiguration()
             }
             btnResetConfiguration.isClickable = false
@@ -199,17 +199,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPostResume() {
         super.onPostResume()
-        val configString = GRDCredentialManager().getMainCredentials().let {
-			it?.let { it1 ->
-				GRDWireGuardConfiguration().getWireGuardConfigString(
-					it1,
-					GRDConnectManager.getSharedPrefs()
-						.getString(Constants.GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null),
-					GRDVPNHelper.appExceptions,
-					GRDVPNHelper.excludeLANTraffic ?: true
-				)
-			}
-		}
+		val preferredDNSServer = GRDVPNHelper.getPreferredDNSServers()
+		val appExceptionsList = GRDVPNHelper.getAppExceptions()
+		val mainCredentials = GRDCredentialManager().getMainCredentials() ?: return
+
+		val configString = GRDWireGuardConfiguration.getWireGuardConfigString(mainCredentials, preferredDNSServer, appExceptionsList, GRDVPNHelper.excludeLANTraffic ?: true)
         if (!configString.isNullOrEmpty()) etConfig.setText(configString)
     }
 
@@ -232,9 +226,9 @@ class MainActivity : AppCompatActivity() {
 				lifecycleScope.launch {
 					GRDServerManager.setPreferredRegion(grdRegion)
 					if (GRDVPNHelper.isTunnelRunning()) {
-						GRDVPNHelper.stopTunnel()
+						GRDVPNHelper.disconnectVPNTunnel()
 						GRDVPNHelper.clearVPNConfiguration()
-						GRDVPNHelper.createAndStartTunnel()
+						GRDVPNHelper.connectVPNTunnel()
 
 					} else {
 						GRDVPNHelper.clearVPNConfiguration()

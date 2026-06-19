@@ -48,9 +48,9 @@ class ConnectDevicesFragment : Fragment() {
         currentSubscriber?.allDevices(object : IOnApiResponse {
             override fun onSuccess(any: Any?) {
                 progressBar.visibility = View.GONE
-                val devices = any as ArrayList<GRDConnectDevice>
-                devices.toMutableList()
-                deviceAdapter.updateDevices(devices)
+                val devicesList = any as ArrayList<*>
+                val allDevices = devicesList.filterIsInstance<GRDConnectDevice>()
+				deviceAdapter.updateDevices(allDevices)
             }
 
             override fun onError(error: String?) {
