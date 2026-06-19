@@ -190,22 +190,6 @@ object GRDVPNHelper {
 		return GRDConnectManager.getSharedPrefs().getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null)
 	}
 
-    suspend fun startTunnel() {
-        val tunnel = GRDConnectManager.getTunnelManager().tunnelMap[tunnelName]
-        try {
-            grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTING.status)
-            tunnel?.setStateAsync(Tunnel.State.UP)
-            grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTED.status)
-
-        } catch (e: Throwable) {
-            val error = ErrorMessages[e]
-            e.message?.let {
-                grdErrorFlow.emit(GRDVPNHelperStatus.ERROR_CONNECTING.status)
-            }
-            val message = context?.getString(R.string.starting_error, error)
-            Log.e(TAG, message, e)
-        }
-    }
 	fun getPreferredMultihopExitRegion(): String {
 		val exitRegion = GRDConnectManager.getSharedPrefs().getString(GRD_CONNECT_USER_PREFERRED_EXIT_REGION, null)
 		if (exitRegion == null) {
@@ -429,7 +413,20 @@ object GRDVPNHelper {
 							GRDConnectManager.getCoroutineScope().launch {
 								if (serverStatusOK) {
 									grdStatusFlow.emit(GRDVPNHelperStatus.SERVER_READY.status)
-									startTunnel()
+									val tunnel = GRDConnectManager.getTunnelManager().tunnelMap[tunnelName]
+									try {
+										grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTING.status)
+										tunnel?.setStateAsync(Tunnel.State.UP)
+										grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTED.status)
+
+									} catch (e: Throwable) {
+										val wireGuardError = ErrorMessages[e]
+										e.message?.let {
+											grdErrorFlow.emit("Failed to connect VPN tunnel: $wireGuardError")
+										}
+										val message = context?.getString(R.string.starting_error, wireGuardError)
+										Log.e(TAG, message, e)
+									}
 
 								} else {
 									grdErrorFlow.emit(GRDVPNHelperStatus.SERVER_ERROR.status)
