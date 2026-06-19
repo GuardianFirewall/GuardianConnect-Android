@@ -293,7 +293,7 @@ object GRDVPNHelper {
 		serverManager.returnAllAvailableRegions(onRegionListener)
 	}
 
-    suspend fun stopTunnel() {
+    suspend fun disconnectVPNTunnel() {
         try {
             grdStatusFlow.emit(GRDVPNHelperStatus.DISCONNECTING.status)
             getActiveTunnel()?.setStateAsync(Tunnel.State.DOWN)
@@ -329,7 +329,7 @@ object GRDVPNHelper {
 	 */
 	fun getIntentVpnPermissions(context: Context): Intent? = GoBackend.VpnService.prepare(context)
 
-	suspend fun createAndStartTunnel() {
+	suspend fun connectVPNTunnel() {
 		// Check if the user had already granted the permission to set the VPN profile
 		val intent = GoBackend.VpnService.prepare(context)
 		when {
