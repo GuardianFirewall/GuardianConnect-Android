@@ -8,7 +8,6 @@ import com.guardianconnect.GRDWireGuardConfiguration
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
 import com.guardianconnect.helpers.GRDVPNHelper
-import com.guardianconnect.helpers.GRDVPNHelper.appExceptions
 import com.guardianconnect.helpers.GRDVPNHelper.excludeLANTraffic
 import com.guardianconnect.helpers.GRDVPNHelper.grdErrorFlow
 import com.guardianconnect.model.api.*
@@ -129,16 +128,7 @@ class GRDCredentialManager {
 		}
 	}
 
-
 	fun createStandaloneSGWCredential(subscriberCredential: String, grdSgwServer: GRDSGWServer, iOnApiResponse: IOnApiResponse, validForDays: Long) {
-		val newVPNDevice = NewVPNDevice()
-		newVPNDevice.transportProtocol = GRD_WIREGUARD
-		newVPNDevice.subscriberCredential = subscriberCredential
-		val keyPair = KeyPair()
-		val keyPairGenerated = KeyPair(keyPair.privateKey)
-		val publicKey = keyPairGenerated.publicKey.toBase64()
-		newVPNDevice.publicKey = publicKey
-
 		val api = Repository()
 		grdSgwServer.hostname?.let {
 			api.initSGWServer(it)
@@ -148,40 +138,34 @@ class GRDCredentialManager {
 			return
 		}
 
-		api.createNewVPNDevice(newVPNDevice,
-			object : IOnApiResponse {
-				override fun onSuccess(any: Any?) {
-					val newVPNDeviceResponse = any as NewVPNDeviceResponse
-					val grdCredential = GRDCredential()
-					grdCredential.initGRDCredential(
-						GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD,
-						validForDays,
-						false,
-						newVPNDeviceResponse,
-						grdSgwServer,
-						keyPairGenerated
-					)
-					GRDCredentialManager().addOrUpdateCredential(grdCredential)
-					val grdWireGuardConfiguration = GRDWireGuardConfiguration()
-					val configString =
-						grdWireGuardConfiguration.getWireGuardConfigString(
-							grdCredential,
-							GRDConnectManager.getSharedPrefs()
-								?.getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null),
-							appExceptions,
-							excludeLANTraffic ?: true
-						)
-					iOnApiResponse.onSuccess(configString)
-				}
+		val keyPair = KeyPair()
+		val keyPairGenerated = KeyPair(keyPair.privateKey)
 
-				override fun onError(error: String?) {
-					iOnApiResponse.onError(error)
-					error?.let {
-						GRDConnectManager.getCoroutineScope().launch {
-							grdErrorFlow.emit(it)
-						}
+		val requestData = mutableMapOf<String, Any>()
+		requestData["transport-protocol"] = GRD_WIREGUARD
+		requestData["subscriber-credential"] = subscriberCredential
+		requestData["public-key"] = keyPairGenerated.publicKey.toBase64()
+
+		api.createNewVPNDevice(requestData, object : IOnApiResponse {
+			override fun onSuccess(any: Any?) {
+				val credentialMap: Map<String, Any> = Gson().fromJson(any as String, object : TypeToken<MutableMap<String, Any>>() {}.type)
+				val grdCredential = GRDCredential.initGRDCredential(GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD, validForDays, false, credentialMap, grdSgwServer, keyPairGenerated)
+				GRDCredentialManager().addOrUpdateCredential(grdCredential)
+
+				val preferredDNSServer = GRDVPNHelper.getPreferredDNSServers()
+				val appExceptionsList = GRDVPNHelper.getAppExceptions()
+				val wireGuardConfig = GRDWireGuardConfiguration.getWireGuardConfigString(grdCredential, preferredDNSServer, appExceptionsList, excludeLANTraffic ?: true)
+				iOnApiResponse.onSuccess(wireGuardConfig)
+			}
+
+			override fun onError(error: String?) {
+				iOnApiResponse.onError(error)
+				error?.let {
+					GRDConnectManager.getCoroutineScope().launch {
+						grdErrorFlow.emit(it)
 					}
 				}
-			})
+			}
+		})
 	}
 }
