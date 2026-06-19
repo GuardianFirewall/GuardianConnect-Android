@@ -6,6 +6,7 @@ import android.content.Intent
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.guardianconnect.GRDClientRule
 import com.guardianconnect.GRDCredential
 import com.guardianconnect.GRDPEToken
 import com.guardianconnect.GRDRegion
@@ -25,7 +26,9 @@ import com.guardianconnect.model.TimeZoneNotification
 import com.guardianconnect.model.TunnelModel
 import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants
+import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_CLIENT_RULES_DATA
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_USER_PREFERRED_DNS_SERVERS
+import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_USER_PREFERRED_EXIT_REGION
 import com.guardianconnect.util.Constants.Companion.GRD_SUBSCRIBER_CREDENTIAL
 import com.guardianconnect.util.Constants.Companion.GRD_WIREGUARD
 import com.guardianconnect.util.Constants.Companion.kGRDLastKnownAutomaticRegion
@@ -208,6 +211,101 @@ object GRDVPNHelper {
             Log.e(TAG, message, e)
         }
     }
+	fun getPreferredMultihopExitRegion(): String {
+		val exitRegion = GRDConnectManager.getSharedPrefs().getString(GRD_CONNECT_USER_PREFERRED_EXIT_REGION, null)
+		if (exitRegion == null) {
+			return "disabled"
+		}
+		return exitRegion
+	}
+
+	fun setPreferredMultihopExitRegion(exitRegion: String) {
+		GRDConnectManager.getSharedPrefsEditor().putString(GRD_CONNECT_USER_PREFERRED_EXIT_REGION, exitRegion)?.apply()
+	}
+
+	fun getAllClientRules(): List<GRDClientRule> {
+		var allClientRules = mutableListOf<GRDClientRule>()
+		val rulesJSON = GRDConnectManager.getSharedPrefs().getString(GRD_CONNECT_CLIENT_RULES_DATA, null)
+		var rulesRaw = listOf<Map<String,Any>>()
+		rulesRaw = Gson().fromJson(rulesJSON, object : TypeToken<Map<String, Any>>() {}.type)
+
+		for (encodedRule: Map<String,Any> in rulesRaw) {
+			val rule = GRDClientRule.initFromMap(encodedRule)
+			allClientRules.add(rule)
+		}
+
+		return allClientRules.toList()
+	}
+
+	fun indexOfClientRuleInAllClientRules(clientRule: GRDClientRule, allClientRules: List<GRDClientRule>): Int {
+		var index = 0
+		for (rule: GRDClientRule in allClientRules) {
+			if (rule.equals(clientRule)) {
+				return index
+			}
+
+			index++
+		}
+
+		return -1
+	}
+
+	fun addClientRule(clientRule: GRDClientRule) {
+		var mutableClientRules = getAllClientRules().toMutableList()
+		if (mutableClientRules.count() < 1) {
+			mutableClientRules = mutableListOf<GRDClientRule>()
+		}
+
+		val index = indexOfClientRuleInAllClientRules(clientRule, mutableClientRules)
+		if (index != -1) {
+			mutableClientRules[index] = clientRule
+
+		} else {
+			mutableClientRules.add(clientRule)
+		}
+
+		storeClientRules(mutableClientRules)
+	}
+
+	fun removeClientRule(clientRule: GRDClientRule) {
+		val mutableClientRules = getAllClientRules().toMutableList()
+		if (mutableClientRules.count() < 1) {
+			return
+		}
+
+		val index = indexOfClientRuleInAllClientRules(clientRule, mutableClientRules)
+		if (index != -1) {
+			return
+		}
+
+		mutableClientRules.removeAt(index)
+		storeClientRules(mutableClientRules)
+	}
+
+	// TODO: this probably needs to emit an exception (?)
+	fun storeClientRules(clientRules: List<GRDClientRule>) {
+		val encodedClientRules = mutableListOf<Map<String,Any>>()
+		for (rule: GRDClientRule in clientRules) {
+			val encodedRule = rule.encodeToMap()
+			encodedClientRules.add(encodedRule)
+		}
+		val encoded = Gson().toJson(encodedClientRules)
+		GRDConnectManager.getSharedPrefsEditor().putString(GRD_CONNECT_CLIENT_RULES_DATA, encoded)?.apply()
+	}
+
+	fun apiPortableClientRules(clientRules: List<GRDClientRule>): List<Map<String, Any>> {
+		val portable = mutableListOf<Map<String, Any>>()
+		for (rule: GRDClientRule in clientRules) {
+			val encodedRule = rule.encodeToMap().toMutableMap()
+			encodedRule.remove("match-port")
+			encodedRule.remove("rule-id")
+			encodedRule.remove("multihop-exit-region")
+			portable.add(encodedRule)
+		}
+
+		return portable
+	}
+
 
     suspend fun stopTunnel() {
         try {
