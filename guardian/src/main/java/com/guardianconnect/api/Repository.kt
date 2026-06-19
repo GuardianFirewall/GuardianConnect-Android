@@ -57,7 +57,6 @@ class Repository {
         if (hostname.isNotEmpty()) {
             val baseUrl = "https://$hostname"
             val gson = GsonBuilder()
-                .setLenient()
                 .create()
             val retrofit: Retrofit = Retrofit.Builder()
                 .baseUrl(baseUrl)
@@ -70,7 +69,6 @@ class Repository {
 
     fun initConnectAPIServer() {
         val gsonConnect = GsonBuilder()
-            .setLenient()
             .create()
         val retrofitConnect: Retrofit = Retrofit.Builder()
             .baseUrl("https://${Constants.kGRDConnectAPIHostname}")
@@ -82,7 +80,6 @@ class Repository {
 
     fun initConnectSubscriberServer(baseURLConnect: String) {
         val gsonConnect = GsonBuilder()
-            .setLenient()
             .create()
         val retrofitConnect: Retrofit = Retrofit.Builder()
             .baseUrl("https://$baseURLConnect")
