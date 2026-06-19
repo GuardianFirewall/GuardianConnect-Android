@@ -71,8 +71,6 @@ object GRDVPNHelper {
         GRDVPNHelper.context = context
         preferBetaCapableServers = false
         vpnServerFeatureEnvironment = GRDServerFeatureEnvironment.ServerFeatureEnvironmentProduction
-        appExceptions = getArrayListOfAppExceptions()
-
         excludeLANTraffic = GRDConnectManager.getSharedPrefs().getBoolean(Constants.kGRDExcludeLANTraffic, true)
 
         val savedPrecision = GRDConnectManager.getSharedPrefs().getString(Constants.kGRDPreferredRegionPrecision, null)
@@ -152,28 +150,24 @@ object GRDVPNHelper {
         GRDConnectManager.getSharedPrefsEditor() .putString(Constants.kGRDPreferredRegionPrecision, precision)?.apply()
     }
 
-    fun setAppExceptionPackages(apps: ArrayList<String>?) {
-        appExceptions = if (apps == null) {
+    fun setAppExceptions(apps: ArrayList<String>?) {
+        if (apps == null) {
             GRDConnectManager.getSharedPrefsEditor().remove(Constants.kGRDAppExceptionsPackageNames)?.apply()
-            ArrayList()
 
         } else {
-			val gson = Gson()
-			val jsonString = gson.toJson(apps)
+			val jsonString = Gson().toJson(apps)
 			GRDConnectManager.getSharedPrefsEditor().putString(Constants.kGRDAppExceptionsPackageNames, jsonString)?.apply()
-            apps
         }
     }
 
-    private fun getArrayListOfAppExceptions(): ArrayList<String> {
-        val jsonString = GRDConnectManager.getSharedPrefs()
-            .getString(Constants.kGRDAppExceptionsPackageNames, null)
+    fun getAppExceptions(): ArrayList<String> {
+        val jsonString = GRDConnectManager.getSharedPrefs().getString(Constants.kGRDAppExceptionsPackageNames, null)
         val type = object : TypeToken<ArrayList<String>>() {}.type
         val gson = Gson()
         return gson.fromJson(jsonString, type) ?: ArrayList()
     }
 
-    fun excludeLANTraffic(shouldExclude: Boolean) {
+    fun setExcludeLANTraffic(shouldExclude: Boolean) {
         excludeLANTraffic = shouldExclude
         val localExcludeLANTraffic = excludeLANTraffic as Boolean
         GRDConnectManager.getSharedPrefsEditor().putBoolean(Constants.kGRDExcludeLANTraffic, localExcludeLANTraffic)?.apply()
