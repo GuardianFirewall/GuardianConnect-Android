@@ -17,7 +17,7 @@ interface IApiCalls {
 
 	@POST("/api/v1.4/device-credentials")
 	fun createNewVPNDevice(
-		@Body requestData: @JvmSuppressWildcards MutableMap<String, Any>
+		@Body requestData: String
 	): Call<ResponseBody>
 
 	@GET("/api/v1.4/device/{device-id}/verify-credentials")
@@ -47,7 +47,7 @@ interface IApiCalls {
 	@POST("/api/v1.4/device/{device-id}/config/filters")
 	fun setDeviceFilterConfig(
 		@Path("device-id") deviceId: String,
-		@Body requestData: JsonObject
+		@Body requestData: String
 	): Call<ResponseBody>
 
 	@GET("/api/v1.4/device/{device-id}/config/rules")
@@ -59,7 +59,7 @@ interface IApiCalls {
 	@POST("/api/v1.4/device/{device-id}/config/rules")
 	fun setClientRules(
 		@Path("device-id") deviceId: String,
-		@Body requestData: @JvmSuppressWildcards MutableMap<String, Any>
+		@Body requestData: String
 	): Call<ResponseBody>
 
 	@GET("/api/v1.4/device/{device-id}/config/multihop")
@@ -71,7 +71,7 @@ interface IApiCalls {
 	@POST("/api/v1.4/device/{device-id}/config/multihop")
 	fun settMultihopExitRegion(
 		@Path("device-id") deviceId: String,
-		@Body requestData: @JvmSuppressWildcards MutableMap<String, Any>
+		@Body requestData: String
 	): Call<ResponseBody>
 
 
