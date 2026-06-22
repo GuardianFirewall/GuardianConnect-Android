@@ -348,7 +348,6 @@ object GRDVPNHelper {
 								}
 								if (configString.isNotEmpty()) {
 									GRDConnectManager.getCoroutineScope().launch {
-										configStringFlow.emit(configString)
 										connectTunnel(configString)
 										grdMsgFlow.emit("Create tunnel with existing credentials successful!")
 									}
@@ -486,7 +485,6 @@ object GRDVPNHelper {
 											val configString = GRDWireGuardConfiguration.getWireGuardConfigString(grdCredential, preferredDNSServer, appExceptionsList, excludeLANTraffic ?: true)
 
 											GRDConnectManager.getCoroutineScope().launch {
-												configStringFlow.emit(configString)
 												connectTunnel(configString)
 											}
 											iOnApiResponse.onSuccess(configString)
@@ -558,7 +556,6 @@ object GRDVPNHelper {
 									val configString = GRDWireGuardConfiguration.getWireGuardConfigString(grdCredential, preferredDNSServer, appExceptionsList, excludeLANTraffic ?: true)
 
 									GRDConnectManager.getCoroutineScope().launch {
-										configStringFlow.emit(configString)
 										connectTunnel(configString)
 									}
 									iOnApiResponse.onSuccess(configString)
@@ -821,7 +818,6 @@ object GRDVPNHelper {
         SERVER_ERROR,
     }
 
-    val configStringFlow        = MutableSharedFlow<String>()
     val grdMsgFlow              = MutableSharedFlow<String>()
     val grdErrorFlow            = MutableSharedFlow<String>()
     val grdVPNPermissionFlow    = MutableSharedFlow<Intent>()

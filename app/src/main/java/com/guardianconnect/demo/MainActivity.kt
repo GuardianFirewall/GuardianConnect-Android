@@ -150,14 +150,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun collectFlowStates() {
         GRDConnectManager.getCoroutineScope().launch {
-            GRDVPNHelper.configStringFlow.collect { configString ->
-                withContext(Dispatchers.Main) {
-                    etConfig.setText(configString)
-                }
-            }
-        }
-
-        GRDConnectManager.getCoroutineScope().launch {
             GRDVPNHelper.grdStatusFlow.collect {
                 Log.d("MainActivity", it.toString())
                 when (it) {
