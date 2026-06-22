@@ -145,33 +145,38 @@ class Repository {
 		})
 	}
 
-    fun createNewVPNDevice(requestData: MutableMap<String, Any>, iOnApiResponse: IOnApiResponse) {
+    fun createNewVPNDevice(transportProtocol: String, subscriberCredential: String, transportOptions: Map<String, Any>?, deviceFilterConfig: Map<String, Any>?, clientRules: List<GRDClientRule>?, multihopExitRegion: String?, iOnApiResponse: IOnApiResponse) {
+		val requestMap = mutableMapOf<String, Any>()
+		requestMap["transport-protocol"] = transportProtocol
+		requestMap["subscriber-credential"] = subscriberCredential
+
+		if (transportOptions != null) {
+			requestMap.putAll(transportOptions)
+		}
+
+		if (deviceFilterConfig != null) {
+			requestMap["device-filter-config"] = deviceFilterConfig
+		}
+
+		if (clientRules != null) {
+			requestMap["client-rule"] = clientRules
+		}
+
+		if (!multihopExitRegion.isNullOrEmpty()) {
+			requestMap["multihop-exit-region"] = multihopExitRegion
+		}
+		val requestData = Gson().toJson(requestMap)
+
         val call: Call<ResponseBody>? = apiCalls?.createNewVPNDevice(requestData)
         call?.enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody?>) {
                 if (response.isSuccessful) {
-                    iOnApiResponse.onSuccess(response.body()?.string())
-                    Log.d(TAG, "New VPN device created.")
+					iOnApiResponse.onSuccess(response.body()?.string())
+					return
+				}
 
-                } else {
-                    val errorBody = response.errorBody()?.string()
-                    if (errorBody != null) {
-                        try {
-                            val jObjError = JSONObject(errorBody)
-                            Log.d(TAG, jObjError.toString())
-                            iOnApiResponse.onError(jObjError.toString())
-
-                        } catch (e: JSONException) {
-                            // Handle the case when the error response is not in JSON format
-                            Log.e(TAG, "Error response is not in JSON format: $e")
-                            iOnApiResponse.onError("Error response is not in JSON format")
-                        }
-
-                    } else {
-                        Log.e(TAG, "Error response body is null")
-                        iOnApiResponse.onError("Error response body is null")
-                    }
-                }
+				val apiErr = GRDApiError.apiErrorFromResponseBody(response)
+				iOnApiResponse.onError(apiErr.toString())
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {

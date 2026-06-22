@@ -3,6 +3,7 @@ package com.guardianconnect.managers
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.guardianconnect.GRDCredential
+import com.guardianconnect.GRDDeviceFilterConfigBlocklist
 import com.guardianconnect.GRDTransportProtocol
 import com.guardianconnect.GRDWireGuardConfiguration
 import com.guardianconnect.api.IOnApiResponse
@@ -11,7 +12,6 @@ import com.guardianconnect.helpers.GRDVPNHelper
 import com.guardianconnect.helpers.GRDVPNHelper.excludeLANTraffic
 import com.guardianconnect.helpers.GRDVPNHelper.grdErrorFlow
 import com.guardianconnect.model.api.*
-import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_USER_PREFERRED_DNS_SERVERS
 import com.guardianconnect.util.Constants.Companion.GRD_CREDENTIAL_LIST
 import com.guardianconnect.util.Constants.Companion.GRD_WIREGUARD
 import com.guardianconnect.util.GRDKeystore
@@ -140,13 +140,20 @@ class GRDCredentialManager {
 
 		val keyPair = KeyPair()
 		val keyPairGenerated = KeyPair(keyPair.privateKey)
+		//
+		// Note from CJ 2026-06-22
+		// This is a little nonsensical though
+		// it allows for rapid adoption of a new
+		// transport protocol in the future
+		val transportOptions = mapOf<String, Any>(
+			"public-key" to keyPairGenerated.publicKey.toBase64()
+		)
 
-		val requestData = mutableMapOf<String, Any>()
-		requestData["transport-protocol"] = GRD_WIREGUARD
-		requestData["subscriber-credential"] = subscriberCredential
-		requestData["public-key"] = keyPairGenerated.publicKey.toBase64()
+		val deviceFilterConfig = GRDDeviceFilterConfigBlocklist().currentBlocklistConfig()?.apiPortableBlocklist()
+		val clientRules = GRDVPNHelper.getAllClientRules()
+		val multihopExitRegion = GRDVPNHelper.getPreferredMultihopExitRegion()
 
-		api.createNewVPNDevice(requestData, object : IOnApiResponse {
+		Repository.instance.createNewVPNDevice(GRD_WIREGUARD, subscriberCredential, transportOptions, deviceFilterConfig, clientRules, multihopExitRegion, object : IOnApiResponse {
 			override fun onSuccess(any: Any?) {
 				val credentialMap: Map<String, Any> = Gson().fromJson(any as String, object : TypeToken<MutableMap<String, Any>>() {}.type)
 				val grdCredential = GRDCredential.initGRDCredential(GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD, validForDays, false, credentialMap, grdSgwServer, keyPairGenerated)
