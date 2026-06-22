@@ -177,11 +177,6 @@ class MainActivity : AppCompatActivity() {
                 permissionActivityResultLauncher.launch(it)
             }
         }
-        GRDConnectManager.getCoroutineScope().launch {
-            GRDVPNHelper.grdMsgFlow.collect {
-                Log.d("MainActivity", it)
-            }
-        }
     }
 
     private fun initGRDVPNHelper() {

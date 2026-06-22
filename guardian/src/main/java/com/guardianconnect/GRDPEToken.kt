@@ -92,9 +92,6 @@ class GRDPEToken {
         Repository.instance.signOutUser(signOutUserRequest,
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
-                    GRDConnectManager.getCoroutineScope().launch {
-                        GRDVPNHelper.grdMsgFlow.emit(any.toString())
-                    }
                 }
 
                 override fun onError(error: String?) {

@@ -349,7 +349,6 @@ object GRDVPNHelper {
 								if (configString.isNotEmpty()) {
 									GRDConnectManager.getCoroutineScope().launch {
 										connectTunnel(configString)
-										grdMsgFlow.emit("Create tunnel with existing credentials successful!")
 									}
 								}
 							}
@@ -372,9 +371,6 @@ object GRDVPNHelper {
 							override fun onSuccess(any: Any?) {
 								val configString = any as String
 								Log.d(TAG, configString)
-								GRDConnectManager.getCoroutineScope().launch {
-									grdMsgFlow.emit("Create tunnel first time successful!")
-								}
 							}
 
 							override fun onError(error: String?) {
@@ -818,8 +814,7 @@ object GRDVPNHelper {
         SERVER_ERROR,
     }
 
-    val grdMsgFlow              = MutableSharedFlow<String>()
-    val grdErrorFlow            = MutableSharedFlow<String>()
+	val grdStatusFlow           = MutableSharedFlow<GRDVPNHelperStatus>()
+	val grdErrorFlow            = MutableSharedFlow<String>()
     val grdVPNPermissionFlow    = MutableSharedFlow<Intent>()
-    val grdStatusFlow           = MutableSharedFlow<GRDVPNHelperStatus>()
 }
