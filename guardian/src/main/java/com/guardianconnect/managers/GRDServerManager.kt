@@ -10,7 +10,6 @@ import com.google.gson.reflect.TypeToken
 import com.guardianconnect.GRDRegion
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
-import com.guardianconnect.enumeration.GRDServerFeatureEnvironment
 import com.guardianconnect.model.api.GRDSGWServer
 import com.guardianconnect.model.api.TimeZonesResponse
 import com.guardianconnect.util.Constants
@@ -24,6 +23,13 @@ import java.util.TimeZone
 /* This class provides higher level helper functions to quickly get the list of VPN servers and
     pick one
 */
+
+enum class GRDServerFeatureEnvironment {
+	ServerFeatureEnvironmentProduction,
+	ServerFeatureEnvironmentInternal,
+	ServerFeatureEnvironmentDevelopment,
+	ServerFeatureEnvironmentUnstable
+}
 
 class GRDServerManager {
 	var regionPrecision: String? = null
@@ -306,8 +312,6 @@ class GRDServerManager {
     }
 
     interface OnRegionListener {
-
         fun onRegionsAvailable(listOfGRDRegions: List<GRDRegion>)
     }
-
 }
