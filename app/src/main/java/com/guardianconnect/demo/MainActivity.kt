@@ -26,11 +26,15 @@ import com.guardianconnect.managers.GRDConnectManager
 import com.guardianconnect.managers.GRDCredentialManager
 import com.guardianconnect.managers.GRDServerManager
 import com.guardianconnect.util.Constants
+import com.guardianconnect.util.Constants.Companion.kGRDConnectAPIHostname
 import com.guardianconnect.util.applicationScope
 import com.wireguard.android.backend.Tunnel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+
 
 class MainActivity : AppCompatActivity() {
     private var myReceiver: MyBroadcastReceiver? = null
@@ -132,8 +136,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val storedPET = GRDPEToken.instance.retrievePEToken()
-        etPeToken.setText(storedPET)
+        val storedPET = GRDPEToken.currentPEToken()
+        etPeToken.setText(storedPET?.token)
 
         btnDNSProxy.setOnClickListener {
             startActivity(Intent(this, GRDDNSActivity::class.java))
@@ -268,7 +272,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun savePeToken(peToken: String) {
-        GRDPEToken.instance.storePEToken(peToken)
+		val samplePETData = mapOf<String, Any>(
+			"pe-token" to peToken,
+			"pet-expires" to LocalDateTime.now().plusDays(60).atZone(ZoneOffset.UTC).toEpochSecond()
+
+		)
+		val pet = GRDPEToken.newPETFromMap(samplePETData, kGRDConnectAPIHostname)
+		pet?.store()
     }
 
     override fun onDestroy() {

@@ -201,12 +201,12 @@ class GRDConnectSubscriber {
     }
 
     fun validateConnectSubscriber(iOnApiResponse: IOnApiResponse) {
-        val pet = GRDPEToken.instance.retrievePEToken()
+        val pet = GRDPEToken.currentPEToken()
 
         val requestBody: MutableMap<String, Any> = mutableMapOf()
         requestBody[kGRDConnectSubscriberIdentifierKey] = identifier as String
         requestBody[kGRDConnectSubscriberSecretKey] = secret as String
-        requestBody[peTokenKey] = pet as String
+        requestBody[peTokenKey] = pet?.token.toString()
 
         Repository.instance.validateGRDConnectSubscriber(requestBody, object : IOnApiResponse {
 			override fun onSuccess(any: Any?) {
@@ -223,11 +223,11 @@ class GRDConnectSubscriber {
     }
 
     fun logoutConnectSubscriber(iOnApiResponse: IOnApiResponse) {
-        val pet = GRDPEToken.instance.retrievePEToken()
+        val pet = GRDPEToken.currentPEToken()
         val publishableKey = GRDVPNHelper.connectPublishableKey
-        if (pet != null && publishableKey.isNotEmpty()) {
+        if (!pet?.token.isNullOrEmpty() && publishableKey.isNotEmpty()) {
             val logoutConnectSubscriberRequest: MutableMap<String, Any> = mutableMapOf()
-            logoutConnectSubscriberRequest[peTokenKey] = pet
+            logoutConnectSubscriberRequest[peTokenKey] = pet.token.toString()
             logoutConnectSubscriberRequest[connectPublishableKey] = publishableKey
             Repository.instance.logoutConnectSubscriber(
                 logoutConnectSubscriberRequest,
@@ -246,8 +246,8 @@ class GRDConnectSubscriber {
     }
 
     fun connectDeviceReference(iOnApiResponse: IOnApiResponse) {
-        val pet = GRDPEToken.instance.retrievePEToken()
-        if (pet.isNullOrEmpty()) {
+        val pet = GRDPEToken.currentPEToken()
+        if (pet?.token.isNullOrEmpty()) {
             iOnApiResponse.onError("PE-Token missing")
             return
         }

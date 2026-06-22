@@ -21,8 +21,6 @@ class GRDPEToken {
     var expirationDateUnix: Long? = null
 
     companion object {
-        val instance = GRDPEToken()
-
         fun currentPEToken(): GRDPEToken? {
             val petFromKeystore = GRDKeystore.instance.retrieveFromKeyStore(GRD_PE_TOKEN)
             if (petFromKeystore == null) {
@@ -103,14 +101,6 @@ class GRDPEToken {
                 }
             }
         )
-    }
-
-    fun storePEToken(peToken: String) {
-        GRDKeystore.instance.saveToKeyStore(GRD_PE_TOKEN, peToken)
-    }
-
-    fun retrievePEToken(): String? {
-        return GRDKeystore.instance.retrieveFromKeyStore(GRD_PE_TOKEN)
     }
 
     fun store() {
