@@ -30,7 +30,7 @@ class GRDSubscriberCredential {
     }
 
     fun parseAndDecodeJWTFormat(jwtString: String): GRDSubscriberCredential {
-        val parts: List<String> = jwtString.split(".")
+		val parts: List<String> = jwtString.split(".")
 		if (parts.count() < 1) {
 			GRDLogger.e("GRDSubscriberCredential", "Trying to process invalid Subscriber Credential (JWT): $jwtString")
 			return GRDSubscriberCredential()
@@ -98,7 +98,7 @@ class GRDSubscriberCredential {
         }
         
         // Remove the Subscriber Credential JWT encoded string out of the shared preferences
-        fun remove() {
+        fun removeCurrent() {
             GRDConnectManager.getSharedPrefsEditor().remove(GRD_SUBSCRIBER_CREDENTIAL).apply()
         }
 
