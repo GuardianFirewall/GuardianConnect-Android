@@ -257,11 +257,7 @@ class Repository {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
                     response.body()?.string().let {
-                        val objectList = ArrayList(
-                            Gson().fromJson(it, Array<AlertsResponse>::class.java).asList()
-                        )
-                        iOnApiResponse.onSuccess(objectList)
-                        Log.d(TAG, "Alerts downloaded successfully!")
+                        iOnApiResponse.onSuccess(it)
                     }
 
                 } else {
