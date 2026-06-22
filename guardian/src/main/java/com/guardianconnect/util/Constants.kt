@@ -1,7 +1,8 @@
 package com.guardianconnect.util
 
-class Constants {
+import com.google.gson.reflect.TypeToken
 
+class Constants {
     companion object {
         const val GRD_TRANSPORT_PROTOCOL = "TRANSPORT_PROTOCOL"
         const val GRD_WIREGUARD = "wireguard"
@@ -44,5 +45,8 @@ class Constants {
         const val kGRDLastKnownAutomaticRegion = "kGRDLastKnownAutomaticRegion"
         const val kGRDSubscriberCredentialValidationMethod = "kGRDSubscriberCredentialValidationMethod"
         const val kGRDDemoAppPublishableKey = "kGRDDemoAppPublishableKey"
+
+		val APITYPETOKENMAP = object : TypeToken<MutableMap<String, Any>>() {}.type
+		val APITYPETOKENARRAY = object : TypeToken<MutableList<Any>>() {}.type
     }
 }
