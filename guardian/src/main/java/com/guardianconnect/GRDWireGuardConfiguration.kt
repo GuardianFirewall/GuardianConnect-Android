@@ -58,7 +58,6 @@ class GRDWireGuardConfiguration {
 			}
 
 			val configString = configStringBuilder.toString()
-//			Log.d(tag, "Formatted WireGuard config: \n$configString")
 			return configString
 		}
 	}
@@ -66,7 +65,6 @@ class GRDWireGuardConfiguration {
     // Create a WireGuard configuration object from a set of function parameters.
     fun getWireGuardConfigObject(grdCredential: GRDCredential, dnsServersParam: String?): Config? {
         var dnsServers = dnsServersParam
-
         if (dnsServers.isNullOrEmpty()) {
             dnsServers = "1.1.1.1, 1.0.0.1"
         }

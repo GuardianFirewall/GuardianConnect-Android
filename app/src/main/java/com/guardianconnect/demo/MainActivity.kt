@@ -125,9 +125,10 @@ class MainActivity : AppCompatActivity() {
         btnPeToken.setOnClickListener {
             if (!etPeToken.text.isNullOrEmpty()) {
                 savePeToken(etPeToken.text.toString())
+
             } else {
                 progressBar.visibility = View.GONE
-                Log.d("MainActivity", GRDVPNHelper.GRDVPNHelperStatus.MISSING_PET.status)
+                Log.d("MainActivity", "PE-Token missing")
             }
         }
 
@@ -158,16 +159,17 @@ class MainActivity : AppCompatActivity() {
 
         GRDConnectManager.getCoroutineScope().launch {
             GRDVPNHelper.grdStatusFlow.collect {
-                Log.d("MainActivity", it)
+                Log.d("MainActivity", it.toString())
                 when (it) {
-                    GRDVPNHelper.GRDVPNHelperStatus.CONNECTED.status -> {
+                    GRDVPNHelper.GRDVPNHelperStatus.CONNECTED -> {
                         withContext(Dispatchers.Main) {
                             progressBar.visibility = View.GONE
                             btnStartTunnel.visibility = View.GONE
                             btnStopTunnel.visibility = View.VISIBLE
                         }
                     }
-                }
+					else -> {}
+				}
             }
         }
         GRDConnectManager.getCoroutineScope().launch {
@@ -244,7 +246,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadRegionsList() {
 		val serverManager = GRDServerManager()
-		serverManager.let { setGRDRegionPrecisionDefault(it) }
+		setGRDRegionPrecisionDefault(serverManager)
 		serverManager.returnAllAvailableRegions(object :
             GRDServerManager.OnRegionListener {
             override fun onRegionsAvailable(listOfGRDRegions: List<GRDRegion>) {
