@@ -1,8 +1,13 @@
 package com.guardianconnect
 
+import com.google.gson.Gson
+import com.guardianconnect.api.Repository
+import com.guardianconnect.api.IOnApiResponse
+import com.guardianconnect.managers.GRDConnectManager
 import com.guardianconnect.model.api.GRDSGWServer
 import com.guardianconnect.util.Constants.Companion.GRD_MAIN
 import com.guardianconnect.util.Constants.Companion.GRD_WIREGUARD_PRETTY
+import com.guardianconnect.util.Constants.Companion.APITYPETOKENARRAY
 import com.wireguard.crypto.KeyPair
 import java.util.*
 
@@ -16,7 +21,6 @@ class GRDCredential {
 	var server:					GRDSGWServer? = null
 	var hostname: 				String? = null
 	var hostnameDisplayValue: 	String? = null
-	var region: 				GRDRegion? = null
 	var clientId: 				String? = null
 	var apiAuthToken: 			String? = null
 
@@ -28,7 +32,6 @@ class GRDCredential {
     var IPv6Address: 			String? = null
 
 	companion object {
-		// TODO: populate region object
 		fun initGRDCredential(transportProtocolType: GRDTransportProtocol.GRDTransportProtocolType, validForDays: Long, mainCreds: Boolean, credentialData: Map<String, Any>, grdServer: GRDSGWServer, keyPair: KeyPair): GRDCredential {
 			val credential = GRDCredential()
 			credential.name = GRD_WIREGUARD_PRETTY + " " + credential.truncatedHost(grdServer)
@@ -58,8 +61,57 @@ class GRDCredential {
 		}
 	}
 
+	fun canSendSGWAPIRequests(): Boolean {
+		if (this.hostname.isNullOrEmpty()) {
+			return false
+
+		} else if (this.clientId.isNullOrEmpty()) {
+			return false
+
+		} else if (this.apiAuthToken.isNullOrEmpty()) {
+			return false
+		}
+
+		return true
+	}
+
+	fun downloadAlerts(iOnApiResponse: IOnApiResponse) {
+		if (!canSendSGWAPIRequests()) {
+			iOnApiResponse.onError("SGW credential can't send SGW API requests")
+			return
+		}
+
+		val requestData = mutableMapOf<String, Any>()
+		requestData["api-auth-token"] = this.apiAuthToken.toString()
+
+		if (this.mainCredential == true) {
+			// Note from CJ 2026-05-21
+			// Last download timestamps are being automatically stored server side now
+			// remove the storing of the timestamp below and don't send it in the API
+			// request anymore
+			val timestamp = GRDConnectManager.getSharedPrefs().getLong("GRD_ALERTS_DOWNLOAD_TIMESTAMP", 0)
+			requestData["timestamp"] = timestamp
+		}
+
+		Repository.instance.downloadAlerts(this.clientId.toString(), requestData, object: IOnApiResponse {
+			override fun onSuccess(any: Any?) {
+				val responseData: ArrayList<Map<String, Any>> = Gson().fromJson((any as String), APITYPETOKENARRAY)
+				val alerts = mutableListOf<GRDAlert>()
+				for (alertData: Map<String, Any> in responseData) {
+					val newAlert = GRDAlert.alertFromMap(alertData)
+					alerts.add(newAlert)
+				}
+
+				iOnApiResponse.onSuccess(alerts.toList())
+			}
+
+			override fun onError(error: String?) {
+				iOnApiResponse.onError(error)
+			}
+		})
+	}
+
     /* A function to return a truncated version of the complete hostname to show in the user interface */
-	// TODO: this needs to live in the GRDSGWServer class!
     fun truncatedHost(server: GRDSGWServer): String? {
         return server.hostname?.split(".")?.get(0)
     }
