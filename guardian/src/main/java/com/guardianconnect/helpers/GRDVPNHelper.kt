@@ -96,17 +96,18 @@ object GRDVPNHelper {
 		GRDConnectManager.getCoroutineScope().launch {
 			grdStatusFlow.collect {
 				when (it) {
-					GRDVPNHelperStatus.CONNECTED.status -> {
-						handleOkHttpClient(GRDVPNHelperStatus.CONNECTED.status)
+					GRDVPNHelperStatus.CONNECTED -> {
+						handleOkHttpClient()
 					}
 
-					GRDVPNHelperStatus.DISCONNECTED.status -> {
-						handleOkHttpClient(GRDVPNHelperStatus.DISCONNECTED.status)
+					GRDVPNHelperStatus.DISCONNECTED -> {
+						handleOkHttpClient()
 					}
 
-					GRDVPNHelperStatus.ERROR_CONNECTING.status -> {
-						handleOkHttpClient(GRDVPNHelperStatus.ERROR_CONNECTING.status)
+					GRDVPNHelperStatus.ERROR_CONNECTING -> {
+						handleOkHttpClient()
 					}
+					else -> {}
 				}
 			}
 		}
@@ -289,9 +290,9 @@ object GRDVPNHelper {
 
     suspend fun disconnectVPNTunnel() {
         try {
-            grdStatusFlow.emit(GRDVPNHelperStatus.DISCONNECTING.status)
+            grdStatusFlow.emit(GRDVPNHelperStatus.DISCONNECTING)
             getActiveTunnel()?.setStateAsync(Tunnel.State.DOWN)
-            grdStatusFlow.emit(GRDVPNHelperStatus.DISCONNECTED.status)
+            grdStatusFlow.emit(GRDVPNHelperStatus.DISCONNECTED)
 
         } catch (t: Throwable) {
             grdErrorFlow.emit("Error stopping tunnel! " + t.stackTraceToString())
@@ -399,31 +400,31 @@ object GRDVPNHelper {
 			val config: Config = Config.parse(reader)
 			if (tunnelName.isNotEmpty()) {
 				GRDConnectManager.getTunnelManager().create(tunnelName, config)
-				Log.d(TAG, "Creating tunnel...")
+				GRDLogger.d(TAG, "Creating tunnel...")
 				if (GRDConnectManager.getBackend() is GoBackend) {
 					Repository.instance.getServerStatus(object : IOnApiResponse {
 						override fun onSuccess(any: Any?) {
 							val serverStatusOK = any as Boolean
 							GRDConnectManager.getCoroutineScope().launch {
 								if (serverStatusOK) {
-									grdStatusFlow.emit(GRDVPNHelperStatus.SERVER_READY.status)
+									grdStatusFlow.emit(GRDVPNHelperStatus.SERVER_READY)
 									val tunnel = GRDConnectManager.getTunnelManager().tunnelMap[tunnelName]
 									try {
-										grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTING.status)
+										grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTING)
 										tunnel?.setStateAsync(Tunnel.State.UP)
-										grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTED.status)
+										grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTED)
 
 									} catch (e: Throwable) {
 										val wireGuardError = ErrorMessages[e]
 										e.message?.let {
-											grdErrorFlow.emit("Failed to connect VPN tunnel: $wireGuardError")
+											grdErrorFlow.emit("Failed to connect WireGuard VPN tunnel: $wireGuardError")
 										}
 										val message = context?.getString(R.string.starting_error, wireGuardError)
 										Log.e(TAG, message, e)
 									}
 
 								} else {
-									grdErrorFlow.emit(GRDVPNHelperStatus.SERVER_ERROR.status)
+									grdStatusFlow.emit(GRDVPNHelperStatus.SERVER_ERROR)
 								}
 							}
 						}
@@ -642,11 +643,8 @@ object GRDVPNHelper {
 
 			if (validationMethod == GRDSubscriberCredentialValidationMethod.PEToken) {
 				requestBody["validation-method"] = "pe-token"
-				if (currentPEToken != null) {
-					currentPEToken.token?.let { requestBody["pe-token"] = it }
-
-				} else {
-					grdErrorFlow.emit(GRDVPNHelperStatus.MISSING_PET.status)
+				if (currentPEToken == null) {
+					grdErrorFlow.emit("Subscriber Credential validation method set to PE-Token but no PE-Token is available on device")
 					iOnApiResponse.onError("Subscriber Credential validation method set to PE-Token but no PE-Token is available on device")
 					return
 				}
@@ -727,7 +725,7 @@ object GRDVPNHelper {
                     Repository.instance.invalidateVPNCredentials(mainCredentials.clientId.toString(), requestBody, object : IOnApiResponse {
                         override fun onSuccess(any: Any?) {
                             GRDConnectManager.getCoroutineScope().launch {
-                                grdStatusFlow.emit(GRDVPNHelperStatus.VPN_CREDENTIALS_INVALIDATED.status)
+                                grdStatusFlow.emit(GRDVPNHelperStatus.VPN_CREDENTIALS_INVALIDATED)
                             }
                         }
 
@@ -823,19 +821,17 @@ object GRDVPNHelper {
         GRDConnectManager.getSharedPrefsEditor().clear().apply()
     }
 
-    enum class GRDVPNHelperStatus(val status: String) {
-        UNKNOWN("VPN status: unknown."),
-        MISSING_PET("PEToken is missing!"),
-        ERROR_CONNECTING("Connecting error has occurred!"),
-        DISCONNECTED("VPN status: disconnected!"),
-        DISCONNECTING("VPN status: disconnecting..."),
-        CONNECTING("VPN status: connecting..."),
-        CONNECTED("VPN status: connected!"),
-        MIGRATING("VPN status: migrating..."),
-        VPN_CREDENTIALS_INVALIDATED("VPN status: credentials invalidated!"),
-        SERVER_READY("Server status OK."),
-        SERVER_ERROR("Server error!"),
-        TUNNEL_CONNECTED("Connection Successful!")
+    enum class GRDVPNHelperStatus() {
+        UNKNOWN,
+        MISSING_PET,
+        ERROR_CONNECTING,
+        DISCONNECTED,
+        DISCONNECTING,
+        CONNECTING,
+        CONNECTED,
+        VPN_CREDENTIALS_INVALIDATED,
+        SERVER_READY,
+        SERVER_ERROR,
     }
 
     fun allRegions(onRegionListener: GRDServerManager.OnRegionListener) {
@@ -851,4 +847,5 @@ object GRDVPNHelper {
     val grdErrorFlow            = MutableSharedFlow<String>()
     val grdVPNPermissionFlow    = MutableSharedFlow<Intent>()
     val grdStatusFlow           = MutableSharedFlow<String>()
+    val grdStatusFlow           = MutableSharedFlow<GRDVPNHelperStatus>()
 }
