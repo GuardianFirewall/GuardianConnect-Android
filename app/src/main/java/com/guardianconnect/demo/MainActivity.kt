@@ -295,8 +295,7 @@ class MainActivity : AppCompatActivity() {
 
             applicationScope.launch {
                 val manager = GRDConnectManager.getTunnelManager()
-                if (intent == null) return@launch
-                val action = intent.action ?: return@launch
+				val action = intent.action ?: return@launch
                 if ("com.guardianconnect.action.GRD_REFRESH_TUNNEL_STATES" == action) {
                     manager.refreshTunnelStates()
                     return@launch
