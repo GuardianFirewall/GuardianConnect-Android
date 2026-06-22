@@ -821,14 +821,6 @@ object GRDVPNHelper {
         SERVER_ERROR,
     }
 
-    fun allRegions(onRegionListener: GRDServerManager.OnRegionListener) {
-		val serverManager = GRDServerManager()
-		serverManager.preferBetaCapableServers = preferBetaCapableServers
-		serverManager.vpnServerFeatureEnvironment = vpnServerFeatureEnvironment
-		serverManager.regionPrecision = regionPrecision
-		serverManager.returnAllAvailableRegions(onRegionListener)
-    }
-
     val configStringFlow        = MutableSharedFlow<String>()
     val grdMsgFlow              = MutableSharedFlow<String>()
     val grdErrorFlow            = MutableSharedFlow<String>()
