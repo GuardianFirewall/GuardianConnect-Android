@@ -52,8 +52,8 @@ class Repository {
             .build()
     }
 
-    fun initRegionServer(hostname: String) {
-        GRDLogger.d(TAG, "initRegionServer() hostname: $hostname")
+    fun initSGWServer(hostname: String) {
+        GRDLogger.d(TAG, "initSGWServer() hostname: $hostname")
         if (hostname.isNotEmpty()) {
             val baseUrl = "https://$hostname"
             val gson = GsonBuilder()
@@ -98,11 +98,15 @@ class Repository {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
                     iOnApiResponse.onSuccess(true)
-                    Log.d(TAG, "Server is online. Ready to accept connections.")
+
                 } else if (response.code() == 500) {
                     Log.d(TAG, "Server error! Need to use different server")
+					iOnApiResponse.onError("Selected server not operational")
+
                 } else if (response.code() == 404) {
                     Log.d(TAG, "Endpoint not found on this server!")
+					iOnApiResponse.onError("Selected server not operational")
+
                 } else {
                     Log.d(TAG, "Unknown error!")
                     iOnApiResponse.onError("Unknown error!")
@@ -115,6 +119,34 @@ class Repository {
             }
         })
     }
+
+	fun getServerStatusForDeviceId(deviceId: String, iOnApiResponse: IOnApiResponse) {
+		val call: Call<ResponseBody>? = apiCalls?.getServerStatusForDeviceId(deviceId)
+		call?.enqueue(object : Callback<ResponseBody> {
+			override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+				if (response.isSuccessful) {
+					iOnApiResponse.onSuccess(true)
+
+				} else if (response.code() == 500) {
+					Log.d(TAG, "Server error! Need to use different server")
+					iOnApiResponse.onError("Selected server not operational")
+
+				} else if (response.code() == 404) {
+					Log.d(TAG, "Endpoint not found on this server!")
+					iOnApiResponse.onError("Selected server not operational")
+
+				} else {
+					Log.d(TAG, "Unknown error!")
+					iOnApiResponse.onError("Unknown error!")
+				}
+			}
+
+			override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+				iOnApiResponse.onError(t.message)
+				Log.d(TAG, API_ERROR + " getServerStatus() " + t.message)
+			}
+		})
+	}
 
     fun createNewVPNDevice(newVPNDevice: NewVPNDevice, iOnApiResponse: IOnApiResponse) {
         val call: Call<NewVPNDeviceResponse>? = apiCalls?.createNewVPNDevice(newVPNDevice)
@@ -263,43 +295,6 @@ class Repository {
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 iOnApiResponse.onError(t.message)
                 Log.d(TAG, API_ERROR + " downloadAlerts() " + t.message)
-            }
-        })
-    }
-
-    fun setAlertsDownloadTimestamp(
-        deviceId: String,
-        requestData: MutableMap<String, Any>,
-        iOnApiResponse: IOnApiResponse
-    ) {
-        val call: Call<ResponseBody>? = apiCalls?.setAlertsDownloadTimestamp(deviceId, requestData)
-        call?.enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                if (response.isSuccessful) {
-                    iOnApiResponse.onSuccess(response)
-                    Log.d(TAG, "Alerts download timestamp set successfully!")
-                } else {
-                    val errorBody = response.errorBody()?.string()
-                    if (errorBody != null) {
-                        try {
-                            val jObjError = JSONObject(errorBody)
-                            Log.d(TAG, jObjError.toString())
-                            iOnApiResponse.onError(jObjError.toString())
-                        } catch (e: JSONException) {
-                            // Handle the case when the error response is not in JSON format
-                            Log.e(TAG, "Error response is not in JSON format")
-                            iOnApiResponse.onError("Error response is not in JSON format")
-                        }
-                    } else {
-                        Log.e(TAG, "Error response body is null")
-                        iOnApiResponse.onError("Error response body is null")
-                    }
-                }
-            }
-
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                iOnApiResponse.onError(t.message)
-                Log.d(TAG, API_ERROR + " setAlertsDownloadTimestamp() " + t.message)
             }
         })
     }

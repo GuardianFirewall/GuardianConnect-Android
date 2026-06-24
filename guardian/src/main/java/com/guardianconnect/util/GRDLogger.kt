@@ -2,6 +2,7 @@ package com.guardianconnect.util
 
 import java.util.Date
 import android.util.Log
+import com.guardianconnect.BuildConfig
 import java.text.SimpleDateFormat
 import com.guardianconnect.managers.GRDConnectManager
 import com.guardianconnect.util.Constants.Companion.GRD_PERSISTENT_LOG_ENABLED
@@ -63,7 +64,9 @@ object GRDLogger {
     }
 
     fun d(tag: String, message: String) {
-        zzz_log(Log.DEBUG, tag, message, false)
+		if (BuildConfig.DEBUG) {
+			zzz_log(Log.DEBUG, tag, message, false)
+		}
     }
 
     fun w(tag: String, message: String) {

@@ -35,10 +35,8 @@ class GRDConnectSubscriber {
         const val kGRDConnectSubscriberEmailKey = "ep-grd-subscriber-email"
         const val kGuardianConnectSubscriberPETNickname = "ep-grd-subscriber-pet-nickname"
         const val kGRDConnectSubscriberSubscriptionSKUKey = "ep-grd-subscription-sku"
-        const val kGRDConnectSubscriberSubscriptionNameFormattedKey =
-            "ep-grd-subscription-name-formatted"
-        const val kGRDConnectSubscriberSubscriptionExpirationDateKey =
-            "ep-grd-subscription-expiration-date"
+        const val kGRDConnectSubscriberSubscriptionNameFormattedKey = "ep-grd-subscription-name-formatted"
+        const val kGRDConnectSubscriberSubscriptionExpirationDateKey = "ep-grd-subscription-expiration-date"
         const val kGRDConnectSubscriberCreatedAtKey = "ep-grd-subscriber-created-at"
         const val kGRDConnectSubscriberAcceptedTOSKey = "ep-grd-subscriber-accepted-tos"
         const val peTokenKey = "pe-token"
@@ -50,8 +48,7 @@ class GRDConnectSubscriber {
             newSubscriber.secret = map[kGRDConnectSubscriberSecretKey] as? String
             newSubscriber.email = map[kGRDConnectSubscriberEmailKey] as? String
             newSubscriber.subscriptionSKU = map[kGRDConnectSubscriberSubscriptionSKUKey] as? String
-            newSubscriber.subscriptionNameFormatted =
-                map[kGRDConnectSubscriberSubscriptionNameFormattedKey] as? String
+            newSubscriber.subscriptionNameFormatted = map[kGRDConnectSubscriberSubscriptionNameFormattedKey] as? String
 
             val subDateUnix = (map[kGRDConnectSubscriberSubscriptionExpirationDateKey] as? LazilyParsedNumber)?.toLong() ?: 0L
             if (subDateUnix != 0L) {

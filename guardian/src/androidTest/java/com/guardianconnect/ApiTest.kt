@@ -117,9 +117,6 @@ class ApiTest {
     private lateinit var callDownloadAlerts: Call<List<AlertsResponse>>
 
     @Mock
-    private lateinit var callSetAlertsDownloadTimeStamp: Call<ResponseBody>
-
-    @Mock
     private lateinit var callSetDeviceFilterConfig: Call<ResponseBody>
 
     @Mock
@@ -582,73 +579,6 @@ class ApiTest {
                         ).execute()
                     }
                     assertTrue(response?.body() != null)
-                }
-            }
-        }
-    }
-
-    @Test
-    fun testSetAlertsDownloadStamp() {
-        val apiService = retrofit.create(IApiCalls::class.java)
-        Mockito.`when`(callSubscriberCredential.execute()).thenReturn(
-            Response.success(
-                SubscriberCredentialResponse()
-            )
-        )
-        val request = mutableMapOf<String, Any>()
-        request["validation-method"] = "pe-token"
-        request["pe-token"] = "ZkReFZ58yttZP0rpg8DT8XObcXpGsRbl"
-        val gson = Gson()
-        val requestMap: MutableMap<String, Any> = gson.fromJson(
-            gson.toJson(request),
-            object : TypeToken<MutableMap<String, Any>>() {}.type
-        )
-        val response = apiService.getSubscriberCredential(
-            requestMap
-        ).execute()
-
-        val responseString = response.body()?.string()
-        responseString.let {
-            val subscriberCredentialResponse =
-                Gson().fromJson(
-                    it,
-                    SubscriberCredentialResponse::class.java
-                )
-            subscriberCredentialResponse.subscriberCredential?.let { scs ->
-                val apiService = retrofitRegion.create(IApiCalls::class.java)
-                Mockito.`when`(callNewVPNDevice.execute()).thenReturn(
-                    Response.success(
-                        NewVPNDeviceResponse()
-                    )
-                )
-                val newVPNDevice = NewVPNDevice()
-                newVPNDevice.transportProtocol = Constants.GRD_WIREGUARD
-                newVPNDevice.subscriberCredential = scs
-                val keyPair = KeyPair()
-                val keyPairGenerated = KeyPair(keyPair.privateKey)
-                val publicKey = keyPairGenerated.publicKey.toBase64()
-                newVPNDevice.publicKey = publicKey
-                val response = apiService.createNewVPNDevice(
-                    newVPNDevice
-                ).execute()
-
-                response.body().let { vpn ->
-                    val requestBody = mutableMapOf<String, Any>()
-                    requestBody["api-auth-token"]           = vpn?.apiAuthToken!!
-
-                    Mockito.`when`(callSetAlertsDownloadTimeStamp.execute()).thenReturn(
-                        Response.success(
-                            "Test".toResponseBody()
-                        )
-                    )
-                    
-                    val response = vpn?.clientId?.let { it1 ->
-                        apiService.setAlertsDownloadTimestamp(
-                            it1,
-                            requestBody
-                        ).execute()
-                    }
-                    assertTrue(response?.code() == 200)
                 }
             }
         }

@@ -3,174 +3,185 @@ package com.guardianconnect.managers
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.guardianconnect.GRDCredential
+import com.guardianconnect.GRDTransportProtocol
+import com.guardianconnect.GRDWireGuardConfiguration
+import com.guardianconnect.api.IOnApiResponse
+import com.guardianconnect.api.Repository
 import com.guardianconnect.helpers.GRDVPNHelper
+import com.guardianconnect.helpers.GRDVPNHelper.appExceptions
+import com.guardianconnect.helpers.GRDVPNHelper.excludeLANTraffic
+import com.guardianconnect.helpers.GRDVPNHelper.grdErrorFlow
+import com.guardianconnect.model.api.*
+import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_USER_PREFERRED_DNS_SERVERS
 import com.guardianconnect.util.Constants.Companion.GRD_CREDENTIAL_LIST
-import com.guardianconnect.util.Constants.Companion.GRD_Main_Credential_WG_Private_Key
-import com.guardianconnect.util.Constants.Companion.GRD_Main_Credential_WG_Public_Key
+import com.guardianconnect.util.Constants.Companion.GRD_WIREGUARD
 import com.guardianconnect.util.GRDKeystore
 import com.guardianconnect.util.GRDLogger
+import com.wireguard.crypto.KeyPair
 import kotlinx.coroutines.launch
 import org.json.JSONException
 import java.lang.reflect.Type
 
-/* This class manages multiple stored instances of GRDCredential. Once a device connected to the VPN
-    connection it will have one credential that is the mainCredential and could potentially have
-    generated more credentials for export to another device.
-    The credential need to be stored and retrieved from the Android Keystore. */
-
 class GRDCredentialManager {
-    val credentialsArrayList: ArrayList<GRDCredential> = ArrayList()
-    val tag = GRDCredentialManager::class.java.simpleName
+    val TAG = GRDCredentialManager::class.java.simpleName
 
-    init {
-        initListOfCredentials()
-    }
+	fun allCredentials(): List<GRDCredential>? {
+		try {
+			val jsonString = GRDKeystore.instance.retrieveFromKeyStore(GRD_CREDENTIAL_LIST)
+			if (!jsonString.isNullOrEmpty()) {
+				val type: Type = object : TypeToken<List<GRDCredential>>() {}.type
+				val credentials: List<GRDCredential> = Gson().fromJson(jsonString, type)
+				GRDLogger.d(TAG, "All credentials count: ${credentials.count()}")
+				for (cred in credentials) {
+					GRDLogger.d(TAG, "Credential: ${Gson().toJson(cred)}")
+				}
+				return credentials
+
+			} else {
+				return null
+			}
+
+		} catch (e: JSONException) {
+			GRDConnectManager.getCoroutineScope().launch {
+				GRDVPNHelper.grdErrorFlow.emit("Failed to JSON decode list of all GRDCredentials stored on device: ${e.toString()}")
+			}
+			return null
+		}
+	}
+
+	fun saveListOfCredentials(credentials: List<GRDCredential>) {
+		if (credentials.isNotEmpty()) {
+			val stringToSave = Gson().toJson(credentials)
+			GRDKeystore.instance.saveToKeyStore(GRD_CREDENTIAL_LIST, stringToSave)
+
+		} else {
+			GRDConnectManager.getSharedPrefsEditor().remove(GRD_CREDENTIAL_LIST)?.apply()
+		}
+	}
+
+	// Get main credentials
+	fun getMainCredentials(): GRDCredential? {
+		val allCredentials = allCredentials()
+		if (allCredentials.isNullOrEmpty()) {
+			return null
+		}
+
+		// Check if there are any null items in the list
+		val nonNullCredentials = allCredentials.filterNotNull()
+		if (nonNullCredentials.isEmpty()) {
+			GRDLogger.e("GRDCredentialManager", "All credentials are null.")
+			return null
+		}
+
+		return nonNullCredentials.firstOrNull { it.mainCredential == true }
+	}
 
     // Delete only the main credential
     fun deleteMainCredential() {
-        synchronized(credentialsArrayList) {
-            if (credentialsArrayList.isNotEmpty()) {
-                getMainCredentials()?.let {
-                    credentialsArrayList.remove(it)
-                    saveListOfCredentials(credentialsArrayList)
-                }
-            } else {
-                GRDConnectManager.getSharedPrefsEditor().remove(GRD_CREDENTIAL_LIST)?.apply()
-            }
-        }
+		val mainCredential = getMainCredentials()
+		if (mainCredential != null) {
+			removeCredential(mainCredential)
+		}
     }
 
-    // Remove a credential
-    fun removeCredential(grdCredential: GRDCredential) {
-        GRDLogger.d(tag, "List before removal: ${Gson().toJson(credentialsArrayList)}")
-        synchronized(credentialsArrayList) {
-            credentialsArrayList.isNotEmpty().let {
-                val grdCredentialToRemove =
-                    credentialsArrayList.find { it.hostname == grdCredential.hostname }
-                val removed =
-                    grdCredentialToRemove?.let { credentialsArrayList.remove(it) } ?: false
-                GRDLogger.d(tag, "Credential removed $removed")
-                GRDLogger.d(
-                    tag,
-                    "List after removal before save: ${Gson().toJson(credentialsArrayList)}"
-                )
-                if (removed) {
-                    saveListOfCredentials(credentialsArrayList)
-                }
-            }
-        }
-    }
+	// Find credential for a given identifier
+	fun findCredentialByIdentifier(identifier: String): GRDCredential? {
+		val allCredentials = allCredentials()
+		allCredentials?.count()?.let { count ->
+			if (count > 0) {
+				return allCredentials.find { it.identifier == identifier}
+			}
+		}
 
-    // Find credential for a given identifier
-    fun findCredentialByIdentifier(identifier: String): GRDCredential? {
-        return if (getAllCredentials().isNotEmpty())
-            getAllCredentials().first { it.identifier == identifier }
-        else
-            null
-    }
+		return null
+	}
 
     // Add a new credential or update an existing credential
     fun addOrUpdateCredential(grdCredential: GRDCredential) {
-        synchronized(credentialsArrayList) {
-            GRDLogger.d(
-                tag,
-                "List addOrUpdateCredential before add: ${Gson().toJson(credentialsArrayList)}"
-            )
-            val existingCredentialIndex =
-                credentialsArrayList.indexOfFirst { it.hostname == grdCredential.hostname }
-            if (existingCredentialIndex == -1) {
-                credentialsArrayList.add(grdCredential)
-            } else {
-                credentialsArrayList[existingCredentialIndex] = grdCredential
-            }
-            GRDLogger.d(
-                tag,
-                "List addOrUpdateCredential after add: ${Gson().toJson(credentialsArrayList)}"
-            )
-            saveListOfCredentials(credentialsArrayList)
-        }
+		var allCredentials = allCredentials()
+		if (allCredentials != null) {
+			val existing: Int = allCredentials.indexOfFirst { it.identifier == grdCredential.identifier }
+			val mutableAllCredentials = allCredentials.toMutableList()
+			if (existing != -1) {
+				mutableAllCredentials[existing] = grdCredential
+
+			} else {
+				mutableAllCredentials.add(grdCredential)
+			}
+			saveListOfCredentials(mutableAllCredentials.toList())
+
+		} else {
+			allCredentials = mutableListOf<GRDCredential>()
+			allCredentials.add(grdCredential)
+			saveListOfCredentials(allCredentials.toList())
+		}
     }
 
-    // Get main credentials
-    fun getMainCredentials(): GRDCredential? {
-        val allCredentials = getAllCredentials()
-        if (allCredentials.isNullOrEmpty()) {
-            GRDLogger.e("GRDCredentialManager", "No credentials found.")
-            return null
-        }
+	// Remove a credential
+	fun removeCredential(grdCredential: GRDCredential) {
+		val allCredentials = allCredentials()?.toMutableList()
+		if (allCredentials != null) {
+			val grdCredentialToRemove = allCredentials.find { it.identifier == grdCredential.identifier }
+			val removed = grdCredentialToRemove?.let { allCredentials.remove(it) } ?: false
+			if (removed) {
+				saveListOfCredentials(allCredentials)
+			}
+		}
+	}
 
-        // Check if there are any null items in the list
-        val nonNullCredentials = allCredentials.filterNotNull()
-        if (nonNullCredentials.isEmpty()) {
-            GRDLogger.e("GRDCredentialManager", "All credentials are null.")
-            return null
-        }
 
-        return nonNullCredentials.firstOrNull { it.mainCredential == true }
-    }
+	fun createStandaloneSGWCredential(subscriberCredential: String, grdSgwServer: GRDSGWServer, iOnApiResponse: IOnApiResponse, validForDays: Long) {
+		val newVPNDevice = NewVPNDevice()
+		newVPNDevice.transportProtocol = GRD_WIREGUARD
+		newVPNDevice.subscriberCredential = subscriberCredential
+		val keyPair = KeyPair()
+		val keyPairGenerated = KeyPair(keyPair.privateKey)
+		val publicKey = keyPairGenerated.publicKey.toBase64()
+		newVPNDevice.publicKey = publicKey
 
-    // return the currently valid Credential
-    fun retrieveCredential(): GRDCredential? {
-        initListOfCredentials()
-        return if (credentialsArrayList.isNotEmpty()) {
-            return credentialsArrayList.first()
-        } else {
-            null
-        }
-    }
+		val api = Repository()
+		grdSgwServer.hostname?.let {
+			api.initSGWServer(it)
 
-    // Retrieve all credentials
-    fun getAllCredentials(): java.util.ArrayList<GRDCredential> {
-        initListOfCredentials()
-        return ArrayList(credentialsArrayList)
-    }
+		} ?: run {
+			GRDLogger.e("GRDCredentialManager", "Can't create standalone credential! SGW hostname missing")
+			return
+		}
 
-    fun initListOfCredentials() {
-        synchronized(credentialsArrayList) {
-            credentialsArrayList.clear()
-            try {
-                val jsonString = GRDKeystore.instance.retrieveFromKeyStore(GRD_CREDENTIAL_LIST)
-                if (!jsonString.isNullOrEmpty()) {
-                    val type: Type = object : TypeToken<ArrayList<GRDCredential>>() {}.type
-                    val newArrayList: ArrayList<GRDCredential> = Gson().fromJson(jsonString, type)
-                    credentialsArrayList.clear()
-                    credentialsArrayList.addAll(newArrayList)
-                    GRDLogger.d(
-                        tag,
-                        "List initListOfCredentials: ${Gson().toJson(credentialsArrayList)}"
-                    )
+		api.createNewVPNDevice(newVPNDevice,
+			object : IOnApiResponse {
+				override fun onSuccess(any: Any?) {
+					val newVPNDeviceResponse = any as NewVPNDeviceResponse
+					val grdCredential = GRDCredential()
+					grdCredential.initGRDCredential(
+						GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD,
+						validForDays,
+						false,
+						newVPNDeviceResponse,
+						grdSgwServer,
+						keyPairGenerated
+					)
+					GRDCredentialManager().addOrUpdateCredential(grdCredential)
+					val grdWireGuardConfiguration = GRDWireGuardConfiguration()
+					val configString =
+						grdWireGuardConfiguration.getWireGuardConfigString(
+							grdCredential,
+							GRDConnectManager.getSharedPrefs()
+								?.getString(GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null),
+							appExceptions,
+							excludeLANTraffic ?: true
+						)
+					iOnApiResponse.onSuccess(configString)
+				}
 
-                } else {
-                    GRDLogger.d(tag, "List Of Credentials is empty")
-                }
-
-            } catch (e: JSONException) {
-                GRDConnectManager.getCoroutineScope().launch {
-                    GRDVPNHelper.grdErrorFlow.emit(e.stackTraceToString())
-                }
-            }
-        }
-    }
-
-    fun saveListOfCredentials(inputArrayList: ArrayList<GRDCredential>) {
-        GRDLogger.d(tag, "List before saving: ${Gson().toJson(credentialsArrayList)}")
-        if (inputArrayList.isNotEmpty()) {
-            val stringToSave = Gson().toJson(inputArrayList)
-            GRDLogger.d(tag, "List after saving: ${Gson().toJson(credentialsArrayList)}")
-            GRDKeystore.instance.saveToKeyStore(GRD_CREDENTIAL_LIST, stringToSave)
-            GRDLogger.d(tag, "List from keystore after saving: ${GRDKeystore.instance.retrieveFromKeyStore(
-                GRD_CREDENTIAL_LIST)}")
-            initListOfCredentials()
-        } else {
-            GRDConnectManager.getSharedPrefsEditor().remove(GRD_CREDENTIAL_LIST)?.apply()
-        }
-    }
-
-    fun retrieveGRDMainCredentialWGPublicKey(): String? {
-        return GRDKeystore.instance.retrieveFromKeyStore(GRD_Main_Credential_WG_Public_Key)
-    }
-
-    fun retrieveGRDMainCredentialWGPrivateKey(): String? {
-        return GRDKeystore.instance.retrieveFromKeyStore(GRD_Main_Credential_WG_Private_Key)
-    }
+				override fun onError(error: String?) {
+					iOnApiResponse.onError(error)
+					error?.let {
+						GRDConnectManager.getCoroutineScope().launch {
+							grdErrorFlow.emit(it)
+						}
+					}
+				}
+			})
+	}
 }

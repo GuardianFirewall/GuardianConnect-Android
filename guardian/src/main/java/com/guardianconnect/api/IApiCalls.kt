@@ -10,8 +10,11 @@ import retrofit2.http.*
 
 interface IApiCalls {
 
-    @GET("/vpnsrv/api/server-status")
+    @GET("/api/v1.3/server-status")
     fun getServerStatus(): Call<ResponseBody>
+
+	@GET("/api/v1.3/server-status/{device-id}")
+	fun getServerStatusForDeviceId(@Path("device-id") deviceId: String): Call<ResponseBody>
 
     @POST("/api/v1/users/sign-out")
     fun signOutUser(
@@ -39,12 +42,6 @@ interface IApiCalls {
     fun downloadAlerts(
         @Path("deviceid") deviceid: String,
         @Body alerts: Alerts
-    ): Call<ResponseBody>
-
-    @POST("/api/v1.2/device/{deviceid}/set-alerts-download-timestamp")
-    fun setAlertsDownloadTimestamp(
-        @Path("deviceid") deviceid: String,
-        @Body requestData: @JvmSuppressWildcards MutableMap<String, Any>
     ): Call<ResponseBody>
 
     @GET("/api/v1/servers/all-server-regions")
