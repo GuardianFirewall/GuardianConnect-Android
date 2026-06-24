@@ -1,17 +1,5 @@
 buildscript {
     ext {
-        appcompatVersion = '1.7.0'
-        constraintLayoutVersion = '2.1.4'
-        coreKtxVersion = '1.13.1'
-        datastoreVersion = '1.1.1'
-        junitVersion = '4.13.2'
-        materialComponentsVersion = '1.12.0'
-        preferenceVersion = '1.2.0'
-        zxingEmbeddedVersion = '4.3.0'
-        preferenceKtxVersion = '1.2.1'
-        testExtJunitVersion = '1.1.5'
-        espressoVersion = '3.5.1'
-
         groupName = 'com.wireguard.android'
     }
 }
