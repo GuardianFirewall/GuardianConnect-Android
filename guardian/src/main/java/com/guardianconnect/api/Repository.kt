@@ -97,7 +97,7 @@ class Repository {
                     iOnApiResponse.onSuccess(true)
 
                 } else if (response.code() == 500) {
-                    Log.d(TAG, "Server error! Need to use different server")
+					Log.d(TAG, "Server error! Need to use different server")
 					iOnApiResponse.onError("Selected server not operational")
 
                 } else if (response.code() == 404) {
@@ -120,8 +120,7 @@ class Repository {
 	fun getServerStatusForDeviceId(deviceId: String, iOnApiResponse: IOnApiResponse) {
 		val call: Call<ResponseBody>? = apiCalls?.getServerStatusForDeviceId(deviceId)
 		call?.enqueue(object : Callback<ResponseBody> {
-			override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-				if (response.isSuccessful) {
+			override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {				if (response.isSuccessful) {
 					iOnApiResponse.onSuccess(true)
 
 				} else if (response.code() == 500) {
@@ -266,14 +265,16 @@ class Repository {
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
-                    response.body()?.string().let {                        iOnApiResponse.onSuccess(it)
+                    response.body()?.string().let {
+                        iOnApiResponse.onSuccess(it)
                     }
 
                 } else {
                     val errorBody = response.errorBody()?.string()
                     if (errorBody != null) {
                         try {
-                            val jObjError = JSONObject(errorBody)                            Log.d(TAG, jObjError.toString())
+                            val jObjError = JSONObject(errorBody)
+                            Log.d(TAG, jObjError.toString())
                             iOnApiResponse.onError(jObjError.toString())
 
                         } catch (e: JSONException) {
@@ -310,8 +311,7 @@ class Repository {
                         )
                         iOnApiResponse.onSuccess(objectList)
                         Log.d(TAG, "Regions returned successfully!")
-                    }
-                } else {
+                    }                } else {
                     val errorBody = response.errorBody()?.string()
                     if (errorBody != null) {
                         try {
@@ -1093,10 +1093,7 @@ class Repository {
                 GRDConnectManager.getCoroutineScope().launch {
                     t.message?.let { GRDVPNHelper.grdErrorFlow.emit(it) }
                 }
-                Log.d(
-                    TAG,
-                    API_ERROR + " logoutConnectSubscriber() " + t.message
-                )
+                Log.d(TAG, API_ERROR + " logoutConnectSubscriber() " + t.message)
             }
         })
     }

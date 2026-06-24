@@ -264,7 +264,7 @@ class GRDServerManager {
                                 val anyList = any as List<*>
                                 var regionsList = anyList.filterIsInstance<GRDRegion>()
                                 list.addAll(regionsList)
-                                list.sortWith(compareBy<GRDRegion> { item ->
+								list.sortWith(compareBy<GRDRegion> { item ->
                                     if (item.namePretty == GRD_AUTOMATIC_REGION) 0 else 1
                                 }.thenBy { it.namePretty.toString() })
 

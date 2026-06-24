@@ -95,6 +95,7 @@ object GRDVPNHelper {
 
 	private fun observeStatus() {
 		GRDConnectManager.getCoroutineScope().launch {
+			// TODO: this kinda does not make any sense
 			grdStatusFlow.collect {
 				when (it) {
 					GRDVPNHelperStatus.CONNECTED -> {
@@ -206,8 +207,8 @@ object GRDVPNHelper {
 		GRDConnectManager.getSharedPrefsEditor().putString(GRD_CONNECT_USER_PREFERRED_EXIT_REGION, exitRegion)?.apply()
 	}
 
-	fun getAllClientRules(): List<GRDClientRule> {
-		var allClientRules = mutableListOf<GRDClientRule>()
+	fun getAllClientRules(): List<GRDClientRule>? {
+		val allClientRules = mutableListOf<GRDClientRule>()
 		val rulesJSON = GRDConnectManager.getSharedPrefs().getString(GRD_CONNECT_CLIENT_RULES_DATA, null)
 		var rulesRaw = listOf<Map<String,Any>>()
 		rulesRaw = Gson().fromJson(rulesJSON, object : TypeToken<Map<String, Any>>() {}.type)
@@ -234,9 +235,9 @@ object GRDVPNHelper {
 	}
 
 	fun addClientRule(clientRule: GRDClientRule) {
-		var mutableClientRules = getAllClientRules().toMutableList()
-		if (mutableClientRules.count() < 1) {
-			mutableClientRules = mutableListOf<GRDClientRule>()
+		var mutableClientRules = getAllClientRules()?.toMutableList()
+		if (mutableClientRules == null) {
+			mutableClientRules = mutableListOf()
 		}
 
 		val index = indexOfClientRuleInAllClientRules(clientRule, mutableClientRules)
@@ -251,8 +252,8 @@ object GRDVPNHelper {
 	}
 
 	fun removeClientRule(clientRule: GRDClientRule) {
-		val mutableClientRules = getAllClientRules().toMutableList()
-		if (mutableClientRules.count() < 1) {
+		val mutableClientRules = getAllClientRules()?.toMutableList()
+		if (mutableClientRules == null) {
 			return
 		}
 
@@ -265,7 +266,6 @@ object GRDVPNHelper {
 		storeClientRules(mutableClientRules)
 	}
 
-	// TODO: this probably needs to emit an exception (?)
 	fun storeClientRules(clientRules: List<GRDClientRule>) {
 		val encodedClientRules = mutableListOf<Map<String,Any>>()
 		for (rule: GRDClientRule in clientRules) {
@@ -460,7 +460,7 @@ object GRDVPNHelper {
     suspend fun configureFirstTimeUserAndConnect(iOnApiResponse: IOnApiResponse) {
         validSubscriberCredential(object : IOnApiResponse {
             override fun onSuccess(any: Any?) {
-                val subscriberCredential = any as String
+				val subscriberCredential = any as String
 
 				val serverManager = GRDServerManager()
 				serverManager.preferBetaCapableServers = preferBetaCapableServers
@@ -620,7 +620,7 @@ object GRDVPNHelper {
 	 */
 	suspend fun validSubscriberCredential(iOnApiResponse: IOnApiResponse) {
         val subscriberCredential = GRDSubscriberCredential.currentSubscriberCredential()
-        if (subscriberCredential != null && subscriberCredential.isExpired() == false) {
+        if (subscriberCredential != null && !subscriberCredential.isExpired()) {
             iOnApiResponse.onSuccess(subscriberCredential.jwt)
             
         } else {
@@ -726,11 +726,11 @@ object GRDVPNHelper {
         val mainCredentials = GRDCredentialManager().getMainCredentials()
         validSubscriberCredential(object : IOnApiResponse {
             override fun onSuccess(any: Any?) {
-                if (mainCredentials?.clientId.isNullOrEmpty() == false) {
-                    val requestBody = mutableMapOf<String, Any>()
-
-                    requestBody["subscriber-credential"]    = any as String
-                    requestBody["api-auth-token"]           = mainCredentials.apiAuthToken.toString()
+                if (!mainCredentials?.clientId.isNullOrEmpty()) {
+                    val requestBody = mutableMapOf<String, Any>(
+						"subscriber-credential" to any as String,
+						"api-auth-token" to mainCredentials.apiAuthToken.toString()
+					)
                     
                     Repository.instance.invalidateVPNCredentials(mainCredentials.clientId.toString(), requestBody, object : IOnApiResponse {
                         override fun onSuccess(any: Any?) {
@@ -797,7 +797,7 @@ object GRDVPNHelper {
 
         Repository.instance.connectPublishableKey = connectPublishableKey
         Repository.instance.initConnectAPIServer()
-        Repository.instance.initConnectSubscriberServer(connectAPIHostname)
+		Repository.instance.initConnectSubscriberServer(connectAPIHostname)
 
 		val mainCredentials = GRDCredentialManager().getMainCredentials()
 		if (mainCredentials != null) {

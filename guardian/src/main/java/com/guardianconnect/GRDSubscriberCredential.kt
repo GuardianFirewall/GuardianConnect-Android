@@ -63,7 +63,7 @@ class GRDSubscriberCredential {
 
     // Returns a boolean indicating whether the JWT is expired or not
     fun isExpired(): Boolean {
-        val currentUnixTime = System.currentTimeMillis() / 1000
+		val currentUnixTime = System.currentTimeMillis() / 1000
 
 		if (subscriptionExpirationDateUnix == null || tokenExpirationDateUnix == null) {
 			return true
@@ -78,7 +78,7 @@ class GRDSubscriberCredential {
 		val subscriptionGradePeriod = subscriptionExpirationDateUnix!! - twoDaysInSeconds
 		val tokenGradePeriod		= tokenExpirationDateUnix!! - twoDaysInSeconds
 
-        if (subscriptionGradePeriod < currentUnixTime || tokenGradePeriod < currentUnixTime) {
+		if (subscriptionGradePeriod < currentUnixTime || tokenGradePeriod < currentUnixTime) {
             return true
         }
 
