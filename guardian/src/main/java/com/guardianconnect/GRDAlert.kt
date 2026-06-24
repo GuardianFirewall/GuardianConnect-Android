@@ -1,6 +1,6 @@
 package com.guardianconnect
 
-import java.util.Date
+import com.google.gson.internal.LazilyParsedNumber
 
 class GRDAlert {
 	var action: 		String? = null
@@ -8,7 +8,7 @@ class GRDAlert {
 	var host: 			String? = null
 	var identifier:		String? = null
 	var message: 		String? = null
-	var timestamp:		Date? = null
+	var timestamp:		Long? = null
 	var title: 			String? = null
 
 	companion object {
@@ -19,12 +19,8 @@ class GRDAlert {
 			newAlert.host = map["host"] as String
 			newAlert.identifier = map["uuid"] as String
 			newAlert.message = map["message"] as String
+			newAlert.timestamp = (map["timestamp"] as? LazilyParsedNumber)?.toLong() ?: 0L
 			newAlert.title = map["title"] as String
-
-			val timestampUnix = map["timestamp"] as Long
-			if (timestampUnix != 0L) {
-				newAlert.timestamp = Date(timestampUnix * 1000)
-			}
 
 			return newAlert
 		}
