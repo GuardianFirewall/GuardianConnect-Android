@@ -489,8 +489,9 @@ object GRDVPNHelper {
 
 							Repository.instance.createNewVPNDevice(GRD_WIREGUARD, subscriberCredential, transportOptions, deviceFilterConfig, clientRules, multihopExitRegion, object : IOnApiResponse {
 								override fun onSuccess(any: Any?) {
-									val credentialMap: Map<String, Any> = Gson().fromJson(any as String, object : TypeToken<MutableMap<String, Any>>() {}.type)
-									val grdCredential = GRDCredential.initGRDCredential(GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD, validForDays, true, credentialMap, grdSgwServer, keyPairGenerated)
+									@Suppress("UNCHECKED_CAST")
+									val responseData = any as Map<String, Any>
+									val grdCredential = GRDCredential.initGRDCredential(GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD, validForDays, true, responseData, grdSgwServer, keyPairGenerated)
 									GRDCredentialManager().addOrUpdateCredential(grdCredential)
 
 									Repository.instance.getServerStatus(object : IOnApiResponse {
@@ -567,8 +568,9 @@ object GRDVPNHelper {
 
 				Repository.instance.createNewVPNDevice(GRD_WIREGUARD, subscriberCredential, transportOptions, deviceFilterConfig, clientRules, multihopExitRegion, object : IOnApiResponse {
 					override fun onSuccess(any: Any?) {
-						val credentialMap: Map<String, Any> = Gson().fromJson(any as String, object : TypeToken<MutableMap<String, Any>>() {}.type)
-						val grdCredential = GRDCredential.initGRDCredential(GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD, validForDays, true, credentialMap, server, keyPairGenerated)
+						@Suppress("UNCHECKED_CAST")
+						val responseData = any as Map<String, Any>
+						val grdCredential = GRDCredential.initGRDCredential(GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD, validForDays, true, responseData, server, keyPairGenerated)
 						GRDCredentialManager().addOrUpdateCredential(grdCredential)
 
 						Repository.instance.getServerStatus(object : IOnApiResponse {
