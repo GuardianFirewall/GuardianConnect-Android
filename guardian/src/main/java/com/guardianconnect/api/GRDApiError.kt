@@ -6,7 +6,7 @@ import com.guardianconnect.util.GRDLogger
 import okhttp3.ResponseBody
 import retrofit2.Response
 
-class GRDApiError {
+class GRDAPIError {
 	var title: 		String? = ""
 	var message: 	String? = ""
 	var statusCode: Int? = -1
@@ -14,8 +14,8 @@ class GRDApiError {
 	var rawErr: Map<String, Any>? = null
 
 	companion object {
-		fun apiErrorFromResponseBody(resp: Response<ResponseBody?>): GRDApiError {
-			val apiErr = GRDApiError()
+		fun apiErrorFromResponseBody(resp: Response<ResponseBody?>): GRDAPIError {
+			val apiErr = GRDAPIError()
 			apiErr.statusCode = resp.code()
 			if (resp.body()?.string().isNullOrEmpty()) {
 				apiErr.title 	= "Failed to Parse API Error"
