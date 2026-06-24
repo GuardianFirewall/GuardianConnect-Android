@@ -128,9 +128,9 @@ class GRDCredentialManager {
 		}
 	}
 
-	fun createStandaloneSGWCredential(subscriberCredential: String, grdSgwServer: GRDSGWServer, iOnApiResponse: IOnApiResponse, validForDays: Long) {
+	fun createStandaloneSGWCredential(subscriberCredential: String, server: GRDSGWServer, validForDays: Long, iOnApiResponse: IOnApiResponse) {
 		val api = Repository()
-		grdSgwServer.hostname?.let {
+		server.hostname?.let {
 			api.initSGWServer(it)
 
 		} ?: run {
@@ -155,8 +155,9 @@ class GRDCredentialManager {
 
 		Repository.instance.createNewVPNDevice(GRD_WIREGUARD, subscriberCredential, transportOptions, deviceFilterConfig, clientRules, multihopExitRegion, object : IOnApiResponse {
 			override fun onSuccess(any: Any?) {
-				val credentialMap: Map<String, Any> = Gson().fromJson(any as String, object : TypeToken<MutableMap<String, Any>>() {}.type)
-				val grdCredential = GRDCredential.initGRDCredential(GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD, validForDays, false, credentialMap, grdSgwServer, keyPairGenerated)
+				@Suppress("UNCHECKED_CAST")
+				val responseData = any as Map<String, Any>
+				val grdCredential = GRDCredential.initGRDCredential(GRDTransportProtocol.GRDTransportProtocolType.GRD_TP_WIREGUARD, validForDays, false, responseData, server, keyPairGenerated)
 				GRDCredentialManager().addOrUpdateCredential(grdCredential)
 
 				val preferredDNSServer = GRDVPNHelper.getPreferredDNSServers()
