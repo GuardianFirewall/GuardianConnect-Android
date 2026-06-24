@@ -1,13 +1,11 @@
 package com.guardianconnect
 
-import com.google.gson.Gson
 import com.guardianconnect.api.Repository
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.managers.GRDConnectManager
 import com.guardianconnect.model.api.GRDSGWServer
 import com.guardianconnect.util.Constants.Companion.GRD_MAIN
 import com.guardianconnect.util.Constants.Companion.GRD_WIREGUARD_PRETTY
-import com.guardianconnect.util.Constants.Companion.APITYPETOKENARRAY
 import com.wireguard.crypto.KeyPair
 import java.util.*
 
@@ -95,7 +93,8 @@ class GRDCredential {
 
 		Repository.instance.downloadAlerts(this.clientId.toString(), requestData, object: IOnApiResponse {
 			override fun onSuccess(any: Any?) {
-				val responseData: ArrayList<Map<String, Any>> = Gson().fromJson((any as String), APITYPETOKENARRAY)
+				@Suppress("UNCHECKED_CAST")
+				val responseData = any as ArrayList<Map<String, Any>>
 				val alerts = mutableListOf<GRDAlert>()
 				for (alertData: Map<String, Any> in responseData) {
 					val newAlert = GRDAlert.alertFromMap(alertData)

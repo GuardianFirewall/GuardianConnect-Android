@@ -267,31 +267,15 @@ class Repository {
     fun downloadAlerts(deviceId: String, requestData: MutableMap<String, Any>, iOnApiResponse: IOnApiResponse) {
         val call: Call<ResponseBody>? = apiCalls?.downloadAlerts(deviceId, requestData)
         call?.enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody?>) {
                 if (response.isSuccessful) {
-                    response.body()?.string().let {
-                        iOnApiResponse.onSuccess(it)
-                    }
-
-                } else {
-                    val errorBody = response.errorBody()?.string()
-                    if (errorBody != null) {
-                        try {
-                            val jObjError = JSONObject(errorBody)
-                            Log.d(TAG, jObjError.toString())
-                            iOnApiResponse.onError(jObjError.toString())
-
-                        } catch (e: JSONException) {
-                            // Handle the case when the error response is not in JSON format
-                            Log.e(TAG, "Error response is not in JSON format: $e")
-                            iOnApiResponse.onError("Error response is not in JSON format")
-                        }
-
-                    } else {
-                        Log.e(TAG, "Error response body is null")
-                        iOnApiResponse.onError("Error response body is null")
-                    }
+					val responseData: ArrayList<Map<String, Any>> = gson!!.fromJson(response.body()?.string(), APITYPETOKENARRAY)
+					iOnApiResponse.onSuccess(responseData)
+					return
                 }
+
+				val apiErr = GRDAPIError.apiErrorFromResponseBody(response)
+				iOnApiResponse.onError(apiErr.toString())
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {

@@ -34,7 +34,7 @@ interface IApiCalls {
 	@POST("/api/v1.4/device/{device-id}/alerts")
 	fun downloadAlerts(
 		@Path("device-id") deviceId: String,
-		@Body requestData: @JvmSuppressWildcards MutableMap<String, Any>
+		@Body requestData: MutableMap<String, Any>
 	): Call<ResponseBody>
 
 	@GET("/api/v1.4/device/{device-id}/config/filters")
