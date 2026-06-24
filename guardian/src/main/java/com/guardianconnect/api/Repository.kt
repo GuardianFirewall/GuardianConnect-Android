@@ -11,6 +11,8 @@ import com.guardianconnect.helpers.GRDVPNHelper
 import com.guardianconnect.managers.GRDConnectManager
 import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants
+import com.guardianconnect.util.Constants.Companion.APITYPETOKENARRAY
+import com.guardianconnect.util.Constants.Companion.APITYPETOKENMAP
 import com.guardianconnect.util.Constants.Companion.API_ERROR
 import com.guardianconnect.util.Constants.Companion.kGRDErrGuardianAccountNotSetup
 import com.guardianconnect.util.GRDLogger
@@ -180,32 +182,32 @@ class Repository {
 	}
 
     fun createNewVPNDevice(transportProtocol: String, subscriberCredential: String, transportOptions: Map<String, Any>?, deviceFilterConfig: Map<String, Any>?, clientRules: List<GRDClientRule>?, multihopExitRegion: String?, iOnApiResponse: IOnApiResponse) {
-		val requestMap = mutableMapOf<String, Any>()
-		requestMap["transport-protocol"] = transportProtocol
-		requestMap["subscriber-credential"] = subscriberCredential
+		val requestData = mutableMapOf<String, Any>()
+		requestData["transport-protocol"] = transportProtocol
+		requestData["subscriber-credential"] = subscriberCredential
 
 		if (transportOptions != null) {
-			requestMap.putAll(transportOptions)
+			requestData.putAll(transportOptions)
 		}
 
 		if (deviceFilterConfig != null) {
-			requestMap["device-filter-config"] = deviceFilterConfig
+			requestData["device-filter-config"] = deviceFilterConfig
 		}
 
 		if (clientRules != null) {
-			requestMap["client-rule"] = clientRules
+			requestData["client-rule"] = clientRules
 		}
 
 		if (!multihopExitRegion.isNullOrEmpty()) {
-			requestMap["multihop-exit-region"] = multihopExitRegion
+			requestData["multihop-exit-region"] = multihopExitRegion
 		}
-		val requestData = Gson().toJson(requestMap)
 
         val call: Call<ResponseBody>? = apiCalls?.createNewVPNDevice(requestData)
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody?>) {
-                if (response.isSuccessful) {
-					iOnApiResponse.onSuccess(response.body()?.string())
+				if (response.isSuccessful) {
+					val responseData: Map<String, Any> = gson!!.fromJson(response.body()?.string(), APITYPETOKENMAP)
+					iOnApiResponse.onSuccess(responseData)
 					return
 				}
 
