@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace 'com.guardianconnect.demo'
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.guardianconnect"
         minSdkVersion 24
-        targetSdk 34
+        targetSdk 36
         versionCode 10
         versionName '1.0'
 
@@ -34,7 +34,7 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.3"
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.5"
     implementation project(":guardian")
     implementation "com.wireguard.android:tunnel:1.0.20230321"
     implementation "androidx.core:core-ktx:$coreKtxVersion"
