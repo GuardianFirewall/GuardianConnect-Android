@@ -16,7 +16,7 @@ interface IApiCalls {
 
 	@POST("/api/v1.4/device-credentials")
 	fun createNewVPNDevice(
-		@Body requestData: String
+		@Body requestData: MutableMap<String, Any>
 	): Call<ResponseBody>
 
 	@GET("/api/v1.4/device/{device-id}/verify-credentials")
@@ -46,7 +46,7 @@ interface IApiCalls {
 	@POST("/api/v1.4/device/{device-id}/config/filters")
 	fun setDeviceFilterConfig(
 		@Path("device-id") deviceId: String,
-		@Body requestData: String
+		@Body requestData: MutableMap<String, Any>
 	): Call<ResponseBody>
 
 	@GET("/api/v1.4/device/{device-id}/config/rules")

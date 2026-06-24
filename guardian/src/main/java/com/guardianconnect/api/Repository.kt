@@ -1045,39 +1045,141 @@ class Repository {
         })
     }
 
-
-    fun setDeviceFilterConfig(deviceId: String, apiAuthToken: String, iOnApiResponse: IOnApiResponse) {
-        val grdDeviceFilterConfigBlocklist = GRDDeviceFilterConfigBlocklist().currentBlocklistConfig()
-        val map = mutableMapOf<String, Any>()
-        grdDeviceFilterConfigBlocklist?.apiPortableBlocklist()?.let { map.putAll(it) }
-        map["api-auth-token"] = apiAuthToken
-        val json = Gson().toJsonTree(map).asJsonObject
-        val call: Call<ResponseBody>? = apiCalls?.setDeviceFilterConfig(deviceId, json)
-        call?.enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                if (response.isSuccessful) {
-                    iOnApiResponse.onSuccess("Device filter config blocklist settings successfully synced with the VPN gateways.")
+	fun getDeviceFilterConfig(deviceId: String, apiAuthToken: String, iOnApiResponse: IOnApiResponse) {
+		apiCalls?.getDeviceFilterConfig(deviceId, apiAuthToken)?.enqueue(object: Callback<ResponseBody> {
+			override fun onResponse(call: Call<ResponseBody?>, response: Response<ResponseBody?>) {
+				if (response.isSuccessful) {
+					val responseData: Map<String, Any> = gson!!.fromJson(response.body()?.string(), APITYPETOKENMAP)
+					iOnApiResponse.onSuccess(responseData)
+					return
+				}
 
 				val apiErr = GRDAPIError.apiErrorFromResponseBody(response)
 				iOnApiResponse.onError(apiErr.toString())
+			}
 
+			override fun onFailure(call: Call<ResponseBody?>, t: Throwable) {
+				iOnApiResponse.onError(t.message)
+			}
+		})
+	}
+
+    fun setDeviceFilterConfig(deviceId: String, apiAuthToken: String, iOnApiResponse: IOnApiResponse) {
+        val grdDeviceFilterConfigBlocklist = GRDDeviceFilterConfigBlocklist().currentBlocklistConfig()
+        val requestData = mutableMapOf<String, Any>()
+		requestData["api-auth-token"] = apiAuthToken
+        grdDeviceFilterConfigBlocklist?.apiPortableBlocklist()?.let { requestData.putAll(it) }
+
+        val call: Call<ResponseBody>? = apiCalls?.setDeviceFilterConfig(deviceId, requestData)
+        call?.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody?>) {
+                if (response.isSuccessful) {
+                    iOnApiResponse.onSuccess("Device filter config blocklist settings successfully synced with the VPN gateways.")
+					return
+                }
+
+				val apiErr = GRDAPIError.apiErrorFromResponseBody(response)
+				iOnApiResponse.onError(apiErr.toString())
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                GRDConnectManager.getCoroutineScope().launch {
-                    t.message?.let { GRDVPNHelper.grdErrorFlow.emit(it) }
-                }
-                Log.d(TAG, API_ERROR + " deleteConnectDevice() " + t.message)
+                iOnApiResponse.onError(t.message)
             }
         })
     }
+
+	fun getClientRules(deviceId: String, apiAuthToken: String, iOnApiResponse: IOnApiResponse) {
+		apiCalls?.getClientRules(deviceId, apiAuthToken)?.enqueue(object: Callback<ResponseBody> {
+			override fun onResponse(call: Call<ResponseBody?>, response: Response<ResponseBody?>) {
+				if (response.isSuccessful) {
+					val responseData: Map<String, Any> = gson!!.fromJson(response.body()?.string(), APITYPETOKENARRAY)
+					iOnApiResponse.onSuccess(responseData)
+					return
+				}
+
+				val apiErr = GRDAPIError.apiErrorFromResponseBody(response)
+				iOnApiResponse.onError(apiErr.toString())
+			}
+
+			override fun onFailure(call: Call<ResponseBody?>, t: Throwable) {
+				iOnApiResponse.onError(t.message)
+			}
+		})
+	}
+
+	fun setClientRules(clientRules: ArrayList<GRDClientRule>, deviceId: String, apiAuthToken: String, iOnApiResponse: IOnApiResponse) {
+		val encodedRules = mutableListOf<Map<String, Any>>()
+		for (rule: GRDClientRule in clientRules) {
+			val mapRule = rule.encodeToMap()
+			encodedRules.add(mapRule)
+		}
+		val requestData = Gson().toJson(encodedRules)
+		apiCalls?.setClientRules(deviceId, requestData)?.enqueue(object : Callback<ResponseBody> {
+			override fun onResponse(call: Call<ResponseBody?>, response: Response<ResponseBody?>) {
+				if (response.isSuccessful) {
+					val responseData: Map<String, Any> = gson!!.fromJson(response.body()?.string(), APITYPETOKENARRAY)
+					iOnApiResponse.onSuccess(responseData)
+					return
+				}
+
+				val apiErr = GRDAPIError.apiErrorFromResponseBody(response)
+				iOnApiResponse.onError(apiErr.toString())
+			}
+
+			override fun onFailure(call: Call<ResponseBody?>, t: Throwable) {
+				iOnApiResponse.onError(t.message)
+			}
+		})
+	}
+
+	fun getMultihopExitRegion(deviceId: String, apiAuthToken: String, iOnApiResponse: IOnApiResponse) {
+		apiCalls?.getMultihopExitRegion(deviceId,apiAuthToken)?.enqueue(object : Callback<ResponseBody> {
+			override fun onResponse(call: Call<ResponseBody?>, response: Response<ResponseBody?>) {
+				if (response.isSuccessful) {
+					val responseData: Map<String, Any> = gson!!.fromJson(response.body()?.string(), APITYPETOKENMAP)
+					iOnApiResponse.onSuccess(responseData)
+					return
+				}
+
+				val apiErr = GRDAPIError.apiErrorFromResponseBody(response)
+				iOnApiResponse.onError(apiErr.toString())
+			}
+
+			override fun onFailure(call: Call<ResponseBody?>, t: Throwable) {
+				iOnApiResponse.onError(t.message)
+			}
+		})
+	}
+
+	fun setMultihopExitRegion(multihopExitRegion: String, deviceId: String, apiAuthToken: String, iOnApiResponse: IOnApiResponse) {
+		val requestMap = mutableMapOf<String, Any>()
+		requestMap["api-auth-token"] = apiAuthToken
+		requestMap["multihop-exit-region"] = multihopExitRegion
+		val requestData = Gson().toJson(requestMap)
+		apiCalls?.settMultihopExitRegion(deviceId, requestData)?.enqueue(object : Callback<ResponseBody> {
+			override fun onResponse(call: Call<ResponseBody?>, response: Response<ResponseBody?>) {
+				if (response.isSuccessful) {
+					val responseData: Map<String, Any> = gson!!.fromJson(response.body()?.string(), APITYPETOKENMAP)
+					iOnApiResponse.onSuccess(responseData)
+					return
+				}
+
+				val apiErr = GRDAPIError.apiErrorFromResponseBody(response)
+				iOnApiResponse.onError(apiErr.toString())
+			}
+
+			override fun onFailure(call: Call<ResponseBody?>, t: Throwable) {
+				iOnApiResponse.onError(t.message)
+			}
+		})
+	}
 
     fun logoutConnectSubscriber(requestBody: MutableMap<String, Any>, iOnApiResponse: IOnApiResponse) {
         requestBody["connect-publishable-key"] = instance.connectPublishableKey.toString()
         val call: Call<ResponseBody>? = apiCallsGRDConnect?.logoutConnectSubscriber(requestBody)
         call?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody?>) {
-                if (response.isSuccessful) {
+				if (response.isSuccessful) {
                     iOnApiResponse.onSuccess("GRDConnect Subscriber logout successfully.")
 					return
                 }
