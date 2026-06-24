@@ -192,11 +192,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPostResume() {
         super.onPostResume()
-		val preferredDNSServer = GRDVPNHelper.getPreferredDNSServers()
-		val appExceptionsList = GRDVPNHelper.getAppExceptions()
 		val mainCredentials = GRDCredentialManager().getMainCredentials() ?: return
 
-		val configString = GRDWireGuardConfiguration.getWireGuardConfigString(mainCredentials, preferredDNSServer, appExceptionsList, GRDVPNHelper.excludeLANTraffic ?: true)
+		val preferredDNSServer = GRDVPNHelper.getPreferredDNSServers()
+		val appExceptionsList = GRDVPNHelper.getAppExceptions()
+		val smartProxyRoutingEnabled = GRDVPNHelper.smartProxyRoutingEnabled()
+		val configString = GRDWireGuardConfiguration.getWireGuardConfigString(mainCredentials, preferredDNSServer, smartProxyRoutingEnabled, appExceptionsList, GRDVPNHelper.excludeLANTraffic ?: true)
         if (!configString.isNullOrEmpty()) etConfig.setText(configString)
     }
 

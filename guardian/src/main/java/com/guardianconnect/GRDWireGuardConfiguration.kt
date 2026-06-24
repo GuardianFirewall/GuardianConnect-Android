@@ -3,6 +3,7 @@ package com.guardianconnect
 import android.util.Log
 import com.guardianconnect.helpers.GRDVPNHelper
 import com.guardianconnect.managers.GRDConnectManager
+import com.guardianconnect.util.GRDLogger
 import com.wireguard.config.Config
 import kotlinx.coroutines.launch
 import java.io.BufferedReader
@@ -12,20 +13,28 @@ import java.io.StringReader
 /*  A class that implements convenience functions to handle and create WireGuard configuration
     strings and objects for use at runtime or for export */
 class GRDWireGuardConfiguration {
-    private val tag = GRDWireGuardConfiguration::class.java.simpleName
+    companion object {
+		private val tag = GRDWireGuardConfiguration::class.java.simpleName
 
-	companion object {
 		// Create a WireGuard configuration string from a set of function parameters.
-		fun getWireGuardConfigString(grdCredential: GRDCredential,  dnsServersParam: String?, appExceptionList: ArrayList<String>? = arrayListOf(), excludeLANTraffic: Boolean = false): String {
-			var dnsServers = dnsServersParam
+		fun getWireGuardConfigString(credential: GRDCredential,  dnsServers: String?, smartProxyRoutingEnabled: Boolean, appExceptionList: ArrayList<String>? = arrayListOf(), excludeLANTraffic: Boolean = false): String {
+			var tunnelDNSServers = dnsServers
 
-			if (dnsServers.isNullOrEmpty()) {
-				dnsServers = "1.1.1.1, 1.0.0.1"
+			if (tunnelDNSServers.isNullOrEmpty()) {
+				tunnelDNSServers = "1.1.1.1, 1.0.0.1"
 			}
 
-			val appExceptions: String? = if (grdCredential.mainCredential == true && !appExceptionList.isNullOrEmpty()) {
+			if (credential.server?.smartRoutingEnabled == true && smartProxyRoutingEnabled) {
+				tunnelDNSServers = "10.183.10.11"
+				if (credential.server?.region?.countryIsoCode == "UK") {
+					tunnelDNSServers = "10.183.10.12"
+				}
+			}
+
+			val appExceptions: String? = if (credential.mainCredential == true && !appExceptionList.isNullOrEmpty()) {
 				if (appExceptionList.size > 1) {
 					appExceptionList.joinToString(", ")
+
 				} else {
 					appExceptionList.firstOrNull()
 				}
@@ -45,19 +54,20 @@ class GRDWireGuardConfiguration {
 
 			val configStringBuilder = StringBuilder().apply {
 				append("[Interface]")
-				append("\nPrivateKey = ${grdCredential.devicePrivateKey}")
-				append("\nAddress = ${grdCredential.IPv4Address}")
-				append("\nDNS = $dnsServers")
+				append("\nPrivateKey = ${credential.devicePrivateKey}")
+				append("\nAddress = ${credential.IPv4Address}")
+				append("\nDNS = $tunnelDNSServers")
 				appExceptions?.let {
 					append("\nExcludedApplications = $it")
 				}
 				append("\n\n[Peer]")
-				append("\nPublicKey = ${grdCredential.serverPublicKey}")
+				append("\nPublicKey = ${credential.serverPublicKey}")
 				append("\nAllowedIPs = $allowedIPs")
-				append("\nEndpoint = ${grdCredential.hostname}:51821")
+				append("\nEndpoint = ${credential.hostname}:51821")
 			}
 
 			val configString = configStringBuilder.toString()
+			GRDLogger.d(tag, "WireGuard configuration: \n$configString")
 			return configString
 		}
 	}
