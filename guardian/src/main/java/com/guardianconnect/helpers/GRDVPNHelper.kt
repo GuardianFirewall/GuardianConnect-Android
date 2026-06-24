@@ -27,6 +27,7 @@ import com.guardianconnect.model.TimeZoneNotification
 import com.guardianconnect.model.TunnelModel
 import com.guardianconnect.model.api.*
 import com.guardianconnect.util.Constants
+import com.guardianconnect.util.Constants.Companion.APITYPETOKENARRAY
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_CLIENT_RULES_DATA
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_USER_PREFERRED_DNS_SERVERS
 import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_USER_PREFERRED_EXIT_REGION
@@ -209,10 +210,8 @@ object GRDVPNHelper {
 
 	fun getAllClientRules(): List<GRDClientRule>? {
 		val allClientRules = mutableListOf<GRDClientRule>()
-		val rulesJSON = GRDConnectManager.getSharedPrefs().getString(GRD_CONNECT_CLIENT_RULES_DATA, null)
-		var rulesRaw = listOf<Map<String,Any>>()
-		rulesRaw = Gson().fromJson(rulesJSON, object : TypeToken<Map<String, Any>>() {}.type)
-
+		val rulesJSON = GRDConnectManager.getSharedPrefs().getString(GRD_CONNECT_CLIENT_RULES_DATA, null) ?: return null
+		val rulesRaw: List<Map<String, Any>> = Gson().fromJson(rulesJSON, APITYPETOKENARRAY)
 		for (encodedRule: Map<String,Any> in rulesRaw) {
 			val rule = GRDClientRule.initFromMap(encodedRule)
 			allClientRules.add(rule)
