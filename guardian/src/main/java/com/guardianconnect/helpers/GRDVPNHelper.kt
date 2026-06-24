@@ -658,6 +658,7 @@ object GRDVPNHelper {
 			if (validationMethod == GRDSubscriberCredentialValidationMethod.PEToken) {
 				requestBody["validation-method"] = "pe-token"
 				if (currentPEToken == null) {
+					grdStatusFlow.emit(GRDVPNHelperStatus.MISSING_PET)
 					grdErrorFlow.emit("Subscriber Credential validation method set to PE-Token but no PE-Token is available on device")
 					iOnApiResponse.onError("Subscriber Credential validation method set to PE-Token but no PE-Token is available on device")
 					return
@@ -741,7 +742,7 @@ object GRDVPNHelper {
 
                         override fun onError(error: String?) {
                             GRDConnectManager.getCoroutineScope().launch {
-                                grdErrorFlow.emit(Constants.VPN_CREDENTIALS_INVALIDATION_ERROR)
+                                grdErrorFlow.emit("Failed to invalidate VPN credentials: $error")
                             }
                         }
                     })
