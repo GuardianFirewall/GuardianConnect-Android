@@ -188,28 +188,11 @@ class Repository {
     fun verifyVPNCredentials(deviceId: String, apiAuthToken: String, iOnApiResponse: IOnApiResponse) {
         val call: Call<ResponseBody>? = apiCalls?.verifyVPNCredentials(deviceId, apiAuthToken)
         call?.enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody?>) {
                 if (response.isSuccessful) {
-                    iOnApiResponse.onSuccess(response)
-                    Log.d(TAG, "VPN credentials verified")
-                    
-                } else {
-                    val errorBody = response.errorBody()?.string()
-                    if (errorBody != null) {
-                        try {
-                            val jObjError = JSONObject(errorBody)
-                            Log.d(TAG, jObjError.toString())
-                            iOnApiResponse.onError(jObjError.toString())
-                        } catch (e: JSONException) {
-                            // Handle the case when the error response is not in JSON format
-                            Log.e(TAG, "Error response is not in JSON format: $e")
-                            iOnApiResponse.onError("Error response is not in JSON format")
-                        }
-                        
-                    } else {
-                        Log.e(TAG, "Error response body is null")
-                        iOnApiResponse.onError("Error response body is null")
-                    }
+					val responseData: Map<String, Any> = gson!!.fromJson(response.body()?.string(), APITYPETOKENMAP)
+					iOnApiResponse.onSuccess(responseData)
+					return
                 }
 
 				val apiErr = GRDAPIError.apiErrorFromResponseBody(response)
@@ -226,28 +209,11 @@ class Repository {
     fun invalidateVPNCredentials(deviceId: String, requestData: MutableMap<String, Any>, iOnApiResponse: IOnApiResponse) {
         val call: Call<ResponseBody>? = apiCalls?.invalidateVPNCredentials(deviceId, requestData)
         call?.enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                if (response.isSuccessful) {
-                    iOnApiResponse.onSuccess(response)
-                    Log.d(TAG, "VPN credentials invalidated")
-
-                } else {
-                    val errorBody = response.errorBody()?.string()
-                    if (errorBody != null) {
-                        try {
-                            val jObjError = JSONObject(errorBody)
-                            Log.d(TAG, jObjError.toString())
-                            iOnApiResponse.onError(jObjError.toString())
-                        } catch (e: JSONException) {
-                            // Handle the case when the error response is not in JSON format
-                            Log.e(TAG, "Error response is not in JSON format: $e")
-                            iOnApiResponse.onError("Error response is not in JSON format")
-                        }
-
-                    } else {
-                        Log.e(TAG, "Error response body is null")
-                        iOnApiResponse.onError("Error response body is null")
-                    }
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody?>) {
+				if (response.isSuccessful) {
+					val responseData: Map<String, Any> = gson!!.fromJson(response.body()?.string(), APITYPETOKENMAP)
+					iOnApiResponse.onSuccess(responseData)
+					return
                 }
 
 				val apiErr = GRDAPIError.apiErrorFromResponseBody(response)
@@ -258,7 +224,8 @@ class Repository {
                 iOnApiResponse.onError(t.message)
                 Log.d(TAG, API_ERROR + " invalidateVPNCredentials() " + t.message)
             }
-        })    }
+        })
+    }
 
     fun downloadAlerts(deviceId: String, requestData: MutableMap<String, Any>, iOnApiResponse: IOnApiResponse) {
         val call: Call<ResponseBody>? = apiCalls?.downloadAlerts(deviceId, requestData)
@@ -311,7 +278,8 @@ class Repository {
                         )
                         iOnApiResponse.onSuccess(objectList)
                         Log.d(TAG, "Regions returned successfully!")
-                    }                } else {
+                    }
+                } else {
                     val errorBody = response.errorBody()?.string()
                     if (errorBody != null) {
                         try {
@@ -1079,7 +1047,7 @@ class Repository {
         requestBody["connect-publishable-key"] = instance.connectPublishableKey.toString()
         val call: Call<ResponseBody>? = apiCallsGRDConnect?.logoutConnectSubscriber(requestBody)
         call?.enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody?>) {
                 if (response.isSuccessful) {
                     iOnApiResponse.onSuccess("GRDConnect Subscriber logout successfully.")
 					return
