@@ -28,12 +28,12 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 class Repository {
-
-    var httpClient: OkHttpClient? = null
-    var apiCalls: IApiCalls? = null
-    var apiCallsConnect: IApiCalls? = null
-    var apiCallsGRDConnect: IApiCalls? = null
-    var connectPublishableKey: String? = null
+    var httpClient: 			OkHttpClient? = null
+    var apiCalls: 				IApiCalls? = null
+    var apiCallsConnect: 		IApiCalls? = null
+    var apiCallsGRDConnect: 	IApiCalls? = null
+    var connectPublishableKey: 	String? = null
+	var gson: 					Gson? = null
     val TAG: String = Repository::class.java.simpleName
 
     companion object {
@@ -56,6 +56,18 @@ class Repository {
         GRDLogger.d(TAG, "initSGWServer() hostname: $hostname")
         if (hostname.isNotEmpty()) {
             val baseUrl = "https://$hostname"
+			//
+			// Note from CJ 2026-06-24
+			// These are duplicated but over time we are going to
+			// migrate everything to the one right below which
+			// leverages the LAZILY_PARSED_NUMBER policy given
+			// that parsing of JSON numbers is an absolute mess
+			// on Android due to things in Java that are ancient
+			// and will never be fixed
+			gson = GsonBuilder()
+				.setObjectToNumberStrategy(ToNumberPolicy.LAZILY_PARSED_NUMBER)
+				.create()
+
             val gson = GsonBuilder()
                 .create()
             val retrofit: Retrofit = Retrofit.Builder()
@@ -68,6 +80,17 @@ class Repository {
     }
 
     fun initConnectAPIServer() {
+		//
+		// Note from CJ 2026-06-24
+		// These are duplicated but over time we are going to
+		// migrate everything to the one right below which
+		// leverages the LAZILY_PARSED_NUMBER policy given
+		// that parsing of JSON numbers is an absolute mess
+		// on Android due to things in Java that are ancient
+		// and will never be fixed
+		gson = GsonBuilder()
+			.setObjectToNumberStrategy(ToNumberPolicy.LAZILY_PARSED_NUMBER)
+			.create()
         val gsonConnect = GsonBuilder()
             .create()
         val retrofitConnect: Retrofit = Retrofit.Builder()
@@ -79,6 +102,17 @@ class Repository {
     }
 
     fun initConnectSubscriberServer(baseURLConnect: String) {
+		//
+		// Note from CJ 2026-06-24
+		// These are duplicated but over time we are going to
+		// migrate everything to the one right below which
+		// leverages the LAZILY_PARSED_NUMBER policy given
+		// that parsing of JSON numbers is an absolute mess
+		// on Android due to things in Java that are ancient
+		// and will never be fixed
+		gson = GsonBuilder()
+			.setObjectToNumberStrategy(ToNumberPolicy.LAZILY_PARSED_NUMBER)
+			.create()
         val gsonConnect = GsonBuilder()
             .create()
         val retrofitConnect: Retrofit = Retrofit.Builder()
@@ -120,7 +154,8 @@ class Repository {
 	fun getServerStatusForDeviceId(deviceId: String, iOnApiResponse: IOnApiResponse) {
 		val call: Call<ResponseBody>? = apiCalls?.getServerStatusForDeviceId(deviceId)
 		call?.enqueue(object : Callback<ResponseBody> {
-			override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {				if (response.isSuccessful) {
+			override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+				if (response.isSuccessful) {
 					iOnApiResponse.onSuccess(true)
 
 				} else if (response.code() == 500) {
@@ -481,16 +516,8 @@ class Repository {
                                 SubscriberCredentialResponse::class.java
                             )
                         iOnApiResponse.onSuccess(subscriberCredentialResponse)
-
-                        Log.d(
-                            TAG, "Subscriber credentials PE Token returned successfully!" +
-                                    subscriberCredentialResponse.subscriberCredential?.let { it1 ->
-                                        GRDSubscriberCredential().parseAndDecodeJWTFormat(
-                                            it1
-                                        )
-                                    }
-                        )
                     }
+
                 } else {
                     val errorBody = response.errorBody()?.string()
                     if (errorBody != null) {
