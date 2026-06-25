@@ -33,10 +33,15 @@ class Constants {
         const val kGRDErrGuardianAccountNotSetup = "Guardian account setup not yet completed!"
         const val kGRDConnectAPIHostname = "connect-api.guardianapp.com"
         const val kGRDPreferredRegionPrecision = "kGRDPreferredRegionPrecision"
+
         const val kGRDRegionPrecisionDefault = "default"
         const val kGRDRegionPrecisionCity = "city"
         const val kGRDRegionPrecisionCountry = "country"
         const val kGRDRegionPrecisionCityByCountry = "city-by-country"
+        const val kGRDRegionSmartRoutingProxyNone = "none"
+        const val kGRDRegionSmartRoutingProxySome = "some"
+        const val kGRDRegionSmartRoutingProxyAll = "all"
+
         const val kGRDAppExceptionsPackageNames = "kGRDAppExceptionsPackageNames"
 		const val GRD_CONNECT_CLIENT_RULES_DATA = "GRD_CONNECT_CLIENT_RULES_DATA"
         const val kGRDExcludeLANTraffic = "kGRDExcludeLANTraffic"
