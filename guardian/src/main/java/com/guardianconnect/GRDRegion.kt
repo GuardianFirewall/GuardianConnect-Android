@@ -34,6 +34,15 @@ class GRDRegion {
     @SerializedName("country")
     var country: String? = null
 
+    @SerializedName("server-count")
+    var serverCount: Int? = null
+
+    @SerializedName("smart-routing-proxy-servers")
+    var smartRoutingProxyServers: Int? = null
+
+    @SerializedName("smart-routing-proxy-state")
+    var smartRoutingProxyState: String? = null
+
     var isAutomatic: Boolean = false
 
     var timeZoneName: String? = null
