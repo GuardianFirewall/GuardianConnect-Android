@@ -195,6 +195,12 @@ object GRDVPNHelper {
 
 	fun setSmartProxyRoutingEnabled(enabled: Boolean) {
 		GRDConnectManager.getSharedPrefsEditor().putBoolean(kGRDSmartProxyRoutingEnabled, enabled)
+		if (isTunnelRunning()) {
+			GRDConnectManager.getCoroutineScope().launch {
+				disconnectVPNTunnel()
+				connectVPNTunnel()
+			}
+		}
 	}
 
 	fun getPreferredMultihopExitRegion(): String {
