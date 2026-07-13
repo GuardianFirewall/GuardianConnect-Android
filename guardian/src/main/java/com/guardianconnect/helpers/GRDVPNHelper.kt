@@ -225,7 +225,6 @@ object GRDVPNHelper {
 	fun getAllClientRules(): List<GRDClientRule>? {
 		val allClientRules = mutableListOf<GRDClientRule>()
 		val rulesJSON = GRDConnectManager.getSharedPrefs().getString(GRD_CONNECT_CLIENT_RULES_DATA, null) ?: return null
-		val rulesRaw: List<Map<String, Any>> = Gson().fromJson(rulesJSON, APITYPETOKENARRAY)
 		val gson = GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create()
 		val rulesRaw: List<Map<String, Any>> = gson.fromJson(rulesJSON, APITYPETOKENARRAY)
 		for (encodedRule: Map<String,Any> in rulesRaw) {
