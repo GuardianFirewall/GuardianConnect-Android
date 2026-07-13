@@ -49,12 +49,7 @@ class GRDConnectSubscriber {
             if (createdAtUnix != 0L) {
                 newSubscriber.createdAt = Date(createdAtUnix * 1000)
             }
-
-            // Skip for the time being until the same function is
-            // implemented in GRDConnectDevice
-            newSubscriber.device = GRDConnectDevice.initFromMap(map)
-            newSubscriber.device?.currentDevice = true
-
+			
             return newSubscriber
         }
 
@@ -163,11 +158,15 @@ class GRDConnectSubscriber {
 				val pet = GRDPEToken.newPETFromMap(response, GRDVPNHelper.connectAPIHostname)
 				pet?.store()
 				response[kGRDConnectSubscriberSecretKey] = this@GRDConnectSubscriber.secret.toString()
-				val grdConnectSubscriber = initFromMap(response)
-				grdConnectSubscriber.secret = requestBody[kGRDConnectSubscriberSecretKey] as? String
-				grdConnectSubscriber.identifier = requestBody[kGRDConnectSubscriberIdentifierKey] as? String
-				store(grdConnectSubscriber)
-				iOnApiResponse.onSuccess(grdConnectSubscriber)
+				val newSubscriber = initFromMap(response)
+				newSubscriber.secret = requestBody[kGRDConnectSubscriberSecretKey] as? String
+				newSubscriber.identifier = requestBody[kGRDConnectSubscriberIdentifierKey] as? String
+
+				newSubscriber.device = GRDConnectDevice.initFromMap(response)
+				newSubscriber.device?.currentDevice = true
+
+				store(newSubscriber)
+				iOnApiResponse.onSuccess(newSubscriber)
 			}
 
 			override fun onError(error: String?) {
