@@ -17,7 +17,7 @@ class GRDWireGuardConfiguration {
 		private val tag = GRDWireGuardConfiguration::class.java.simpleName
 
 		// Create a WireGuard configuration string from a set of function parameters.
-		fun getWireGuardConfigString(credential: GRDCredential,  dnsServers: String?, smartProxyRoutingEnabled: Boolean, appExceptionList: ArrayList<String>? = arrayListOf(), excludeLANTraffic: Boolean = false): String {
+		fun getWireGuardConfigString(credential: GRDCredential,  dnsServers: String?, smartProxyRoutingEnabled: Boolean, appExceptionList: ArrayList<String>? = arrayListOf(), excludeLANTraffic: Boolean = false, stealthModeEnabled: Boolean): String {
 			var tunnelDNSServers = dnsServers
 
 			if (tunnelDNSServers.isNullOrEmpty()) {
@@ -63,7 +63,11 @@ class GRDWireGuardConfiguration {
 				append("\n\n[Peer]")
 				append("\nPublicKey = ${credential.serverPublicKey}")
 				append("\nAllowedIPs = $allowedIPs")
-				append("\nEndpoint = ${credential.hostname}:51821")
+				var hostname = credential.hostname
+				if (stealthModeEnabled && !credential.server?.ipv4Address.isNullOrEmpty()) {
+					hostname = credential.server?.ipv4Address
+				}
+				append("\nEndpoint = ${hostname}:51821")
 			}
 
 			val configString = configStringBuilder.toString()

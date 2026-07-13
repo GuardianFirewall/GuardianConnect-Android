@@ -46,6 +46,7 @@ class Constants {
 		const val GRD_CONNECT_CLIENT_RULES_DATA = "GRD_CONNECT_CLIENT_RULES_DATA"
         const val kGRDExcludeLANTraffic = "kGRDExcludeLANTraffic"
 		const val kGRDSmartProxyRoutingEnabled = "kGRDSmartProxyRoutingEnabled"
+        const val kGRDStealthModeEnabled = "kGRDStealthModeEnabled"
         const val SUBSCRIBER_CREDENTIAL_FAIL_PET = "SUBSCRIBER_CREDENTIAL_FAIL_PET"
         const val kGRDLastKnownAutomaticRegion = "kGRDLastKnownAutomaticRegion"
         const val kGRDSubscriberCredentialValidationMethod = "kGRDSubscriberCredentialValidationMethod"

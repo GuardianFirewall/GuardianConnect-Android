@@ -36,6 +36,7 @@ import com.guardianconnect.util.Constants.Companion.GRD_CONNECT_USER_PREFERRED_E
 import com.guardianconnect.util.Constants.Companion.GRD_WIREGUARD
 import com.guardianconnect.util.Constants.Companion.kGRDLastKnownAutomaticRegion
 import com.guardianconnect.util.Constants.Companion.kGRDSmartProxyRoutingEnabled
+import com.guardianconnect.util.Constants.Companion.kGRDStealthModeEnabled
 import com.guardianconnect.util.ErrorMessages
 import com.guardianconnect.util.GRDLogger
 import com.wireguard.android.backend.GoBackend
@@ -195,6 +196,20 @@ object GRDVPNHelper {
 
 	fun setSmartProxyRoutingEnabled(enabled: Boolean) {
 		GRDConnectManager.getSharedPrefsEditor().putBoolean(kGRDSmartProxyRoutingEnabled, enabled)
+		if (isTunnelRunning()) {
+			GRDConnectManager.getCoroutineScope().launch {
+				disconnectVPNTunnel()
+				connectVPNTunnel()
+			}
+		}
+	}
+
+	fun stealthModeEnabled(): Boolean {
+		return GRDConnectManager.getSharedPrefs().getBoolean(kGRDStealthModeEnabled, false)
+	}
+
+	fun setStealthModeEnabled(enabled: Boolean) {
+		GRDConnectManager.getSharedPrefsEditor().putBoolean(kGRDStealthModeEnabled,enabled)
 		if (isTunnelRunning()) {
 			GRDConnectManager.getCoroutineScope().launch {
 				disconnectVPNTunnel()
@@ -375,7 +390,8 @@ object GRDVPNHelper {
 									val appExceptionsList = getAppExceptions()
 									val preferredDNSServers = getPreferredDNSServers()
 									val smartRoutingProxyEnabled = smartProxyRoutingEnabled()
-									GRDWireGuardConfiguration.getWireGuardConfigString(it, preferredDNSServers, smartRoutingProxyEnabled, appExceptionsList, excludeLANTraffic ?: true)
+									val stealthModeEnabled = stealthModeEnabled()
+									GRDWireGuardConfiguration.getWireGuardConfigString(it, preferredDNSServers, smartRoutingProxyEnabled, appExceptionsList, excludeLANTraffic ?: true, stealthModeEnabled)
 								}
 								if (configString.isNotEmpty()) {
 									GRDConnectManager.getCoroutineScope().launch {
@@ -518,7 +534,8 @@ object GRDVPNHelper {
 											val preferredDNSServer = getPreferredDNSServers()
 											val appExceptionsList = getAppExceptions()
 											val smartProxyRoutingEnabled = smartProxyRoutingEnabled()
-											val configString = GRDWireGuardConfiguration.getWireGuardConfigString(grdCredential, preferredDNSServer, smartProxyRoutingEnabled, appExceptionsList, excludeLANTraffic ?: true)
+											val stealthModeEnabled = stealthModeEnabled()
+											val configString = GRDWireGuardConfiguration.getWireGuardConfigString(grdCredential, preferredDNSServer, smartProxyRoutingEnabled, appExceptionsList, excludeLANTraffic ?: true, stealthModeEnabled)
 
 											GRDConnectManager.getCoroutineScope().launch {
 												connectTunnel(configString)
@@ -597,7 +614,8 @@ object GRDVPNHelper {
 								val preferredDNSServer = getPreferredDNSServers()
 								val appExceptionsList = getAppExceptions()
 								val smartProxyRoutingEnabled = smartProxyRoutingEnabled()
-								val configString = GRDWireGuardConfiguration.getWireGuardConfigString(grdCredential, preferredDNSServer, smartProxyRoutingEnabled, appExceptionsList, excludeLANTraffic ?: true)
+								val stealthModeEnabled = stealthModeEnabled()
+								val configString = GRDWireGuardConfiguration.getWireGuardConfigString(grdCredential, preferredDNSServer, smartProxyRoutingEnabled, appExceptionsList, excludeLANTraffic ?: true, stealthModeEnabled)
 
 								GRDConnectManager.getCoroutineScope().launch {
 									connectTunnel(configString)

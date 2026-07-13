@@ -162,7 +162,7 @@ class GRDCredentialManager {
 
 				val preferredDNSServer = GRDVPNHelper.getPreferredDNSServers()
 				val appExceptionsList = GRDVPNHelper.getAppExceptions()
-				val wireGuardConfig = GRDWireGuardConfiguration.getWireGuardConfigString(grdCredential, preferredDNSServer, false, appExceptionsList, excludeLANTraffic ?: true)
+				val wireGuardConfig = GRDWireGuardConfiguration.getWireGuardConfigString(grdCredential, preferredDNSServer, false, appExceptionsList, excludeLANTraffic ?: true, false)
 				iOnApiResponse.onSuccess(wireGuardConfig)
 			}
 

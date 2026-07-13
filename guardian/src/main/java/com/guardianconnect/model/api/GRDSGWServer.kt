@@ -26,6 +26,12 @@ data class GRDSGWServer(
     @SerializedName("smart-routing-enabled")
     var smartRoutingEnabled: Boolean? = null,
 
+    @SerializedName("ipv4-address")
+    var ipv4Address: String? = null,
+
+    @SerializedName("ipv6-address")
+    var ipv6Address: String? = null,
+
     @SerializedName("region")
     var region: GRDRegion? = null
 )

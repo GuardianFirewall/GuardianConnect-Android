@@ -49,7 +49,7 @@ class GRDConnectSubscriber {
             if (createdAtUnix != 0L) {
                 newSubscriber.createdAt = Date(createdAtUnix * 1000)
             }
-			
+
             return newSubscriber
         }
 
