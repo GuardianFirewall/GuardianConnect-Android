@@ -257,7 +257,7 @@ object GRDVPNHelper {
 		}
 
 		val index = indexOfClientRuleInAllClientRules(clientRule, mutableClientRules)
-		if (index != -1) {
+		if (index == -1) {
 			return
 		}
 
