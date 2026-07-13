@@ -208,6 +208,18 @@ object GRDVPNHelper {
 
 	fun setPreferredMultihopExitRegion(exitRegion: String) {
 		GRDConnectManager.getSharedPrefsEditor().putString(GRD_CONNECT_USER_PREFERRED_EXIT_REGION, exitRegion)?.apply()
+		val mainCredentials = GRDCredentialManager().getMainCredentials()
+		if (mainCredentials?.canSendSGWAPIRequests() == true) {
+			Repository.instance.setMultihopExitRegion(exitRegion, mainCredentials.clientId.toString(), mainCredentials.apiAuthToken.toString(), object : IOnApiResponse {
+				override fun onSuccess(any: Any?) {
+					val response = any as String
+				}
+
+				override fun onError(error: String?) {
+					GRDLogger.e(TAG, "Failed to set multihop exit region: $error")
+				}
+			})
+		}
 	}
 
 	fun getAllClientRules(): List<GRDClientRule>? {
