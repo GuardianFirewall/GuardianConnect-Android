@@ -98,7 +98,6 @@ object GRDVPNHelper {
 
 	private fun observeStatus() {
 		GRDConnectManager.getCoroutineScope().launch {
-			// TODO: this kinda does not make any sense
 			grdStatusFlow.collect {
 				when (it) {
 					GRDVPNHelperStatus.CONNECTED -> {
