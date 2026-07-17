@@ -381,34 +381,45 @@ object GRDVPNHelper {
 			// Check if VPN credentials are already present in the GRDCredentialManager
 			else -> GRDCredentialManager().getMainCredentials().let {
 				if (activeConnectionPossible(it)) {
-					// If VPN credentials already exist try to start the VPN tunnel again
-					if (!it?.hostname.isNullOrEmpty()) {
-						Repository.instance.initSGWServer(it.hostname.toString())
+					val stealthModeEnabled = stealthModeEnabled()
+					val configString = it.let {
+						val appExceptionsList = getAppExceptions()
+						val preferredDNSServers = getPreferredDNSServers()
+						val smartRoutingProxyEnabled = smartProxyRoutingEnabled()
+
+						GRDWireGuardConfiguration.getWireGuardConfigString(it!!, preferredDNSServers, smartRoutingProxyEnabled, appExceptionsList, excludeLANTraffic ?: true, stealthModeEnabled)
+					}
+
+					if (stealthModeEnabled) {
+						GRDConnectManager.getCoroutineScope().launch {
+							if (configString.isNotEmpty()) {
+								connectTunnel(configString, stealthModeEnabled)
+
+							} else {
+								grdErrorFlow.emit("Failed to create a valid WireGuard configuration for the main credential")
+							}
+						}
+
+					} else {
+						Repository.instance.initSGWServer(it!!.hostname.toString())
 						Repository.instance.getServerStatusForDeviceId(it.clientId.toString(), object : IOnApiResponse {
 							override fun onSuccess(any: Any?) {
-								val configString = it.let {
-									val appExceptionsList = getAppExceptions()
-									val preferredDNSServers = getPreferredDNSServers()
-									val smartRoutingProxyEnabled = smartProxyRoutingEnabled()
-									val stealthModeEnabled = stealthModeEnabled()
-									GRDWireGuardConfiguration.getWireGuardConfigString(it, preferredDNSServers, smartRoutingProxyEnabled, appExceptionsList, excludeLANTraffic ?: true, stealthModeEnabled)
-								}
-								if (configString.isNotEmpty()) {
-									GRDConnectManager.getCoroutineScope().launch {
-										connectTunnel(configString)
+								GRDConnectManager.getCoroutineScope().launch {
+									if (configString.isNotEmpty()) {
+										connectTunnel(configString, stealthModeEnabled)
+
+									} else {
+										grdErrorFlow.emit("Failed to create a valid WireGuard configuration for the main credential")
 									}
 								}
 							}
 
 							override fun onError(error: String?) {
 								GRDConnectManager.getCoroutineScope().launch {
-									grdErrorFlow.emit("SGW credential no longer valid on the selected host: {$error}")
+									grdErrorFlow.emit("SGW credential no longer valid on '${it.hostname}': {$error}")
 								}
 							}
 						})
-
-					} else {
-						grdErrorFlow.emit("SGW credential does not contain a hostname is empty!")
 					}
 
 				} else {
@@ -434,7 +445,7 @@ object GRDVPNHelper {
 		}
 	}
 
-	suspend fun connectTunnel(configString: String) {
+	suspend fun connectTunnel(configString: String, stealthModeEnabled: Boolean) {
 		val inputString: Reader = StringReader(configString)
 		val reader = BufferedReader(inputString)
 		try {
@@ -443,39 +454,57 @@ object GRDVPNHelper {
 				GRDConnectManager.getTunnelManager().create(tunnelName, config)
 				GRDLogger.d(TAG, "Creating tunnel...")
 				if (GRDConnectManager.getBackend() is GoBackend) {
-					Repository.instance.getServerStatus(object : IOnApiResponse {
-						override fun onSuccess(any: Any?) {
-							val serverStatusOK = any as Boolean
-							GRDConnectManager.getCoroutineScope().launch {
-								if (serverStatusOK) {
-									grdStatusFlow.emit(GRDVPNHelperStatus.SERVER_READY)
-									val tunnel = GRDConnectManager.getTunnelManager().tunnelMap[tunnelName]
-									try {
-										grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTING)
-										tunnel?.setStateAsync(Tunnel.State.UP)
-										grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTED)
+					val tunnel = GRDConnectManager.getTunnelManager().tunnelMap[tunnelName]
+					if (stealthModeEnabled) {
+						GRDLogger.i(TAG, "Stealth mode enabled, skipping server-status")
+						try {
+							grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTING)
+							tunnel?.setStateAsync(Tunnel.State.UP)
+							grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTED)
 
-									} catch (e: Throwable) {
-										val wireGuardError = ErrorMessages[e]
-										e.message?.let {
-											grdErrorFlow.emit("Failed to connect WireGuard VPN tunnel: $wireGuardError")
+						} catch (e: Throwable) {
+							val wireGuardError = ErrorMessages[e]
+							e.message?.let {
+								grdErrorFlow.emit("Failed to connect WireGuard VPN tunnel: $wireGuardError")
+							}
+							val message = context?.getString(R.string.starting_error, wireGuardError)
+							Log.e(TAG, message, e)
+						}
+
+					} else {
+						Repository.instance.getServerStatus(object : IOnApiResponse {
+							override fun onSuccess(any: Any?) {
+								val serverStatusOK = any as Boolean
+								GRDConnectManager.getCoroutineScope().launch {
+									if (serverStatusOK) {
+										grdStatusFlow.emit(GRDVPNHelperStatus.SERVER_READY)
+										try {
+											grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTING)
+											tunnel?.setStateAsync(Tunnel.State.UP)
+											grdStatusFlow.emit(GRDVPNHelperStatus.CONNECTED)
+
+										} catch (e: Throwable) {
+											val wireGuardError = ErrorMessages[e]
+											e.message?.let {
+												grdErrorFlow.emit("Failed to connect WireGuard VPN tunnel: $wireGuardError")
+											}
+											val message = context?.getString(R.string.starting_error, wireGuardError)
+											Log.e(TAG, message, e)
 										}
-										val message = context?.getString(R.string.starting_error, wireGuardError)
-										Log.e(TAG, message, e)
-									}
 
-								} else {
-									grdStatusFlow.emit(GRDVPNHelperStatus.SERVER_ERROR)
+									} else {
+										grdStatusFlow.emit(GRDVPNHelperStatus.SERVER_ERROR)
+									}
 								}
 							}
-						}
 
-						override fun onError(error: String?) {
-							GRDConnectManager.getCoroutineScope().launch {
-								error?.let { grdErrorFlow.emit("/server-status check failed with error: $it") }
+							override fun onError(error: String?) {
+								GRDConnectManager.getCoroutineScope().launch {
+									error?.let { grdErrorFlow.emit("/server-status check failed with error: $it") }
+								}
 							}
-						}
-					})
+						})
+					}
 				}
 
 			} else {
@@ -538,7 +567,7 @@ object GRDVPNHelper {
 											val configString = GRDWireGuardConfiguration.getWireGuardConfigString(grdCredential, preferredDNSServer, smartProxyRoutingEnabled, appExceptionsList, excludeLANTraffic ?: true, stealthModeEnabled)
 
 											GRDConnectManager.getCoroutineScope().launch {
-												connectTunnel(configString)
+												connectTunnel(configString, stealthModeEnabled)
 											}
 											iOnApiResponse.onSuccess(configString)
 										}
@@ -618,7 +647,7 @@ object GRDVPNHelper {
 								val configString = GRDWireGuardConfiguration.getWireGuardConfigString(grdCredential, preferredDNSServer, smartProxyRoutingEnabled, appExceptionsList, excludeLANTraffic ?: true, stealthModeEnabled)
 
 								GRDConnectManager.getCoroutineScope().launch {
-									connectTunnel(configString)
+									connectTunnel(configString, stealthModeEnabled)
 								}
 								iOnApiResponse.onSuccess(configString)
 							}
@@ -813,7 +842,7 @@ object GRDVPNHelper {
         whether all the information is present on device. */
     fun activeConnectionPossible(credential: GRDCredential?): Boolean {
 		if (credential != null) {
-			return !credential.hostname.isNullOrEmpty() && !credential.apiAuthToken.isNullOrEmpty() && !credential.devicePublicKey.isNullOrEmpty() && !credential.devicePrivateKey.isNullOrEmpty() && !credential.clientId.isNullOrEmpty()
+			return !credential.hostname.isNullOrEmpty() && !credential.apiAuthToken.isNullOrEmpty() && !credential.devicePublicKey.isNullOrEmpty() && !credential.devicePrivateKey.isNullOrEmpty() && !credential.clientId.isNullOrEmpty() && !credential.IPv4Address.isNullOrEmpty()
 		}
 
 		return false
