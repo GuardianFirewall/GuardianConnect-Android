@@ -9,7 +9,6 @@ import com.guardianconnect.util.Constants.Companion.GRD_WIREGUARD
 import com.guardianconnect.util.Constants.Companion.GRD_WIREGUARD_PRETTY
 
 class GRDTransportProtocol {
-
     private val TAG = GRDTransportProtocol::class.java.simpleName
 
     enum class GRDTransportProtocolType(val tp: String) {
@@ -48,6 +47,7 @@ class GRDTransportProtocol {
     fun transportProtocolStringFor(transportProtocol: GRDTransportProtocolType): String {
         return if (transportProtocol == GRDTransportProtocolType.GRD_TP_WIREGUARD) {
             GRD_WIREGUARD
+
         } else {
             GRD_UNKNOWN
         }
@@ -57,6 +57,7 @@ class GRDTransportProtocol {
     fun prettyTransportProtocolStringFor(transportProtocol: GRDTransportProtocolType): String {
         return if (transportProtocol == GRDTransportProtocolType.GRD_TP_WIREGUARD) {
             GRD_WIREGUARD_PRETTY
+
         } else {
             GRD_UNKNOWN_PRETTY
         }
@@ -66,6 +67,7 @@ class GRDTransportProtocol {
     fun transportProtocolFromString(protocolString: String): GRDTransportProtocolType {
         return if (protocolString == GRDTransportProtocolType.GRD_TP_WIREGUARD.name) {
             GRDTransportProtocolType.GRD_TP_WIREGUARD
+
         } else {
             GRDTransportProtocolType.GRD_TP_UNKNOWN
         }

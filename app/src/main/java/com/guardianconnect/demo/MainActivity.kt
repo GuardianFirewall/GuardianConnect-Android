@@ -26,11 +26,15 @@ import com.guardianconnect.managers.GRDConnectManager
 import com.guardianconnect.managers.GRDCredentialManager
 import com.guardianconnect.managers.GRDServerManager
 import com.guardianconnect.util.Constants
+import com.guardianconnect.util.Constants.Companion.kGRDConnectAPIHostname
 import com.guardianconnect.util.applicationScope
 import com.wireguard.android.backend.Tunnel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+
 
 class MainActivity : AppCompatActivity() {
     private var myReceiver: MyBroadcastReceiver? = null
@@ -60,7 +64,7 @@ class MainActivity : AppCompatActivity() {
                 // To ensure that the user is actually going to be connected createAndStartTunnel
                 // needs to be called again
                 lifecycleScope.launch {
-                    GRDVPNHelper.createAndStartTunnel()
+                    GRDVPNHelper.connectVPNTunnel()
                     withContext(Dispatchers.Main) {
                         progressBar.visibility = View.GONE
                     }
@@ -91,14 +95,14 @@ class MainActivity : AppCompatActivity() {
         btnStartTunnel.setOnClickListener {
             progressBar.visibility = View.VISIBLE
             lifecycleScope.launch {
-                GRDVPNHelper.createAndStartTunnel()
+                GRDVPNHelper.connectVPNTunnel()
             }
             btnResetConfiguration.isClickable = true
         }
 
         btnStopTunnel.setOnClickListener {
             lifecycleScope.launch {
-                GRDVPNHelper.stopTunnel()
+                GRDVPNHelper.disconnectVPNTunnel()
             }
             btnStartTunnel.visibility = View.VISIBLE
             btnStopTunnel.visibility = View.GONE
@@ -112,7 +116,7 @@ class MainActivity : AppCompatActivity() {
                 btnResetConfiguration.isClickable = true
             }
             lifecycleScope.launch {
-				GRDVPNHelper.stopTunnel()
+				GRDVPNHelper.disconnectVPNTunnel()
 				GRDVPNHelper.clearVPNConfiguration()
             }
             btnResetConfiguration.isClickable = false
@@ -125,14 +129,15 @@ class MainActivity : AppCompatActivity() {
         btnPeToken.setOnClickListener {
             if (!etPeToken.text.isNullOrEmpty()) {
                 savePeToken(etPeToken.text.toString())
+
             } else {
                 progressBar.visibility = View.GONE
-                Log.d("MainActivity", GRDVPNHelper.GRDVPNHelperStatus.MISSING_PET.status)
+                Log.d("MainActivity", "PE-Token missing")
             }
         }
 
-        val storedPET = GRDPEToken.instance.retrievePEToken()
-        etPeToken.setText(storedPET)
+        val storedPET = GRDPEToken.currentPEToken()
+        etPeToken.setText(storedPET?.token)
 
         btnDNSProxy.setOnClickListener {
             startActivity(Intent(this, GRDDNSActivity::class.java))
@@ -149,25 +154,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun collectFlowStates() {
         GRDConnectManager.getCoroutineScope().launch {
-            GRDVPNHelper.configStringFlow.collect { configString ->
-                withContext(Dispatchers.Main) {
-                    etConfig.setText(configString)
-                }
-            }
-        }
-
-        GRDConnectManager.getCoroutineScope().launch {
             GRDVPNHelper.grdStatusFlow.collect {
-                Log.d("MainActivity", it)
+                Log.d("MainActivity", it.toString())
                 when (it) {
-                    GRDVPNHelper.GRDVPNHelperStatus.CONNECTED.status -> {
+                    GRDVPNHelper.GRDVPNHelperStatus.CONNECTED -> {
                         withContext(Dispatchers.Main) {
                             progressBar.visibility = View.GONE
                             btnStartTunnel.visibility = View.GONE
                             btnStopTunnel.visibility = View.VISIBLE
                         }
                     }
-                }
+					else -> {}
+				}
             }
         }
         GRDConnectManager.getCoroutineScope().launch {
@@ -183,11 +181,6 @@ class MainActivity : AppCompatActivity() {
                 permissionActivityResultLauncher.launch(it)
             }
         }
-        GRDConnectManager.getCoroutineScope().launch {
-            GRDVPNHelper.grdMsgFlow.collect {
-                Log.d("MainActivity", it)
-            }
-        }
     }
 
     private fun initGRDVPNHelper() {
@@ -199,17 +192,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPostResume() {
         super.onPostResume()
-        val configString = GRDCredentialManager().getMainCredentials().let {
-			it?.let { it1 ->
-				GRDWireGuardConfiguration().getWireGuardConfigString(
-					it1,
-					GRDConnectManager.getSharedPrefs()
-						.getString(Constants.GRD_CONNECT_USER_PREFERRED_DNS_SERVERS, null),
-					GRDVPNHelper.appExceptions,
-					GRDVPNHelper.excludeLANTraffic ?: true
-				)
-			}
-		}
+		val mainCredentials = GRDCredentialManager().getMainCredentials() ?: return
+
+		val preferredDNSServer = GRDVPNHelper.getPreferredDNSServers()
+		val appExceptionsList = GRDVPNHelper.getAppExceptions()
+		val smartProxyRoutingEnabled = GRDVPNHelper.smartProxyRoutingEnabled()
+		val configString = GRDWireGuardConfiguration.getWireGuardConfigString(mainCredentials, preferredDNSServer, smartProxyRoutingEnabled, appExceptionsList, GRDVPNHelper.excludeLANTraffic ?: true)
         if (!configString.isNullOrEmpty()) etConfig.setText(configString)
     }
 
@@ -232,9 +220,9 @@ class MainActivity : AppCompatActivity() {
 				lifecycleScope.launch {
 					GRDServerManager.setPreferredRegion(grdRegion)
 					if (GRDVPNHelper.isTunnelRunning()) {
-						GRDVPNHelper.stopTunnel()
+						GRDVPNHelper.disconnectVPNTunnel()
 						GRDVPNHelper.clearVPNConfiguration()
-						GRDVPNHelper.createAndStartTunnel()
+						GRDVPNHelper.connectVPNTunnel()
 
 					} else {
 						GRDVPNHelper.clearVPNConfiguration()
@@ -250,7 +238,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadRegionsList() {
 		val serverManager = GRDServerManager()
-		serverManager.let { setGRDRegionPrecisionDefault(it) }
+		setGRDRegionPrecisionDefault(serverManager)
 		serverManager.returnAllAvailableRegions(object :
             GRDServerManager.OnRegionListener {
             override fun onRegionsAvailable(listOfGRDRegions: List<GRDRegion>) {
@@ -285,7 +273,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun savePeToken(peToken: String) {
-        GRDPEToken.instance.storePEToken(peToken)
+		val samplePETData = mapOf<String, Any>(
+			"pe-token" to peToken,
+			"pet-expires" to LocalDateTime.now().plusDays(60).atZone(ZoneOffset.UTC).toEpochSecond()
+
+		)
+		val pet = GRDPEToken.newPETFromMap(samplePETData, kGRDConnectAPIHostname)
+		pet?.store()
     }
 
     override fun onDestroy() {
@@ -299,8 +293,7 @@ class MainActivity : AppCompatActivity() {
 
             applicationScope.launch {
                 val manager = GRDConnectManager.getTunnelManager()
-                if (intent == null) return@launch
-                val action = intent.action ?: return@launch
+				val action = intent.action ?: return@launch
                 if ("com.guardianconnect.action.GRD_REFRESH_TUNNEL_STATES" == action) {
                     manager.refreshTunnelStates()
                     return@launch

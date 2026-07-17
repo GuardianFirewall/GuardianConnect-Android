@@ -1,7 +1,7 @@
 package com.guardianconnect.model.api
 
 import com.google.gson.annotations.SerializedName
-import com.guardianconnect.enumeration.GRDServerFeatureEnvironment
+import com.guardianconnect.managers.GRDServerFeatureEnvironment
 
 data class RequestServersForRegion(
 

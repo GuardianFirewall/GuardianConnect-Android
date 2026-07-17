@@ -21,8 +21,6 @@ class GRDPEToken {
     var expirationDateUnix: Long? = null
 
     companion object {
-        val instance = GRDPEToken()
-
         fun currentPEToken(): GRDPEToken? {
             val petFromKeystore = GRDKeystore.instance.retrieveFromKeyStore(GRD_PE_TOKEN)
             if (petFromKeystore == null) {
@@ -69,32 +67,25 @@ class GRDPEToken {
         }
 
         val currentDateTimestamp = System.currentTimeMillis() / 1000
-        val newExpirationDateTimestamp =
-            (expirationDateUnix ?: 0) - (7 * 24 * 60 * 60) // Subtract 7 days
+        val newExpirationDateTimestamp = (expirationDateUnix ?: 0) - (7 * 24 * 60 * 60) // Subtract 7 days
 
         return newExpirationDateTimestamp < currentDateTimestamp
     }
 
-    fun destroy() {
-        removePEToken()
-        GRDConnectManager.getSharedPrefsEditor().remove(GRD_PE_TOKEN_CONNECT_API_ENV)?.apply()
-        GRDConnectManager.getSharedPrefsEditor().remove(GRD_PE_TOKEN_EXPIRATION_DATE)?.apply()
-    }
-
-    fun removePEToken() {
+    fun remove() {
         GRDConnectManager.getSharedPrefsEditor().remove(GRD_PE_TOKEN)?.apply()
+        GRDConnectManager.getSharedPrefsEditor().remove(GRD_PE_TOKEN_EXPIRATION_DATE)?.apply()
+        GRDConnectManager.getSharedPrefsEditor().remove(GRD_PE_TOKEN_CONNECT_API_ENV)?.apply()
     }
 
     fun invalidate() {
+        val currentPET = currentPEToken()
         val signOutUserRequest = SignOutUserRequest(
-            peToken = currentPEToken()?.token
+            peToken = currentPET?.token
         )
         Repository.instance.signOutUser(signOutUserRequest,
             object : IOnApiResponse {
                 override fun onSuccess(any: Any?) {
-                    GRDConnectManager.getCoroutineScope().launch {
-                        GRDVPNHelper.grdMsgFlow.emit(any.toString())
-                    }
                 }
 
                 override fun onError(error: String?) {
@@ -108,20 +99,11 @@ class GRDPEToken {
         )
     }
 
-    fun storePEToken(peToken: String) {
-        GRDKeystore.instance.saveToKeyStore(GRD_PE_TOKEN, peToken)
-    }
-
-    fun retrievePEToken(): String? {
-        return GRDKeystore.instance.retrieveFromKeyStore(GRD_PE_TOKEN)
-    }
-
     fun store() {
         this.token?.let { GRDKeystore.instance.saveToKeyStore(GRD_PE_TOKEN, it) }
         this.expirationDateUnix?.let {
-            GRDConnectManager.getSharedPrefs().edit()?.putLong(GRD_PE_TOKEN_EXPIRATION_DATE, it)?.apply()
+            GRDConnectManager.getSharedPrefsEditor().putLong(GRD_PE_TOKEN_EXPIRATION_DATE, it)?.apply()
         }
-        GRDConnectManager.getSharedPrefs().edit()?.putString(GRD_PE_TOKEN_CONNECT_API_ENV, this.connectAPIEnv)?.apply()
+        GRDConnectManager.getSharedPrefsEditor().putString(GRD_PE_TOKEN_CONNECT_API_ENV, this.connectAPIEnv)?.apply()
     }
-
 }

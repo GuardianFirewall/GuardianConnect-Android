@@ -202,14 +202,14 @@ class GRDConnectDevice {
         grdConnectSubscriber: GRDConnectSubscriber,
         iOnApiResponse: IOnApiResponse
     ) {
-        val pet = GRDPEToken.instance.retrievePEToken()
+        val pet = GRDPEToken.currentPEToken()
 
         val requestBody: MutableMap<String, Any> = mutableMapOf()
         requestBody[kGRDConnectSubscriberIdentifierKey] =
             grdConnectSubscriber.identifier as String
         requestBody[kGRDConnectSubscriberSecretKey] =
             grdConnectSubscriber.secret as String
-        requestBody[peTokenKey] = pet as String
+        requestBody[peTokenKey] = pet?.token.toString()
 
         val list = ArrayList<GRDConnectDevice>()
         Repository.instance.allConnectDevices(

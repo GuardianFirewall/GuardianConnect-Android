@@ -10,7 +10,6 @@ import com.google.gson.reflect.TypeToken
 import com.guardianconnect.GRDRegion
 import com.guardianconnect.api.IOnApiResponse
 import com.guardianconnect.api.Repository
-import com.guardianconnect.enumeration.GRDServerFeatureEnvironment
 import com.guardianconnect.model.api.GRDSGWServer
 import com.guardianconnect.model.api.TimeZonesResponse
 import com.guardianconnect.util.Constants
@@ -24,6 +23,13 @@ import java.util.TimeZone
 /* This class provides higher level helper functions to quickly get the list of VPN servers and
     pick one
 */
+
+enum class GRDServerFeatureEnvironment {
+	ServerFeatureEnvironmentProduction,
+	ServerFeatureEnvironmentInternal,
+	ServerFeatureEnvironmentDevelopment,
+	ServerFeatureEnvironmentUnstable
+}
 
 class GRDServerManager {
 	var regionPrecision: String? = null
@@ -175,12 +181,6 @@ class GRDServerManager {
                     val anyList = any as List<*>
                     val listOfServersToReturn = anyList.filterIsInstance<GRDSGWServer>()
                     iOnApiResponse.onSuccess(listOfServersToReturn)
-                    Log.d(
-                        TAG,
-                        "List of servers for selected region: " + Gson().toJson(
-                            listOfServersToReturn
-                        )
-                    )
                 }
 
                 override fun onError(error: String?) {
@@ -258,7 +258,7 @@ class GRDServerManager {
                                 val anyList = any as List<*>
                                 var regionsList = anyList.filterIsInstance<GRDRegion>()
                                 list.addAll(regionsList)
-                                list.sortWith(compareBy<GRDRegion> { item ->
+								list.sortWith(compareBy<GRDRegion> { item ->
                                     if (item.namePretty == GRD_AUTOMATIC_REGION) 0 else 1
                                 }.thenBy { it.namePretty.toString() })
 
@@ -306,8 +306,6 @@ class GRDServerManager {
     }
 
     interface OnRegionListener {
-
         fun onRegionsAvailable(listOfGRDRegions: List<GRDRegion>)
     }
-
 }

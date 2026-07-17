@@ -1,6 +1,5 @@
 package com.guardianconnect
 
-import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.internal.LazilyParsedNumber
 import com.guardianconnect.api.IOnApiResponse
@@ -12,21 +11,13 @@ import com.guardianconnect.util.GRDKeystore
 import java.util.Date
 
 class GRDConnectSubscriber {
-
     var identifier: String? = null
-
     var secret: String? = null
-
-    var email: String? = null
-
+	var email: String? = null
     var subscriptionSKU: String? = null
-
     var subscriptionNameFormatted: String? = null
-
     var subscriptionExpirationDate: Date? = null
-
     var createdAt: Date? = null
-
     var device: GRDConnectDevice? = null
 
     companion object {
@@ -59,11 +50,6 @@ class GRDConnectSubscriber {
                 newSubscriber.createdAt = Date(createdAtUnix * 1000)
             }
 
-            // Skip for the time being until the same function is
-            // implemented in GRDConnectDevice
-            newSubscriber.device = GRDConnectDevice.initFromMap(map)
-            newSubscriber.device?.currentDevice = true
-
             return newSubscriber
         }
 
@@ -77,6 +63,7 @@ class GRDConnectSubscriber {
                     Gson().fromJson(grdConnectSubscriberString, GRDConnectSubscriber::class.java)
                 grdConnectSubscriber.secret = secret
                 grdConnectSubscriber
+
             } else {
                 null
             }
@@ -110,9 +97,7 @@ class GRDConnectSubscriber {
        class property secret is stored as NULL in order to guarantee that the secret is never saved
        unencrypted. The function should return an error or NULL to indicate a successful or failed
        operation */
-    fun store(
-        grdConnectSubscriber: GRDConnectSubscriber
-    ): Exception? {
+    fun store(grdConnectSubscriber: GRDConnectSubscriber): Exception? {
         return try {
             grdConnectSubscriber.secret?.let {
                 GRDKeystore.instance.saveToKeyStore(
@@ -158,39 +143,36 @@ class GRDConnectSubscriber {
     }
 
     /* Returns an error or the new initialized GRDConnectSubscriber object */
-    fun registerNewConnectSubscriber(
-        acceptedTOS: Boolean,
-        deviceNickname: String,
-        iOnApiResponse: IOnApiResponse
-    ) {
+    fun registerNewConnectSubscriber(acceptedTOS: Boolean, deviceNickname: String, iOnApiResponse: IOnApiResponse) {
         val requestBody = mutableMapOf<String, Any>(
             kGRDConnectSubscriberIdentifierKey to this.identifier.toString(),
             kGRDConnectSubscriberSecretKey to this.secret.toString(),
             kGRDConnectSubscriberAcceptedTOSKey to acceptedTOS,
             kGuardianConnectSubscriberPETNickname to deviceNickname
         )
-        Repository.instance.createNewGRDConnectSubscriber(
-            requestBody,
-            object : IOnApiResponse {
-                override fun onSuccess(any: Any?) {
-                    val response = any as MutableMap<String, Any>
+        Repository.instance.createNewGRDConnectSubscriber(requestBody, object : IOnApiResponse {
+			override fun onSuccess(any: Any?) {
+				@Suppress("UNCHECKED_CAST")
+				val response = (any as Map<String, Any>).toMutableMap()
 
-                    val pet = GRDPEToken.newPETFromMap(
-                        response, GRDVPNHelper.connectAPIHostname
-                    )
-                    pet?.store()
-                    response[kGRDConnectSubscriberSecretKey] = this@GRDConnectSubscriber.secret.toString()
-                    val grdConnectSubscriber = initFromMap(response)
-                    grdConnectSubscriber.secret = requestBody[kGRDConnectSubscriberSecretKey] as? String
-                    grdConnectSubscriber.identifier = requestBody[kGRDConnectSubscriberIdentifierKey] as? String
-                    store(grdConnectSubscriber)
-                    iOnApiResponse.onSuccess(grdConnectSubscriber)
-                }
+				val pet = GRDPEToken.newPETFromMap(response, GRDVPNHelper.connectAPIHostname)
+				pet?.store()
+				response[kGRDConnectSubscriberSecretKey] = this@GRDConnectSubscriber.secret.toString()
+				val newSubscriber = initFromMap(response)
+				newSubscriber.secret = requestBody[kGRDConnectSubscriberSecretKey] as? String
+				newSubscriber.identifier = requestBody[kGRDConnectSubscriberIdentifierKey] as? String
 
-                override fun onError(error: String?) {
-                    iOnApiResponse.onError(error)
-                }
-            })
+				newSubscriber.device = GRDConnectDevice.initFromMap(response)
+				newSubscriber.device?.currentDevice = true
+
+				store(newSubscriber)
+				iOnApiResponse.onSuccess(newSubscriber)
+			}
+
+			override fun onError(error: String?) {
+				iOnApiResponse.onError(error)
+			}
+		})
     }
 
     fun updateConnectSubscriber(
@@ -203,56 +185,48 @@ class GRDConnectSubscriber {
             secret as String
         requestBody[kGRDConnectSubscriberEmailKey] = email as String
 
-        Repository.instance.updateGRDConnectSubscriber(
-            requestBody,
-            object : IOnApiResponse {
-                override fun onSuccess(any: Any?) {
-                    val response = any as MutableMap<String, Any>
-                    val grdConnectSubscriber = initFromMap(response)
-                    iOnApiResponse.onSuccess(grdConnectSubscriber)
-                }
+        Repository.instance.updateGRDConnectSubscriber(requestBody,object : IOnApiResponse {
+			override fun onSuccess(any: Any?) {
+				@Suppress("UNCHECKED_CAST")
+				val response = any as Map<String, Any>
+				val grdConnectSubscriber = initFromMap(response)
+				iOnApiResponse.onSuccess(grdConnectSubscriber)
+			}
 
-                override fun onError(error: String?) {
-                    iOnApiResponse.onError(error)
-                }
-            })
+			override fun onError(error: String?) {
+				iOnApiResponse.onError(error)
+			}
+		})
     }
 
-    fun validateConnectSubscriber(
-        iOnApiResponse: IOnApiResponse
-    ) {
-        val pet = GRDPEToken.instance.retrievePEToken()
+    fun validateConnectSubscriber(iOnApiResponse: IOnApiResponse) {
+        val pet = GRDPEToken.currentPEToken()
 
         val requestBody: MutableMap<String, Any> = mutableMapOf()
-        requestBody[kGRDConnectSubscriberIdentifierKey] =
-            identifier as String
-        requestBody[kGRDConnectSubscriberSecretKey] =
-            secret as String
-        requestBody[peTokenKey] = pet as String
+        requestBody[kGRDConnectSubscriberIdentifierKey] = identifier as String
+        requestBody[kGRDConnectSubscriberSecretKey] = secret as String
+        requestBody[peTokenKey] = pet?.token.toString()
 
-        Repository.instance.validateGRDConnectSubscriber(
-            requestBody,
-            object : IOnApiResponse {
-                override fun onSuccess(any: Any?) {
-                    val response = any as MutableMap<String, Any>
-                    val grdConnectSubscriber = initFromMap(response)
-                    iOnApiResponse.onSuccess(grdConnectSubscriber)
-                }
+        Repository.instance.validateGRDConnectSubscriber(requestBody, object : IOnApiResponse {
+			override fun onSuccess(any: Any?) {
+				@Suppress("UNCHECKED_CAST")
+				val response = any as Map<String, Any>
+				val grdConnectSubscriber = initFromMap(response)
+				iOnApiResponse.onSuccess(grdConnectSubscriber)
+			}
 
-                override fun onError(error: String?) {
-                    iOnApiResponse.onError(error)
-                }
-            })
+			override fun onError(error: String?) {
+				iOnApiResponse.onError(error)
+			}
+		})
     }
 
-    fun logoutConnectSubscriber(
-        iOnApiResponse: IOnApiResponse
-    ) {
-        val pet = GRDPEToken.instance.retrievePEToken()
+    fun logoutConnectSubscriber(iOnApiResponse: IOnApiResponse) {
+        val pet = GRDPEToken.currentPEToken()
         val publishableKey = GRDVPNHelper.connectPublishableKey
-        if (pet != null && publishableKey.isNotEmpty()) {
+        if (!pet?.token.isNullOrEmpty() && publishableKey.isNotEmpty()) {
             val logoutConnectSubscriberRequest: MutableMap<String, Any> = mutableMapOf()
-            logoutConnectSubscriberRequest[peTokenKey] = pet
+            logoutConnectSubscriberRequest[peTokenKey] = pet.token.toString()
             logoutConnectSubscriberRequest[connectPublishableKey] = publishableKey
             Repository.instance.logoutConnectSubscriber(
                 logoutConnectSubscriberRequest,
@@ -270,51 +244,43 @@ class GRDConnectSubscriber {
         }
     }
 
-    fun connectDeviceReference(
-        iOnApiResponse: IOnApiResponse
-    ) {
-        val pet = GRDPEToken.instance.retrievePEToken()
-        if (pet.isNullOrEmpty() == true) {
+    fun connectDeviceReference(iOnApiResponse: IOnApiResponse) {
+        val pet = GRDPEToken.currentPEToken()
+        if (pet?.token.isNullOrEmpty()) {
             iOnApiResponse.onError("PE-Token missing")
             return
         }
 
         val requestBody: MutableMap<String, Any> = mutableMapOf()
-        requestBody[kGRDConnectSubscriberIdentifierKey] =
-            identifier as String
-        requestBody[kGRDConnectSubscriberSecretKey] =
-            secret as String
-        requestBody[peTokenKey] = pet as String
+        requestBody[kGRDConnectSubscriberIdentifierKey] = identifier as String
+        requestBody[kGRDConnectSubscriberSecretKey] = secret as String
+        requestBody[peTokenKey] = pet
 
-        Repository.instance.getConnectDeviceReference(
-            requestBody,
-            object : IOnApiResponse {
-                override fun onSuccess(any: Any?) {
-                    if (any != null) {
-                        val response = any as MutableMap<String, Any>
-                        val grdConnectDevice = initFromMap(response).device
+        Repository.instance.getConnectDeviceReference(requestBody, object : IOnApiResponse {
+			override fun onSuccess(any: Any?) {
+				if (any != null) {
+					@Suppress("UNCHECKED_CAST")
+					val response = any as Map<String, Any>
+					val grdConnectDevice = initFromMap(response).device
 
-                        // Note from CJ 2023-12-06
-                        // Setting the GRDConnectSubscriber instance's device to the GRDConnectDevice
-                        // that was returned by the server to allow for easy access to the data
-                        this@GRDConnectSubscriber.device = grdConnectDevice
-                        iOnApiResponse.onSuccess(grdConnectDevice)
+					// Note from CJ 2023-12-06
+					// Setting the GRDConnectSubscriber instance's device to the GRDConnectDevice
+					// that was returned by the server to allow for easy access to the data
+					this@GRDConnectSubscriber.device = grdConnectDevice
+					iOnApiResponse.onSuccess(grdConnectDevice)
 
-                    } else {
-                        iOnApiResponse.onError("No GRDConnectDevice refs available")
-                    }
-                }
+				} else {
+					iOnApiResponse.onError("No GRDConnectDevice refs available")
+				}
+			}
 
-                override fun onError(error: String?) {
-                    iOnApiResponse.onError(error)
-                }
-            }
-        )
+			override fun onError(error: String?) {
+				iOnApiResponse.onError(error)
+			}
+		})
     }
 
-    fun allDevices(
-        iOnApiResponse: IOnApiResponse
-    ) {
+    fun allDevices(iOnApiResponse: IOnApiResponse) {
         // Check if identifier or secret are null or empty
         if (identifier.isNullOrEmpty() || secret.isNullOrEmpty()) {
             iOnApiResponse.onSuccess(ArrayList<GRDConnectDevice>())
@@ -322,10 +288,8 @@ class GRDConnectSubscriber {
         }
 
         val requestBody: MutableMap<String, Any> = mutableMapOf()
-        requestBody[kGRDConnectSubscriberIdentifierKey] =
-            identifier as String
-        requestBody[kGRDConnectSubscriberSecretKey] =
-            secret as String
+        requestBody[kGRDConnectSubscriberIdentifierKey] = identifier as String
+        requestBody[kGRDConnectSubscriberSecretKey] =  secret as String
         //
         // Note from CJ 2024-08-02
         // Commenting this out for the time being
@@ -335,38 +299,36 @@ class GRDConnectSubscriber {
         //requestBody[peTokenKey] = pet as String
 
         val list = ArrayList<GRDConnectDevice>()
-        Repository.instance.allConnectDevices(
-            requestBody,
-            object : IOnApiResponse {
-                override fun onSuccess(any: Any?) {
-                    if (any != null) {
-                        val anyList = any as List<*>
-                        val allDevices =
-                            anyList.filterIsInstance<GRDConnectDevice>()
-                        for (device in allDevices) {
-                            device.createdAt = Date((device.createdAtUnix ?: 0) * 1000)
-                            device.petExpires = Date((device.petExpiresUnix ?: 0) * 1000)
-                        }
-                        list.addAll(allDevices)
+        Repository.instance.allConnectDevices(requestBody, object : IOnApiResponse {
+			override fun onSuccess(any: Any?) {
+				if (any != null) {
+					val anyList = any as List<*>
+					val allDevices = anyList.filterIsInstance<GRDConnectDevice>()
+					for (device in allDevices) {
+						device.createdAt = Date((device.createdAtUnix ?: 0) * 1000)
+						device.petExpires = Date((device.petExpiresUnix ?: 0) * 1000)
+					}
+					list.addAll(allDevices)
 
-                        val currentDevice = this@GRDConnectSubscriber.device
-                        if (currentDevice != null) {
-                            list.forEach { device ->
-                                if (device.uuid == currentDevice.uuid) {
-                                    device.currentDevice = true
-                                }
-                            }
-                        }
-                        iOnApiResponse.onSuccess(list)
-                    } else {
-                        iOnApiResponse.onSuccess(ArrayList<GRDConnectDevice>())
-                    }
-                }
+					val currentDevice = this@GRDConnectSubscriber.device
+					if (currentDevice != null) {
+						list.forEach { device ->
+							if (device.uuid == currentDevice.uuid) {
+								device.currentDevice = true
+							}
+						}
+					}
+					iOnApiResponse.onSuccess(list)
 
-                override fun onError(error: String?) {
-                    iOnApiResponse.onError(error)
-                }
-            })
+				} else {
+					iOnApiResponse.onSuccess(ArrayList<GRDConnectDevice>())
+				}
+			}
+
+			override fun onError(error: String?) {
+				iOnApiResponse.onError(error)
+			}
+		})
     }
 
     fun checkGuardianAccountSetupState(
