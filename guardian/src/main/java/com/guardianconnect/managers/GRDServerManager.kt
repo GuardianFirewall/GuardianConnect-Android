@@ -181,12 +181,6 @@ class GRDServerManager {
                     val anyList = any as List<*>
                     val listOfServersToReturn = anyList.filterIsInstance<GRDSGWServer>()
                     iOnApiResponse.onSuccess(listOfServersToReturn)
-                    Log.d(
-                        TAG,
-                        "List of servers for selected region: " + Gson().toJson(
-                            listOfServersToReturn
-                        )
-                    )
                 }
 
                 override fun onError(error: String?) {
